@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Velvet Checklist</title>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --secondary-blue: #1d4ed8;
+            --accent-cyan: #06b6d4;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --radius: 20px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Make checklist draggable */
+        .task-checklist {
+            -webkit-app-region: drag;
+        }
+        
+        /* Make interactive elements clickable (not draggable) */
+        button, input, .checkbox, .task-item, .interactive, .close-button {
+            -webkit-app-region: no-drag;
+        }
+        
+        /* Full-screen draggable checklist */
+        .task-checklist {
+            width: 360px;
+            max-height: 580px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.98) 0%,
+                    rgba(30, 41, 59, 0.96) 50%,
+                    rgba(15, 23, 42, 0.98) 100%
+                );
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            border-radius: 20px;
+            padding: 24px;
+            color: var(--text-primary);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 10px 30px rgba(37, 99, 235, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .task-checklist-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: -24px -24px 20px -24px;
+            padding: 16px 24px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(59, 130, 246, 0.15) 0%,
+                    rgba(37, 99, 235, 0.1) 100%
+                );
+            border-radius: 20px 20px 0 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            cursor: move;
+            user-select: none;
+            -webkit-app-region: drag;
+        }
+
+        .task-checklist-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-checklist-title svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.8;
+            opacity: 0.9;
+        }
+
+        .task-checklist-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            -webkit-app-region: no-drag;
+        }
+
+        .task-checklist-minimize,
+        .task-checklist-close {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .task-checklist-minimize {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(249, 115, 22, 0.8) 0%, 
+                    rgba(234, 88, 12, 0.9) 100%
+                );
+        }
+
+        .task-checklist-minimize:hover {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(249, 115, 22, 1) 0%, 
+                    rgba(234, 88, 12, 1) 100%
+                );
+            transform: scale(1.1);
+        }
+
+        .task-checklist-close {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(239, 68, 68, 0.8) 0%, 
+                    rgba(220, 38, 38, 0.9) 100%
+                );
+        }
+
+        .task-checklist-close:hover {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(239, 68, 68, 1) 0%, 
+                    rgba(220, 38, 38, 1) 100%
+                );
+            transform: scale(1.1);
+        }
+
+        .task-goal {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .task-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .task-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+        }
+
+        .task-list::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+            border-radius: 2px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .task-item:last-child {
+            border-bottom: none;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            border-radius: 6px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-checkbox.completed {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9));
+            border-color: rgba(34, 197, 94, 0.6);
+            animation: checkboxComplete 0.5s ease;
+        }
+
+        .task-checkbox.completed::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .task-item.completed .task-text {
+            color: var(--text-secondary);
+            text-decoration: line-through;
+        }
+
+        .task-time {
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .task-progress {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .task-progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .task-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, rgba(34, 197, 94, 0.8), rgba(6, 182, 212, 0.8));
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+
+        .task-progress-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        @keyframes checkboxComplete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes taskComplete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); box-shadow: 0 0 20px rgba(34, 197, 94, 0.6); }
+            100% { transform: scale(1); }
+        }
+
+        .task-checklist.task-completed {
+            animation: taskComplete 0.6s ease-out;
+        }
+
+        .task-checklist.minimized {
+            transform: scale(0.3);
+            pointer-events: auto;
+        }
+
+        .task-checklist.minimized .task-list,
+        .task-checklist.minimized .task-goal,
+        .task-checklist.minimized .task-progress {
+            display: none;
+        }
+
+        .task-checklist.minimized .task-checklist-header {
+            margin: -24px -24px -24px -24px;
+            border-radius: 20px;
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="task-checklist" id="taskChecklist">
+        <div class="task-checklist-header" id="taskChecklistHeader">
+            <div class="task-checklist-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                <span>Active Task</span>
+            </div>
+            <div class="task-checklist-controls">
+                <button class="task-checklist-minimize" id="taskChecklistMinimize">−</button>
+                <button class="task-checklist-close" id="taskChecklistClose">×</button>
+            </div>
+        </div>
+        <div class="task-goal" id="taskGoal">Ready to break down your task!</div>
+        <ul class="task-list" id="taskList"></ul>
+        <div class="task-progress">
+            <div class="task-progress-bar">
+                <div class="task-progress-fill" id="taskProgressFill"></div>
+            </div>
+            <div class="task-progress-text" id="taskProgressText">0% complete</div>
+        </div>
+    </div>
+
+    <script>
+        const taskChecklist = document.getElementById('taskChecklist');
+        const taskChecklistClose = document.getElementById('taskChecklistClose');
+        const taskChecklistMinimize = document.getElementById('taskChecklistMinimize');
+        const taskGoal = document.getElementById('taskGoal');
+        const taskList = document.getElementById('taskList');
+        const taskProgressFill = document.getElementById('taskProgressFill');
+        const taskProgressText = document.getElementById('taskProgressText');
+        
+        let currentTask = null;
+        let isMinimized = false;
+
+        // Listen for task data from main window
+        if (window.electronAPI?.checklist) {
+            window.electronAPI.checklist.onTaskData((taskData) => {
+                console.log('📋 Received task data:', taskData);
+                currentTask = taskData;
+                updateChecklist();
+            });
+        }
+
+        // Close button
+        taskChecklistClose.addEventListener('click', () => {
+            if (window.electronAPI?.checklist) {
+                window.electronAPI.checklist.close();
+            }
+        });
+
+        // Minimize button
+        taskChecklistMinimize.addEventListener('click', () => {
+            isMinimized = !isMinimized;
+            
+            if (isMinimized) {
+                taskChecklist.classList.add('minimized');
+                taskChecklistMinimize.textContent = '□';
+            } else {
+                taskChecklist.classList.remove('minimized');
+                taskChecklistMinimize.textContent = '−';
+            }
+        });
+
+        // Update checklist display
+        function updateChecklist() {
+            if (!currentTask) return;
+            
+            // Update goal
+            taskGoal.textContent = `Goal: ${currentTask.goal}`;
+            
+            // Clear and populate task list
+            taskList.innerHTML = '';
+            
+            currentTask.steps.forEach((step, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'task-item';
+                
+                const isCompleted = index < currentTask.currentStepIndex;
+                
+                listItem.innerHTML = `
+                    <div class="task-checkbox ${isCompleted ? 'completed' : ''}" data-step="${index}"></div>
+                    <div class="task-content">
+                        <div class="task-text">${step.task}</div>
+                        <div class="task-time">${step.estimatedMinutes} min${step.expectedApps.length > 0 ? ' • ' + step.expectedApps.join(', ') : ''}</div>
+                    </div>
+                `;
+                
+                if (isCompleted) {
+                    listItem.classList.add('completed');
+                }
+                
+                taskList.appendChild(listItem);
+            });
+            
+            // Update progress
+            const completedSteps = currentTask.currentStepIndex;
+            const totalSteps = currentTask.steps.length;
+            const progressPercent = Math.round((completedSteps / totalSteps) * 100);
+            
+            taskProgressFill.style.width = `${progressPercent}%`;
+            taskProgressText.textContent = `${progressPercent}% complete (${completedSteps}/${totalSteps} steps)`;
+        }
+
+        // Manual step completion by clicking checkboxes
+        taskList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('task-checkbox') && !e.target.classList.contains('completed')) {
+                const stepIndex = parseInt(e.target.dataset.step);
+                if (stepIndex === currentTask.currentStepIndex) {
+                    // Complete this step
+                    currentTask.currentStepIndex++;
+                    updateChecklist();
+                    
+                    // Notify main window of step completion
+                    if (window.electronAPI?.checklist) {
+                        window.electronAPI.checklist.update(currentTask);
+                    }
+                    
+                    // Celebration animation
+                    taskChecklist.classList.add('task-completed');
+                    setTimeout(() => taskChecklist.classList.remove('task-completed'), 600);
+                }
+            }
+        });
+
+        console.log('📋 Checklist window loaded');
+    </script>
+</body>
+</html>

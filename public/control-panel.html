@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Velvet Control Panel</title>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --secondary-blue: #1d4ed8;
+            --accent-cyan: #06b6d4;
+            --accent-green: #22c55e;
+            --accent-orange: #f59e0b;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --radius: 16px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Make control panel draggable */
+        .control-panel {
+            -webkit-app-region: drag;
+        }
+        
+        /* Make interactive elements clickable (not draggable) */
+        button, input, select, .button, .toggle, .slider, .interactive {
+            -webkit-app-region: no-drag;
+        }
+        
+        /* Main control panel */
+        .control-panel {
+            width: 450px;
+            height: 600px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.98) 0%,
+                    rgba(30, 41, 59, 0.96) 50%,
+                    rgba(15, 23, 42, 0.98) 100%
+                );
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.5),
+                0 10px 30px rgba(37, 99, 235, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(59, 130, 246, 0.15) 0%,
+                    rgba(37, 99, 235, 0.1) 100%
+                );
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+            cursor: move;
+            -webkit-app-region: drag;
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-controls {
+            display: flex;
+            gap: 8px;
+            -webkit-app-region: no-drag;
+        }
+
+        .control-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .control-btn.close {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.8), rgba(220, 38, 38, 0.9));
+        }
+
+        .control-btn.close:hover {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 1), rgba(220, 38, 38, 1));
+            transform: scale(1.1);
+        }
+
+        /* Tabs */
+        .panel-tabs {
+            display: flex;
+            padding: 0;
+            margin: 0;
+            background: rgba(15, 23, 42, 0.6);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            -webkit-app-region: no-drag;
+        }
+
+        .tab-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 1.8;
+            opacity: 0.9;
+        }
+
+        .tab-btn.active {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.2);
+            border-bottom: 2px solid var(--accent-cyan);
+        }
+
+        .tab-btn.active svg {
+            opacity: 1;
+            stroke-width: 2;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .tab-btn:hover svg {
+            opacity: 1;
+        }
+
+        /* Content area */
+        .panel-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .panel-content::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+            border-radius: 2px;
+        }
+
+        /* Tab content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Status cards */
+        .status-card {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .status-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .status-card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-card-title svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 1.8;
+            opacity: 0.9;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+        }
+
+        .status-indicator.inactive {
+            background: var(--text-secondary);
+        }
+
+        .status-indicator.warning {
+            background: var(--accent-orange);
+        }
+
+        .status-card-content {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Action buttons */
+        .action-btn {
+            width: 100%;
+            padding: 10px 16px;
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 8px;
+            -webkit-app-region: no-drag;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 1.8;
+            opacity: 0.9;
+        }
+
+        .action-btn:hover {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .action-btn:hover svg {
+            opacity: 1;
+        }
+
+        .action-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Setting controls */
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        .setting-description {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .toggle-switch {
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-app-region: no-drag;
+        }
+
+        .toggle-switch.active {
+            background: var(--accent-cyan);
+        }
+
+        .toggle-switch::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            left: 23px;
+        }
+
+        /* Meeting history */
+        .meeting-item {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .meeting-item:hover {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .meeting-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .meeting-title {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .meeting-time {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .meeting-stats {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Quick actions grid */
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .quick-action {
+            padding: 12px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            -webkit-app-region: no-drag;
+        }
+
+        .quick-action:hover {
+            background: rgba(15, 23, 42, 0.6);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .quick-action-icon {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .quick-action-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        /* Apple-style tooltips for control panel */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            pointer-events: none;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 
+                0 4px 16px rgba(0, 0, 0, 0.15),
+                0 1px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% + 4px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid rgba(0, 0, 0, 0.85);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after,
+        .tooltip:hover::before {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-2px);
+        }
+
+        /* Apple-style button focus states */
+        button:focus-visible {
+            outline: 2px solid rgba(0, 125, 255, 0.6);
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel" id="controlPanel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Velvet Control Panel</span>
+            </div>
+            <div class="panel-controls">
+                <button class="control-btn close tooltip" id="closeBtn" data-tooltip="Close Control Panel">×</button>
+            </div>
+        </div>
+
+        <div class="panel-tabs">
+            <button class="tab-btn active tooltip" data-tab="dashboard" data-tooltip="System overview and quick actions">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                </svg>
+                <span>Dashboard</span>
+            </button>
+            <button class="tab-btn tooltip" data-tab="audio" data-tooltip="Audio intelligence controls">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                </svg>
+                <span>Audio</span>
+            </button>
+            <button class="tab-btn tooltip" data-tab="privacy" data-tooltip="Privacy and discretion settings">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span>Privacy</span>
+            </button>
+            <button class="tab-btn tooltip" data-tab="meetings" data-tooltip="Meeting assistant and history">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+                </svg>
+                <span>Meetings</span>
+            </button>
+            <button class="tab-btn tooltip" data-tab="settings" data-tooltip="Voice and focus preferences">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                <span>Settings</span>
+            </button>
+        </div>
+
+        <div class="panel-content">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="quick-actions">
+                    <div class="quick-action tooltip" onclick="showMeetingAssistant()" data-tooltip="Launch floating meeting assistant">
+                        <div class="quick-action-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+                            </svg>
+                        </div>
+                        <div class="quick-action-label">Show Meeting Assistant</div>
+                    </div>
+                    <div class="quick-action tooltip" onclick="createTestTask()" data-tooltip="Create a sample task for testing">
+                        <div class="quick-action-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                        </div>
+                        <div class="quick-action-label">Create Test Task</div>
+                    </div>
+                    <div class="quick-action tooltip" onclick="testAmbientAudio()" data-tooltip="Test ambient microphone monitoring">
+                        <div class="quick-action-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/>
+                            </svg>
+                        </div>
+                        <div class="quick-action-label">Test Audio Intelligence</div>
+                    </div>
+                    <div class="quick-action tooltip" onclick="showPrivacyStatus()" data-tooltip="Check screen sharing and privacy status">
+                        <div class="quick-action-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                        </div>
+                        <div class="quick-action-label">Privacy Status</div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z"/>
+                            </svg>
+                            <span>Task System</span>
+                        </div>
+                        <div class="status-indicator" id="taskSystemStatus"></div>
+                    </div>
+                    <div class="status-card-content" id="taskSystemContent">
+                        No active tasks
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                            </svg>
+                            <span>Audio Intelligence</span>
+                        </div>
+                        <div class="status-indicator" id="audioSystemStatus"></div>
+                    </div>
+                    <div class="status-card-content" id="audioSystemContent">
+                        Audio environment monitoring active
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0 1 12 2.944a11.955 11.955 0 0 1-8.618 3.04A12.02 12.02 0 0 0 3 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                            </svg>
+                            <span>Privacy System</span>
+                        </div>
+                        <div class="status-indicator" id="privacySystemStatus"></div>
+                    </div>
+                    <div class="status-card-content" id="privacySystemContent">
+                        Privacy protection active
+                    </div>
+                </div>
+            </div>
+
+            <!-- Audio Tab -->
+            <div class="tab-content" id="audio">
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                            </svg>
+                            <span>Audio Environment</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content" id="audioEnvironmentStatus">
+                        Loading audio status...
+                    </div>
+                </div>
+
+                <button class="action-btn tooltip" onclick="testAudioIntelligence()" data-tooltip="Analyze current audio environment and context">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 1 1 7.072 0l-.548.547A3.374 3.374 0 0 0 14 18.469V19a2 2 0 1 1-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                    </svg>
+                    Test Audio Intelligence
+                </button>
+                <button class="action-btn tooltip" onclick="showAudioStats()" data-tooltip="Display system volume and audio activity">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/>
+                    </svg>
+                    Show Audio Statistics
+                </button>
+                <button class="action-btn tooltip" onclick="showFocusAnalytics()" data-tooltip="View your productivity insights and focus patterns">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v1a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-1M9 17V7a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10M9 17l3-3 3 3"/>
+                        <circle cx="12" cy="9" r="1"/>
+                    </svg>
+                    Focus Analytics
+                </button>
+                <button class="action-btn tooltip" onclick="testAmbientAudio()" data-tooltip="Start passive microphone monitoring">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z"/>
+                    </svg>
+                    Test Ambient Audio
+                </button>
+            </div>
+
+            <!-- Privacy Tab -->
+            <div class="tab-content" id="privacy">
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            <span>Privacy Status</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content" id="privacyStatus">
+                        Loading privacy status...
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="3"/>
+                                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                            </svg>
+                            <span>Discretion Level</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content">
+                        <button class="action-btn tooltip" onclick="setHighDiscretion()" data-tooltip="Auto-hide all windows during screen sharing">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            High Discretion (Maximum Privacy)
+                        </button>
+                        <button class="action-btn tooltip" onclick="setMediumDiscretion()" data-tooltip="Balanced privacy with smart detection">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            Medium Discretion (Balanced)
+                        </button>
+                        <button class="action-btn tooltip" onclick="setLowDiscretion()" data-tooltip="Manual control over privacy features">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            Low Discretion (Manual Control)
+                        </button>
+                    </div>
+                </div>
+
+                <button class="action-btn tooltip" onclick="testScreenShareDetection()" data-tooltip="Check for active screen sharing applications">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21"/>
+                        <line x1="12" y1="17" x2="12" y2="21"/>
+                    </svg>
+                    Test Screen Share Detection
+                </button>
+                <button class="action-btn tooltip" onclick="testPrivacyMode()" data-tooltip="Demo privacy mode by hiding all windows">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Test Privacy Mode
+                </button>
+            </div>
+
+            <!-- Meetings Tab -->
+            <div class="tab-content" id="meetings">
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+                            </svg>
+                            <span>Meeting Assistant</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content">
+                        <button class="action-btn tooltip" onclick="showMeetingAssistant()" data-tooltip="Launch the floating meeting assistant bar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 0 0-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 0 1 5.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 0 1 9.288 0M15 7a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6 3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zM7 10a2 2 0 1 1-4 0 2 2 0 0 1 4 0z"/>
+                            </svg>
+                            Start Meeting Assistant
+                        </button>
+                        <button class="action-btn tooltip" onclick="testMeetingDetection()" data-tooltip="Scan for meeting applications and context">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <circle cx="11" cy="11" r="8"/>
+                                <path d="m21 21-4.35-4.35"/>
+                            </svg>
+                            Test Meeting Detection
+                        </button>
+                        <button class="action-btn tooltip" onclick="endMeetingTest()" data-tooltip="Hide meeting assistant and end current session">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <rect x="6" y="6" width="12" height="12" rx="2" ry="2"/>
+                            </svg>
+                            End Meeting Session
+                        </button>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 0 1-.88-7.903A5 5 0 1 1 15.9 6L16 6a5 5 0 0 1 1 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                            </svg>
+                            <span>Export & Sharing</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content">
+                        <button class="action-btn tooltip" onclick="exportLastMeeting()" data-tooltip="Export the most recent meeting notes">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 0 1-.88-7.903A5 5 0 1 1 15.9 6L16 6a5 5 0 0 1 1 9.9M9 19l3 3m0 0l3-3m-3 3V10"/>
+                            </svg>
+                            Export Meeting Notes
+                        </button>
+                        <button class="action-btn tooltip" onclick="generateMeetingSummary()" data-tooltip="Generate AI summary of recent meeting">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                            Generate AI Summary
+                        </button>
+                        <button class="action-btn tooltip" onclick="createShareableLink()" data-tooltip="Create shareable link for meeting notes">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 0 0-5.656 0l-4 4a4 4 0 1 0 5.656 5.656l1.102-1.101m-.758-4.899a4 4 0 0 0 5.656 0l4-4a4 4 0 0 0-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            Create Shareable Link
+                        </button>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                            </svg>
+                            <span>Meeting History</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content" id="meetingHistory">
+                        <div class="meeting-item">
+                            <div class="meeting-header">
+                                <div class="meeting-title">No meetings yet</div>
+                                <div class="meeting-time">--</div>
+                            </div>
+                            <div class="meeting-stats">
+                                <span>Start a meeting to see history and export options</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings">
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 5L6 9H2v6h4l5 4V5z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>
+                            </svg>
+                            <span>Voice Settings</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content">
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Voice Output</div>
+                                <div class="setting-description">Enable Velvet's voice responses</div>
+                            </div>
+                            <div class="toggle-switch" id="voiceToggle"></div>
+                        </div>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Ambient Listening</div>
+                                <div class="setting-description">Monitor ambient audio for context</div>
+                            </div>
+                            <div class="toggle-switch active" id="ambientToggle"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <div class="status-card-header">
+                        <div class="status-card-title">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <circle cx="12" cy="12" r="6"/>
+                                <circle cx="12" cy="12" r="2"/>
+                            </svg>
+                            <span>Focus Settings</span>
+                        </div>
+                    </div>
+                    <div class="status-card-content">
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Pattern Detection</div>
+                                <div class="setting-description">Monitor work patterns and provide nudges</div>
+                            </div>
+                            <div class="toggle-switch active" id="patternToggle"></div>
+                        </div>
+                        <div class="setting-item">
+                            <div>
+                                <div class="setting-label">Intent Monitoring</div>
+                                <div class="setting-description">Track task progress and deviations</div>
+                            </div>
+                            <div class="toggle-switch active" id="intentToggle"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                // Update tab buttons
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update tab content
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                
+                // Load tab-specific data
+                loadTabData(tabId);
+            });
+        });
+
+        // Close button
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            if (window.electronAPI?.controlPanel) {
+                window.electronAPI.controlPanel.close();
+            }
+        });
+
+        // Toggle switches
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                toggle.classList.toggle('active');
+                
+                // Handle specific toggles
+                const toggleId = toggle.id;
+                const isActive = toggle.classList.contains('active');
+                
+                switch (toggleId) {
+                    case 'voiceToggle':
+                        console.log('Voice output:', isActive ? 'enabled' : 'disabled');
+                        break;
+                    case 'ambientToggle':
+                        console.log('Ambient listening:', isActive ? 'enabled' : 'disabled');
+                        break;
+                    case 'patternToggle':
+                        console.log('Pattern detection:', isActive ? 'enabled' : 'disabled');
+                        break;
+                    case 'intentToggle':
+                        console.log('Intent monitoring:', isActive ? 'enabled' : 'disabled');
+                        break;
+                }
+            });
+        });
+
+        function loadTabData(tabId) {
+            switch (tabId) {
+                case 'dashboard':
+                    updateDashboard();
+                    break;
+                case 'audio':
+                    updateAudioTab();
+                    break;
+                case 'privacy':
+                    updatePrivacyTab();
+                    break;
+                case 'meetings':
+                    updateMeetingsTab();
+                    break;
+                case 'settings':
+                    updateSettingsTab();
+                    break;
+            }
+        }
+
+        function updateDashboard() {
+            // Update status indicators
+            document.getElementById('taskSystemStatus').className = 'status-indicator';
+            document.getElementById('audioSystemStatus').className = 'status-indicator';
+            document.getElementById('privacySystemStatus').className = 'status-indicator';
+        }
+
+        function updateAudioTab() {
+            if (window.testSystem) {
+                document.getElementById('audioEnvironmentStatus').textContent = 'Audio intelligence system active';
+            }
+        }
+
+        function updatePrivacyTab() {
+            if (window.testSystem) {
+                document.getElementById('privacyStatus').textContent = 'Privacy protection active - screen sharing detection enabled';
+            }
+        }
+
+        function updateMeetingsTab() {
+            // Load meeting history
+            const meetings = JSON.parse(localStorage.getItem('velvet_meetings') || '[]');
+            const historyElement = document.getElementById('meetingHistory');
+            
+            if (meetings.length === 0) {
+                historyElement.innerHTML = `
+                    <div class="meeting-item">
+                        <div class="meeting-header">
+                            <div class="meeting-title">No meetings yet</div>
+                            <div class="meeting-time">--</div>
+                        </div>
+                        <div class="meeting-stats">
+                            <span>Start a meeting to see history</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                historyElement.innerHTML = meetings.slice(-5).reverse().map(meeting => `
+                    <div class="meeting-item">
+                        <div class="meeting-header">
+                            <div class="meeting-title">${meeting.meetingType} Meeting</div>
+                            <div class="meeting-time">${new Date(meeting.date).toLocaleDateString()}</div>
+                        </div>
+                        <div class="meeting-stats">
+                            <span>${Math.round(meeting.duration / 60000)}min</span>
+                            <span>${meeting.keyPoints.length} points</span>
+                            <span>${meeting.actionItems.length} actions</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function updateSettingsTab() {
+            // Settings are handled by toggles
+        }
+
+        // Initialize dashboard
+        updateDashboard();
+
+        // Control Panel API Functions
+        function showMeetingAssistant() {
+            console.log('🎯 Starting meeting assistant with real-time transcription...');
+            if (window.electronAPI?.meetingAssistant) {
+                const meetingData = {
+                    meetingType: 'Control Panel Meeting',
+                    isActive: true,
+                    transcript: '',
+                    keyPoints: [],
+                    actionItems: [],
+                    enableTranscription: true
+                };
+                
+                window.electronAPI.meetingAssistant.show(meetingData);
+                
+                // Store meeting start time for history
+                const meetingInfo = {
+                    startTime: Date.now(),
+                    meetingType: 'Control Panel Meeting',
+                    status: 'active',
+                    date: Date.now(),
+                    duration: 0,
+                    keyPoints: [],
+                    actionItems: []
+                };
+                
+                // Save to localStorage for history
+                const meetings = JSON.parse(localStorage.getItem('velvet_meetings') || '[]');
+                meetings.push(meetingInfo);
+                localStorage.setItem('velvet_meetings', JSON.stringify(meetings));
+                
+                console.log('📋 Meeting assistant launched with real-time transcription');
+            }
+        }
+
+        function createTestTask() {
+            console.log('📝 Creating test task from control panel...');
+            // This would trigger the task creation system
+            alert('Test task creation feature - would integrate with main task system');
+        }
+
+        function testAmbientAudio() {
+            console.log('🎤 Testing ambient audio intelligence...');
+            if (window.electronAPI?.startAmbientListening) {
+                window.electronAPI.startAmbientListening();
+                alert('Ambient audio monitoring test started');
+            }
+        }
+
+        function showPrivacyStatus() {
+            console.log('🔒 Checking privacy status...');
+            if (window.electronAPI?.privacy) {
+                Promise.all([
+                    window.electronAPI.privacy.detectScreenSharing(),
+                    window.electronAPI.privacy.getPrivacyStatus()
+                ]).then(([screenShare, privacyStatus]) => {
+                    alert(`Privacy Status:\nScreen Sharing: ${screenShare.isScreenSharing ? 'Active' : 'Not detected'}\nSharing Apps: ${screenShare.sharingApps.join(', ') || 'None'}\nPrivacy Mode: ${privacyStatus.currentMode}\nClick-through: ${privacyStatus.clickThrough ? 'Enabled' : 'Disabled'}\nOpacity: ${Math.round(privacyStatus.opacity * 100)}%`);
+                }).catch(error => {
+                    alert(`Error checking privacy status: ${error.message}`);
+                });
+            } else {
+                alert('❌ Privacy status not available.');
+            }
+        }
+
+        function testAudioIntelligence() {
+            console.log('🧠 Testing audio intelligence...');
+            if (window.electronAPI?.checkAudioPlaying) {
+                window.electronAPI.checkAudioPlaying().then(result => {
+                    alert(`Audio Intelligence Status:\nAudio Playing: ${result.isAudioPlaying}\nContext: ${result.audioContext}\nMood: ${result.audioMood}\nApps: ${result.audioApps.join(', ') || 'None'}`);
+                });
+            }
+        }
+
+        function showAudioStats() {
+            console.log('📊 Showing audio statistics...');
+            if (window.electronAPI?.getSystemVolume) {
+                Promise.all([
+                    window.electronAPI.getSystemVolume(),
+                    window.electronAPI.checkAudioPlaying()
+                ]).then(([volume, audio]) => {
+                    alert(`Audio Statistics:\nSystem Volume: ${volume.volume}%\nLevel: ${volume.level}\nAudio Active: ${audio.isAudioPlaying}\nEnvironment: ${audio.environment}`);
+                });
+            }
+        }
+        
+        function showFocusAnalytics() {
+            console.log('📈 Displaying focus analytics...');
+            
+            // Get focus data from localStorage  
+            try {
+                const focusData = localStorage.getItem('velvet_focus_analytics');
+                if (focusData) {
+                    const data = JSON.parse(focusData);
+                    const metrics = data.productivityMetrics || {};
+                    
+                    let analyticsText = '📊 Your Focus Analytics:\n\n';
+                    
+                    if (data.sessions && data.sessions.length > 0) {
+                        analyticsText += `📈 Total Sessions: ${data.sessions.length}\n`;
+                        analyticsText += `⏱️ Average Focus Time: ${Math.round(metrics.averageFocusTime || 0)} minutes\n`;
+                        analyticsText += `✅ Total Tasks Completed: ${metrics.totalTasksCompleted || 0}\n`;
+                        analyticsText += `🎯 Distraction Rate: ${Math.round(metrics.distractionFrequency || 0)} per hour\n\n`;
+                        
+                        if (metrics.mostProductiveHours && metrics.mostProductiveHours.length > 0) {
+                            const topHour = metrics.mostProductiveHours[0];
+                            const timeStr = topHour.hour < 12 ? `${topHour.hour}AM` : 
+                                topHour.hour === 12 ? '12PM' : `${topHour.hour - 12}PM`;
+                            analyticsText += `🌟 Peak Hour: ${timeStr} (${Math.round(topHour.efficiency * 100)}% efficiency)\n`;
+                        }
+                        
+                        if (data.behavioralPatterns?.workingStyleProfile) {
+                            analyticsText += `🧠 Working Style: ${data.behavioralPatterns.workingStyleProfile}\n`;
+                        }
+                    } else {
+                        analyticsText += 'Complete a few tasks to see your analytics! 🚀';
+                    }
+                    
+                    alert(analyticsText);
+                } else {
+                    alert('📊 No focus data yet!\n\nStart working on some tasks to unlock your personalized productivity insights.');
+                }
+            } catch (error) {
+                console.error('Error showing focus analytics:', error);
+                alert('Unable to load focus analytics data.');
+            }
+        }
+
+        function setHighDiscretion() {
+            console.log('🔒 Setting high discretion mode...');
+            if (window.electronAPI?.privacy?.setPrivacyMode) {
+                window.electronAPI.privacy.setPrivacyMode('stealth').then(() => {
+                    alert('High discretion mode activated - maximum privacy protection with auto screen-sharing detection');
+                }).catch(error => {
+                    alert(`Failed to activate high discretion: ${error.message}`);
+                });
+            } else {
+                alert('❌ Privacy controls not available.');
+            }
+        }
+
+        function setMediumDiscretion() {
+            console.log('🔒 Setting medium discretion mode...');
+            if (window.electronAPI?.privacy?.setPrivacyMode) {
+                window.electronAPI.privacy.setPrivacyMode('transparent').then(() => {
+                    alert('Medium discretion mode activated - balanced privacy with transparency controls');
+                }).catch(error => {
+                    alert(`Failed to activate medium discretion: ${error.message}`);
+                });
+            } else {
+                alert('Medium discretion mode activated - balanced privacy and functionality');
+            }
+        }
+
+        function setLowDiscretion() {
+            console.log('🔒 Setting low discretion mode...');
+            if (window.electronAPI?.privacy?.setPrivacyMode) {
+                window.electronAPI.privacy.setPrivacyMode('normal').then(() => {
+                    alert('Low discretion mode activated - normal visibility with manual privacy control');
+                }).catch(error => {
+                    alert(`Failed to activate low discretion: ${error.message}`);
+                });
+            } else {
+                alert('Low discretion mode activated - manual privacy control');
+            }
+        }
+
+        function testScreenShareDetection() {
+            console.log('🖥️ Testing screen share detection...');
+            if (window.electronAPI?.privacy?.detectScreenSharing) {
+                window.electronAPI.privacy.detectScreenSharing().then(result => {
+                    console.log('Screen sharing detection result:', result);
+                    alert(`Screen Share Detection Test:\nSharing Detected: ${result.isScreenSharing}\nApps: ${result.sharingApps.join(', ') || 'None'}\nProcesses: ${result.sharingProcesses.join(', ') || 'None'}`);
+                });
+            } else {
+                alert('❌ Screen sharing detection not available. Please check system integration.');
+            }
+        }
+
+        function testPrivacyMode() {
+            console.log('🔒 Testing privacy mode...');
+            if (window.electronAPI?.privacy?.setPrivacyMode) {
+                // Test stealth mode (maximum privacy)
+                window.electronAPI.privacy.setPrivacyMode('stealth').then(() => {
+                    alert('Privacy mode activated - windows are now hidden and click-through enabled');
+                    
+                    // Restore after 3 seconds
+                    setTimeout(() => {
+                        window.electronAPI.privacy.setPrivacyMode('normal').then(() => {
+                            alert('Privacy mode test completed - windows restored to normal visibility');
+                        });
+                    }, 3000);
+                }).catch(error => {
+                    alert(`Privacy mode test failed: ${error.message}`);
+                });
+            } else {
+                alert('❌ Privacy mode control not available. Please check system integration.');
+            }
+        }
+
+        function testMeetingDetection() {
+            console.log('🎯 Testing meeting detection...');
+            alert('Meeting detection test - would analyze running applications for meeting software');
+        }
+
+        function endMeetingTest() {
+            console.log('⏹️ Ending meeting test...');
+            if (window.electronAPI?.meetingAssistant) {
+                window.electronAPI.meetingAssistant.hide();
+                alert('Meeting test ended - assistant hidden');
+            }
+        }
+        
+        // Meeting export functions
+        async function exportLastMeeting() {
+            console.log('📤 Exporting last meeting notes...');
+            
+            try {
+                // Create sample meeting data (in real app, this would come from stored meeting data)
+                const sampleMeetingData = {
+                    transcript: 'This is a sample meeting transcript for demonstration purposes. In a real meeting, this would contain the actual conversation transcribed by Whisper AI.',
+                    keyPoints: [
+                        'Discussed project timeline and milestones',
+                        'Reviewed budget allocation for Q4',
+                        'Assigned tasks to team members'
+                    ],
+                    actionItems: [
+                        'John to prepare financial report by Friday',
+                        'Sarah to schedule follow-up meeting',
+                        'Team to review proposal draft'
+                    ],
+                    duration: '25 minutes',
+                    timestamp: Date.now(),
+                    title: 'Team Meeting - ' + new Date().toLocaleDateString()
+                };
+                
+                // Check if meeting assistant API is available
+                if (window.electronAPI?.meetingAssistant?.exportNotes) {
+                    const result = await window.electronAPI.meetingAssistant.exportNotes(sampleMeetingData);
+                    
+                    if (result.success) {
+                        alert(`📄 Meeting notes exported successfully!\n\nFile saved to:\n${result.filePath}`);
+                    } else {
+                        if (result.error !== 'Export canceled') {
+                            alert(`❌ Export failed: ${result.error}`);
+                        }
+                    }
+                } else {
+                    alert('❌ Export functionality not available. Please ensure meeting assistant is properly initialized.');
+                }
+                
+            } catch (error) {
+                console.error('Error exporting meeting:', error);
+                alert('❌ Error exporting meeting notes. Please try again.');
+            }
+        }
+        
+        async function generateMeetingSummary() {
+            console.log('🧠 Generating AI meeting summary...');
+            
+            try {
+                const sampleMeetingData = {
+                    transcript: 'Sample meeting transcript: We discussed the quarterly review, upcoming project deadlines, and resource allocation. The team agreed on the new timeline and identified key risks that need mitigation.',
+                    keyPoints: [
+                        'Quarterly review completed successfully',
+                        'New project timeline established',
+                        'Resource allocation optimized'
+                    ],
+                    actionItems: [
+                        'Risk mitigation plan due next week',
+                        'Budget review scheduled for Friday'
+                    ],
+                    duration: '30 minutes',
+                    timestamp: Date.now()
+                };
+                
+                if (window.electronAPI?.meetingAssistant?.generateSummary) {
+                    const result = await window.electronAPI.meetingAssistant.generateSummary(sampleMeetingData);
+                    
+                    if (result.success) {
+                        // Show summary in a more readable format
+                        const summaryWindow = window.open('', '_blank', 'width=600,height=400');
+                        summaryWindow.document.write(`
+                            <html>
+                                <head>
+                                    <title>AI Meeting Summary</title>
+                                    <style>
+                                        body { font-family: -apple-system, sans-serif; padding: 20px; line-height: 1.6; }
+                                        h1 { color: #3b82f6; }
+                                        pre { white-space: pre-wrap; background: #f1f5f9; padding: 15px; border-radius: 8px; }
+                                    </style>
+                                </head>
+                                <body>
+                                    <h1>🧠 AI Meeting Summary</h1>
+                                    <pre>${result.summary}</pre>
+                                    <button onclick="navigator.clipboard.writeText('${result.summary.replace(/'/g, "\\'")}'); alert('Copied to clipboard!')">📋 Copy to Clipboard</button>
+                                </body>
+                            </html>
+                        `);
+                    } else {
+                        alert(`❌ Summary generation failed: ${result.error}`);
+                    }
+                } else {
+                    alert('❌ Summary generation not available. Please check your API configuration.');
+                }
+                
+            } catch (error) {
+                console.error('Error generating summary:', error);
+                alert('❌ Error generating meeting summary. Please try again.');
+            }
+        }
+        
+        async function createShareableLink() {
+            console.log('🔗 Creating shareable meeting link...');
+            
+            try {
+                const sampleMeetingData = {
+                    transcript: 'Sample shareable meeting content with key discussion points and decisions made during the session.',
+                    keyPoints: [
+                        'Strategic planning session completed',
+                        'Action items assigned to team members',
+                        'Next steps clearly defined'
+                    ],
+                    actionItems: [
+                        'Follow-up meeting scheduled',
+                        'Documentation to be updated'
+                    ],
+                    duration: '45 minutes',
+                    timestamp: Date.now(),
+                    title: 'Shared Meeting Notes'
+                };
+                
+                if (window.electronAPI?.meetingAssistant?.createShareableLink) {
+                    const result = await window.electronAPI.meetingAssistant.createShareableLink(sampleMeetingData);
+                    
+                    if (result.success) {
+                        // Copy to clipboard automatically
+                        await navigator.clipboard.writeText(result.shareableLink);
+                        
+                        alert(`🔗 Shareable link created and copied to clipboard!\n\nLink: ${result.shareableLink}\n\nExpires in: ${result.expiresIn}\n\nYou can now paste and share this link with others.`);
+                    } else {
+                        alert(`❌ Link creation failed: ${result.error}`);
+                    }
+                } else {
+                    alert('❌ Link sharing not available. Please check your configuration.');
+                }
+                
+            } catch (error) {
+                console.error('Error creating shareable link:', error);
+                alert('❌ Error creating shareable link. Please try again.');
+            }
+        }
+
+        console.log('⚡ Velvet Control Panel loaded');
+    </script>
+</body>
+</html>

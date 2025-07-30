@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Velvet Meeting Assistant</title>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --secondary-blue: #1d4ed8;
+            --accent-cyan: #06b6d4;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --radius: 20px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Meeting assistant with main app styling - 20% smaller */
+        .meeting-assistant {
+            width: 640px;  /* Reduced by 20% (800 * 0.8) */
+            height: auto;
+            min-height: 96px;  /* Reduced by 20% (120 * 0.8) */
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.95) 0%,
+                    rgba(30, 41, 59, 0.92) 50%,
+                    rgba(15, 23, 42, 0.97) 100%
+                );
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            transition: all 0.3s var(--ease);
+            display: flex;
+            flex-direction: column;
+            padding: 16px 20px;
+            position: relative;
+            -webkit-app-region: drag;  /* Make entire assistant draggable */
+        }
+        
+        /* Glass shine effects like main app */
+        .meeting-assistant::before,
+        .meeting-assistant::after {
+            content: '';
+            position: absolute;
+            pointer-events: none;
+            opacity: 0.6;
+            transition: all 0.4s var(--ease);
+        }
+
+        .meeting-assistant::before {
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: 
+                radial-gradient(circle at center, 
+                    rgba(59, 130, 246, 0.1) 0%, 
+                    transparent 70%
+                );
+            border-radius: 0 var(--radius) 0 100%;
+        }
+
+        .meeting-assistant::after {
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            background: 
+                radial-gradient(circle at center, 
+                    rgba(6, 182, 212, 0.08) 0%, 
+                    transparent 70%
+                );
+            border-radius: 100% 0 var(--radius) 0;
+        }
+
+        /* Question display area */
+        .question-area {
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--primary-blue);
+            display: none;
+            animation: slideInUp 0.3s ease;
+        }
+
+        /* Answer display area */
+        .answer-area {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            min-height: 40px;
+            display: none;
+            animation: slideInUp 0.3s ease 0.1s both;
+        }
+
+        /* Make interactive elements clickable (not draggable) */
+        button, input, .control-bar, .left-controls, .right-controls, .recording-button {
+            -webkit-app-region: no-drag;
+        }
+        
+        /* Control bar */
+        .control-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 12px;
+        }
+
+        /* Left controls */
+        .left-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Recording button */
+        .record-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            position: relative;
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            animation: pulse 2s infinite;
+        }
+
+        .record-btn.ready {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(37, 99, 235, 0.2) 0%, 
+                    rgba(29, 78, 216, 0.1) 50%,
+                    rgba(6, 182, 212, 0.15) 100%
+                );
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 
+                0 8px 32px rgba(37, 99, 235, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        .record-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .record-timer {
+            font-size: 12px;
+            color: var(--text-primary);
+            margin-left: 8px;
+            font-weight: 500;
+        }
+
+        /* Right controls */
+        .right-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Action buttons */
+        .action-btn {
+            padding: 8px 16px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .action-btn:hover {
+            background: rgba(15, 23, 42, 0.8);
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .action-btn.primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            border-color: transparent;
+        }
+
+        .action-btn.primary:hover {
+            background: linear-gradient(135deg, var(--secondary-blue), var(--primary-blue));
+        }
+
+        /* Keyboard shortcuts display */
+        .shortcut-hint {
+            font-size: 10px;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-left: 4px;
+        }
+
+        /* Status display */
+        .status-display {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+        }
+
+        .status-dot.recording {
+            background: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.ready {
+            background: var(--accent-cyan);
+        }
+
+        /* Close button */
+        .close-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 1);
+            transform: scale(1.1);
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.02); }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="meeting-assistant" id="meetingAssistant">
+        <!-- Question Display -->
+        <div class="question-area" id="questionArea">
+            What tech stack are we using?
+        </div>
+
+        <!-- Answer Display -->
+        <div class="answer-area" id="answerArea">
+            We're using React with TypeScript for the frontend, Node.js with Express for the backend, and PostgreSQL for the database. We also use Redis for caching and Docker for containerization.
+        </div>
+
+        <!-- Control Bar -->
+        <div class="control-bar">
+            <div class="left-controls">
+                <!-- Recording Button -->
+                <button class="record-btn ready tooltip" id="recordBtn" data-tooltip="Press to speak">
+                    ⬤
+                </button>
+                <div class="record-timer" id="recordTimer">00:17</div>
+                
+                <div class="status-display">
+                    <div class="status-dot ready" id="statusDot"></div>
+                    <span id="statusText">Ready</span>
+                </div>
+            </div>
+
+            <div class="right-controls">
+                <button class="action-btn primary tooltip" id="askAiBtn" data-tooltip="⌘⇧A">
+                    Ask AI
+                    <span class="shortcut-hint">⌘⇧A</span>
+                </button>
+                
+                <button class="action-btn tooltip" id="showHideBtn" data-tooltip="⌘⇧H">
+                    Show/Hide
+                    <span class="shortcut-hint">⌘⇧H</span>
+                </button>
+
+                <button class="close-btn tooltip" id="closeBtn" data-tooltip="Close">
+                    ×
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const meetingAssistant = document.getElementById('meetingAssistant');
+        const questionArea = document.getElementById('questionArea');
+        const answerArea = document.getElementById('answerArea');
+        const recordBtn = document.getElementById('recordBtn');
+        const recordTimer = document.getElementById('recordTimer');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const askAiBtn = document.getElementById('askAiBtn');
+        const showHideBtn = document.getElementById('showHideBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        
+        let isRecording = false;
+        let recordingStartTime = null;
+        let timerInterval = null;
+        let mediaRecorder = null;
+        let audioStream = null;
+        let currentQuestion = '';
+        
+        // Demo data for testing
+        const demoQuestions = [
+            "What tech stack are we using?",
+            "How do you handle state management in React?",
+            "What's your experience with microservices?",
+            "Can you explain our deployment process?",
+            "How do you approach testing in this project?"
+        ];
+        
+        const demoAnswers = [
+            "We're using React with TypeScript for the frontend, Node.js with Express for the backend, and PostgreSQL for the database. We also use Redis for caching and Docker for containerization.",
+            "We use Redux Toolkit for complex state management and React Context for simpler component state. We follow the Redux pattern with slices and async thunks for API calls.",
+            "I've worked with microservices using Docker and Kubernetes. We use API gateways for routing and service discovery, with proper monitoring and logging across services.",
+            "We use CI/CD pipelines with GitHub Actions. Code is automatically tested, built into Docker images, and deployed to staging first, then production after approval.",
+            "We use Jest for unit testing, React Testing Library for component tests, and Cypress for E2E testing. We aim for 80%+ code coverage and test-driven development."
+        ];
+        
+        // Auto-resize window based on content
+        async function autoResizeWindow() {
+            try {
+                if (window.electronAPI?.meetingAssistant?.autoResize) {
+                    const questionLength = questionArea.style.display !== 'none' ? questionArea.textContent.length : 0;
+                    const answerLength = answerArea.style.display !== 'none' ? answerArea.textContent.length : 0;
+                    
+                    await window.electronAPI.meetingAssistant.autoResize({
+                        questionLength,
+                        answerLength
+                    });
+                }
+            } catch (error) {
+                console.error('Error auto-resizing window:', error);
+            }
+        }
+        
+        // Initialize with demo content
+        async function showDemo() {
+            const randomIndex = Math.floor(Math.random() * demoQuestions.length);
+            questionArea.textContent = demoQuestions[randomIndex];
+            answerArea.textContent = demoAnswers[randomIndex];
+            questionArea.style.display = 'block';
+            answerArea.style.display = 'block';
+            
+            // Auto-resize after showing demo content
+            await autoResizeWindow();
+        }
+        
+        // Recording functionality
+        recordBtn.addEventListener('click', toggleRecording);
+        
+        async function toggleRecording() {
+            if (!isRecording) {
+                await startRecording();
+            } else {
+                await stopRecording();
+            }
+        }
+        
+        async function startRecording() {
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true,
+                        sampleRate: 16000
+                    } 
+                });
+                
+                mediaRecorder = new MediaRecorder(audioStream);
+                recordedChunks = [];
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    await processAudio(blob);
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                recordingStartTime = Date.now();
+                
+                // Update UI
+                recordBtn.classList.remove('ready');
+                recordBtn.classList.add('recording');
+                recordBtn.setAttribute('data-tooltip', 'Recording... Press to stop');
+                statusDot.classList.remove('ready');
+                statusDot.classList.add('recording');
+                statusText.textContent = 'Recording';
+                
+                // Start timer
+                startTimer();
+                
+                console.log('🎤 Recording started');
+                
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                statusText.textContent = 'Microphone access denied';
+            }
+        }
+        
+        async function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
+            }
+            
+            isRecording = false;
+            
+            // Update UI
+            recordBtn.classList.remove('recording');
+            recordBtn.classList.add('ready');
+            recordBtn.setAttribute('data-tooltip', 'Press to speak');
+            statusDot.classList.remove('recording');
+            statusDot.classList.add('ready');
+            statusText.textContent = 'Processing...';
+            
+            // Stop timer
+            stopTimer();
+            
+            console.log('🛑 Recording stopped');
+        }
+        
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (recordingStartTime) {
+                    const elapsed = Date.now() - recordingStartTime;
+                    const minutes = Math.floor(elapsed / 60000);
+                    const seconds = Math.floor((elapsed % 60000) / 1000);
+                    recordTimer.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+        
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+        
+        async function processAudio(audioBlob) {
+            try {
+                statusText.textContent = 'Transcribing...';
+                
+                // Convert blob to base64 for IPC
+                const arrayBuffer = await audioBlob.arrayBuffer();
+                const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+                
+                // Send to backend for transcription
+                if (window.electronAPI?.transcribeAudio) {
+                    const transcription = await window.electronAPI.transcribeAudio(base64Audio);
+                    
+                    if (transcription && transcription.trim()) {
+                        currentQuestion = transcription.trim();
+                        await processQuestion(currentQuestion);
+                    } else {
+                        statusText.textContent = 'No speech detected';
+                        setTimeout(() => {
+                            statusText.textContent = 'Ready';
+                        }, 2000);
+                    }
+                } else {
+                    // Fallback to demo
+                    showDemo();
+                    statusText.textContent = 'Ready';
+                }
+                
+            } catch (error) {
+                console.error('Error processing audio:', error);
+                statusText.textContent = 'Processing failed';
+                setTimeout(() => {
+                    statusText.textContent = 'Ready';
+                }, 2000);
+            }
+        }
+        
+        async function processQuestion(question) {
+            try {
+                statusText.textContent = 'Generating answer...';
+                
+                // Show question
+                questionArea.textContent = question;
+                questionArea.style.display = 'block';
+                
+                // Auto-resize for question
+                await autoResizeWindow();
+                
+                // Get AI response
+                if (window.electronAPI?.chatCompletion) {
+                    const messages = [
+                        { 
+                            role: "system", 
+                            content: "You are a helpful meeting assistant. Provide clear, concise answers to questions. Keep responses under 100 words." 
+                        },
+                        { role: "user", content: question }
+                    ];
+                    
+                    const answer = await window.electronAPI.chatCompletion(messages);
+                    
+                    // Show answer with animation delay
+                    setTimeout(async () => {
+                        answerArea.textContent = answer;
+                        answerArea.style.display = 'block';
+                        statusText.textContent = 'Ready';
+                        
+                        // Auto-resize for answer
+                        await autoResizeWindow();
+                    }, 300);
+                    
+                } else {
+                    // Fallback to demo answer
+                    setTimeout(async () => {
+                        answerArea.textContent = "I understand your question. Here's a helpful response based on best practices and common approaches in the industry.";
+                        answerArea.style.display = 'block';
+                        statusText.textContent = 'Ready';
+                        
+                        // Auto-resize for answer
+                        await autoResizeWindow();
+                    }, 300);
+                }
+                
+            } catch (error) {
+                console.error('Error processing question:', error);
+                statusText.textContent = 'Answer generation failed';
+                setTimeout(() => {
+                    statusText.textContent = 'Ready';
+                }, 2000);
+            }
+        }
+        
+        // Ask AI manually
+        askAiBtn.addEventListener('click', () => {
+            showDemo();
+        });
+        
+        // Show/Hide functionality
+        showHideBtn.addEventListener('click', () => {
+            const isVisible = questionArea.style.display !== 'none' || answerArea.style.display !== 'none';
+            
+            if (isVisible) {
+                questionArea.style.display = 'none';
+                answerArea.style.display = 'none';
+                showHideBtn.textContent = 'Show';
+            } else {
+                if (currentQuestion || questionArea.textContent) {
+                    questionArea.style.display = 'block';
+                    answerArea.style.display = 'block';
+                }
+                showHideBtn.textContent = 'Hide';
+            }
+        });
+        
+        // Close functionality
+        closeBtn.addEventListener('click', () => {
+            if (isRecording) {
+                stopRecording();
+            }
+            
+            if (window.electronAPI?.meetingAssistant) {
+                window.electronAPI.meetingAssistant.close();
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            // Cmd/Ctrl + Shift + A for Ask AI
+            if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'A') {
+                event.preventDefault();
+                askAiBtn.click();
+            }
+            
+            // Cmd/Ctrl + Shift + H for Show/Hide
+            if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'H') {
+                event.preventDefault();
+                showHideBtn.click();
+            }
+            
+            // Space bar for recording (when not typing)
+            if (event.code === 'Space' && event.target === document.body) {
+                event.preventDefault();
+                recordBtn.click();
+            }
+        });
+        
+        // Listen for auto-launch from meeting app detection
+        if (window.electronAPI?.meetingAssistant) {
+            window.addEventListener('message', (event) => {
+                if (event.data && event.data.type === 'meeting-app-detected') {
+                    console.log('🎯 Meeting app auto-detected:', event.data.appName);
+                    statusText.textContent = `${event.data.appName} detected`;
+                    
+                    // Show a subtle notification
+                    const notification = document.createElement('div');
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 10px;
+                        right: 10px;
+                        background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+                        color: white;
+                        padding: 8px 12px;
+                        border-radius: 8px;
+                        font-size: 11px;
+                        font-weight: 500;
+                        z-index: 1000;
+                        animation: slideIn 0.3s ease;
+                    `;
+                    notification.textContent = `📱 ${event.data.appName} meeting detected`;
+                    document.body.appendChild(notification);
+                    
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.parentNode.removeChild(notification);
+                        }
+                    }, 3000);
+                }
+            });
+        }
+        
+        // Initialize with demo content on load
+        setTimeout(() => {
+            showDemo();
+        }, 1000);
+        
+        console.log('🎯 Clean Meeting Assistant UI loaded');
+    </script>
+</body>
+</html>

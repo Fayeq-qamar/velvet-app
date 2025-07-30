@@ -1,0 +1,37 @@
+{
+  "name": "velvet-app",
+  "version": "1.0.0",
+  "description": "Velvet - Soft support for sharp minds",
+  "main": "src/main/index.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "webpack",
+    "test": "echo 'No tests yet'"
+  },
+  "keywords": [
+    "adhd",
+    "ai",
+    "assistant"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^27.3.11"
+  },
+  "dependencies": {
+    "@livekit/components-react": "^2.9.14",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "form-data": "^4.0.4",
+    "livekit-client": "^2.15.3",
+    "mic": "^2.1.2",
+    "node-fetch": "^3.3.2",
+    "openai": "^5.10.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-speech-recognition": "^4.0.1"
+  }
+}

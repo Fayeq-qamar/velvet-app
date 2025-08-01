@@ -33,7 +33,7 @@ class VelvetPreprocessor:
         self.processed_count = 0
     
     def preprocess_image_advanced(self, image: Image.Image) -> Image.Image:
-        """Advanced image preprocessing for superior OCR accuracy"""
+        """OPTIMIZED image preprocessing for superior OCR accuracy"""
         
         # Convert to numpy array for OpenCV processing
         img_array = np.array(image)
@@ -46,8 +46,8 @@ class VelvetPreprocessor:
         else:  # Grayscale
             img_array = cv2.cvtColor(img_array, cv2.COLOR_GRAY2RGB)
         
-        # 1. Noise reduction using bilateral filter
-        denoised = cv2.bilateralFilter(img_array, 9, 75, 75)
+        # 1. Gentle noise reduction (less aggressive than before)
+        denoised = cv2.medianBlur(img_array, 3) if len(img_array.shape) == 3 else cv2.medianBlur(img_array, 3)
         
         # 2. Convert to grayscale
         if len(denoised.shape) == 3:
@@ -55,62 +55,142 @@ class VelvetPreprocessor:
         else:
             gray = denoised
         
-        # 3. Adaptive histogram equalization for better contrast
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        # 3. Enhanced contrast with CLAHE (more aggressive than before)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
         enhanced = clahe.apply(gray)
         
-        # 4. Gaussian blur to smooth text
-        blurred = cv2.GaussianBlur(enhanced, (1, 1), 0)
+        # 4. OTSU thresholding for optimal binarization
+        _, binary = cv2.threshold(enhanced, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
         
-        # 5. Adaptive thresholding for better binarization
-        binary = cv2.adaptiveThreshold(
-            blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
-        )
-        
-        # 6. Morphological operations to clean up text
-        kernel = np.ones((1, 1), np.uint8)
+        # 5. Morphological operations to clean text (minimal)
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
         cleaned = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
         
+        # 6. Scale up for better OCR recognition (2x)
+        scale_factor = 2
+        height, width = cleaned.shape
+        enlarged = cv2.resize(cleaned, (width * scale_factor, height * scale_factor), interpolation=cv2.INTER_CUBIC)
+        
         # Convert back to PIL Image
-        processed_image = Image.fromarray(cleaned)
+        processed_image = Image.fromarray(enlarged)
         
         return processed_image
     
     def extract_text_with_confidence(self, image: Image.Image) -> tuple[str, float]:
-        """Extract text using Tesseract with confidence scoring"""
+        """OPTIMIZED text extraction with multiple OCR approaches and smart confidence filtering"""
         
         try:
-            # Get detailed OCR data with confidence scores
-            ocr_data = pytesseract.image_to_data(
-                image, 
-                output_type=pytesseract.Output.DICT,
-                config='--oem 3 --psm 6'  # LSTM OCR Engine Mode, assume uniform block of text
-            )
+            # Multiple OCR approaches for best results
+            approaches = [
+                {'config': '--oem 3 --psm 3', 'name': 'auto_page'},  # Fully automatic page segmentation
+                {'config': '--oem 3 --psm 6', 'name': 'uniform_block'},  # Uniform block of text
+                {'config': '--oem 3 --psm 4', 'name': 'single_column'},  # Single column of text
+            ]
             
-            # Filter out low-confidence words
-            confident_words = []
-            total_confidence = 0
-            word_count = 0
+            best_result = ('', 0.0)
+            best_word_count = 0
             
-            for i, conf in enumerate(ocr_data['conf']):
-                if int(conf) > self.ocr_confidence_threshold:
-                    word = ocr_data['text'][i].strip()
-                    if word:  # Not empty
-                        confident_words.append(word)
-                        total_confidence += int(conf)
-                        word_count += 1
+            for approach in approaches:
+                try:
+                    # Get detailed OCR data with confidence scores
+                    ocr_data = pytesseract.image_to_data(
+                        image, 
+                        output_type=pytesseract.Output.DICT,
+                        config=approach['config']
+                    )
+                    
+                    # SMART confidence filtering with word validation
+                    confident_words = []
+                    total_confidence = 0
+                    word_count = 0
+                    
+                    for i, conf in enumerate(ocr_data['conf']):
+                        word = ocr_data['text'][i].strip()
+                        if word and len(word) > 1:  # Not empty and meaningful length
+                            confidence = int(conf)
+                            
+                            # Dynamic confidence threshold based on word characteristics
+                            min_confidence = 40  # Lower threshold for better recall
+                            if len(word) > 4:  # Longer words can have lower confidence
+                                min_confidence = 35
+                            if word.isalpha() and len(word) > 2:  # Pure alphabetic words
+                                min_confidence = 30
+                            
+                            if confidence > min_confidence:
+                                confident_words.append(word)
+                                total_confidence += confidence
+                                word_count += 1
+                    
+                    # Calculate average confidence
+                    avg_confidence = total_confidence / word_count if word_count > 0 else 0
+                    
+                    # Post-process and clean text
+                    extracted_text = self.post_process_ocr_text(' '.join(confident_words))
+                    
+                    # Select best result based on word count and confidence
+                    if word_count > best_word_count and avg_confidence > 30:
+                        best_result = (extracted_text, avg_confidence / 100.0)
+                        best_word_count = word_count
+                        
+                        logger.info(f"🎯 Best OCR approach: {approach['name']} - {word_count} words, {avg_confidence:.1f}% confidence")
+                    
+                except Exception as approach_error:
+                    logger.warning(f"⚠️ OCR approach {approach['name']} failed: {approach_error}")
+                    continue
             
-            # Calculate average confidence
-            avg_confidence = total_confidence / word_count if word_count > 0 else 0
-            
-            # Join confident words
-            extracted_text = ' '.join(confident_words)
-            
-            return extracted_text, avg_confidence / 100.0  # Convert to 0-1 scale
+            return best_result
             
         except Exception as e:
             logger.error(f"❌ OCR extraction failed: {e}")
             return "", 0.0
+    
+    def post_process_ocr_text(self, raw_text: str) -> str:
+        """Post-process OCR text to fix common recognition errors"""
+        
+        if not raw_text:
+            return ""
+        
+        # Fix common OCR character errors
+        corrections = {
+            # Common character substitutions
+            '0': 'O',  # Zero to O in word context
+            '1': 'I',  # One to I in word context
+            '5': 'S',  # Five to S in word context
+            '8': 'B',  # Eight to B in word context
+            '@': 'a',  # At symbol to lowercase a
+            '|': 'l',  # Pipe to lowercase L
+            '¥': 'Y',  # Yen to Y
+            '§': 'S',  # Section to S
+            '©': 'C',  # Copyright to C
+            '®': 'R',  # Registered to R
+            '™': 'TM', # Trademark to TM
+        }
+        
+        # Apply corrections only in word context (not isolated symbols)
+        words = raw_text.split()
+        corrected_words = []
+        
+        for word in words:
+            if len(word) > 2:  # Only correct longer words
+                corrected = word
+                for wrong, right in corrections.items():
+                    if wrong in word and word.count(wrong) <= 2:  # Limit replacements
+                        corrected = corrected.replace(wrong, right)
+                corrected_words.append(corrected)
+            else:
+                corrected_words.append(word)
+        
+        # Join and clean up
+        processed_text = ' '.join(corrected_words)
+        
+        # Remove excessive whitespace and clean up
+        processed_text = ' '.join(processed_text.split())
+        
+        # Filter out obvious OCR artifacts (strings of special characters)
+        import re
+        processed_text = re.sub(r'[^a-zA-Z0-9\s.,!?@#$%^&*()_+\-=\[\]{}|;:"<>?/~`]{3,}', ' ', processed_text)
+        
+        return processed_text.strip()
     
     def analyze_text_context(self, text: str) -> dict:
         """Analyze text for contextual intelligence"""

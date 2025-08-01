@@ -327,24 +327,147 @@ class RealScreenOCRMonitor {
         });
     }
 
-    // Perform REAL OCR using Tesseract.js
+    // OPTIMIZED REAL OCR using multi-approach Tesseract.js
     async performRealOCR(imageDataUrl) {
         try {
-            // Run OCR on the captured image
-            const result = await this.ocrWorker.recognize(imageDataUrl);
+            // Multi-approach OCR for best results
+            const approaches = [
+                { psm: 3, name: 'Auto Page Segmentation', weight: 1.0 },
+                { psm: 6, name: 'Uniform Block', weight: 1.2 },
+                { psm: 4, name: 'Single Column', weight: 1.1 }
+            ];
             
-            return {
-                text: result.data.text,
-                confidence: result.data.confidence / 100, // Convert to 0-1 scale
-                words: result.data.words,
-                lines: result.data.lines,
-                paragraphs: result.data.paragraphs
-            };
+            let bestResult = { text: '', confidence: 0, approach: 'none' };
+            let bestWordCount = 0;
+            
+            for (const approach of approaches) {
+                try {
+                    // Configure OCR for this approach
+                    await this.ocrWorker.setParameters({
+                        tessedit_pageseg_mode: approach.psm,
+                        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?@#$%^&*()_+-=[]{}|;:\'"<>?/~` \n\r\t'
+                    });
+                    
+                    // Get detailed OCR data
+                    const ocrData = await this.ocrWorker.recognize(imageDataUrl, {
+                        output: 'data'
+                    });
+                    
+                    // Smart confidence filtering
+                    const filteredResult = this.smartConfidenceFilter(ocrData.data);
+                    const processedText = this.advancedPostProcessing(filteredResult.text);
+                    const adjustedConfidence = filteredResult.confidence * approach.weight;
+                    
+                    const wordCount = processedText.split(/\s+/).filter(w => w.length > 2 && /[a-zA-Z]/.test(w)).length;
+                    
+                    console.log(`      📊 ${approach.name}: ${wordCount} words, ${(adjustedConfidence * 100).toFixed(1)}% confidence`);
+                    
+                    // Select best result
+                    if (wordCount > bestWordCount && adjustedConfidence > 0.3) {
+                        bestResult = {
+                            text: processedText,
+                            confidence: adjustedConfidence,
+                            approach: approach.name,
+                            words: ocrData.data.words,
+                            lines: ocrData.data.lines,
+                            paragraphs: ocrData.data.paragraphs
+                        };
+                        bestWordCount = wordCount;
+                    }
+                    
+                } catch (approachError) {
+                    console.warn(`⚠️ OCR approach ${approach.name} failed:`, approachError);
+                }
+            }
+            
+            console.log(`🏆 Best OCR approach: ${bestResult.approach} (${bestWordCount} words)`);
+            return bestResult;
             
         } catch (error) {
-            console.error('❌ Tesseract OCR failed:', error);
+            console.error('❌ Optimized OCR failed:', error);
             return null;
         }
+    }
+    
+    // Smart confidence filtering for better word selection
+    smartConfidenceFilter(ocrData) {
+        const confidentWords = [];
+        let totalConfidence = 0;
+        let wordCount = 0;
+        
+        for (let i = 0; i < ocrData.text.length; i++) {
+            const word = ocrData.text[i].strip ? ocrData.text[i].strip() : ocrData.text[i];
+            const conf = parseInt(ocrData.conf[i]);
+            
+            if (word && word.length > 1) {
+                // Dynamic confidence threshold
+                let minConfidence = 35;
+                if (word.length > 4) minConfidence = 30;
+                if (/^[a-zA-Z]+$/.test(word) && word.length > 2) minConfidence = 25;
+                
+                if (conf > minConfidence) {
+                    confidentWords.push(word);
+                    totalConfidence += conf;
+                    wordCount++;
+                }
+            }
+        }
+        
+        return {
+            text: confidentWords.join(' '),
+            confidence: wordCount > 0 ? totalConfidence / wordCount / 100 : 0
+        };
+    }
+    
+    // Advanced post-processing for better text quality
+    advancedPostProcessing(rawText) {
+        if (!rawText) return '';
+        
+        let processed = rawText;
+        
+        // 1. Normalize whitespace
+        processed = processed.replace(/\s+/g, ' ').trim();
+        
+        // 2. Character corrections
+        const corrections = {
+            '0': 'O', '1': 'I', '5': 'S', '8': 'B', '6': 'G',
+            '@': 'a', '|': 'l', '¥': 'Y', '§': 'S', '©': 'C', '®': 'R'
+        };
+        
+        // Apply corrections in word context
+        const words = processed.split(' ');
+        const correctedWords = words.map(word => {
+            if (word.length < 2) return word;
+            
+            let corrected = word;
+            for (const [wrong, right] of Object.entries(corrections)) {
+                if (word.includes(wrong)) {
+                    const testCorrection = corrected.replace(new RegExp(wrong, 'g'), right);
+                    const originalAlpha = (corrected.match(/[a-zA-Z]/g) || []).length;
+                    const correctedAlpha = (testCorrection.match(/[a-zA-Z]/g) || []).length;
+                    if (correctedAlpha >= originalAlpha) {
+                        corrected = testCorrection;
+                    }
+                }
+            }
+            return corrected;
+        });
+        
+        // 3. Common word fixes
+        const wordFixes = {
+            'teh': 'the', 'adn': 'and', 'taht': 'that', 'wiht': 'with',
+            'yuo': 'you', 'cna': 'can', 'woudl': 'would', 'hte': 'the'
+        };
+        
+        processed = correctedWords.join(' ');
+        for (const [wrong, right] of Object.entries(wordFixes)) {
+            processed = processed.replace(new RegExp(`\\b${wrong}\\b`, 'gi'), right);
+        }
+        
+        // 4. Remove OCR artifacts
+        processed = processed.replace(/[^\w\s.,!?@#$%^&*()_+\-=\[\]{}|;:"<>?/~`]{3,}/g, ' ');
+        
+        return processed.replace(/\s+/g, ' ').trim();
     }
 
     // Process REAL extracted text

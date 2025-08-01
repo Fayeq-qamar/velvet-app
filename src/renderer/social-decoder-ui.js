@@ -290,52 +290,65 @@ class SocialDecoderUI {
                 position: fixed;
                 top: 100px;
                 right: 30px;
-                width: 350px;
-                background: rgba(15, 23, 42, 0.95);
-                border: 1px solid rgba(37, 99, 235, 0.3);
-                border-radius: 16px;
-                backdrop-filter: blur(20px);
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                width: 380px;
+                background: linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.97) 0%,
+                    rgba(30, 41, 59, 0.92) 50%,
+                    rgba(15, 23, 42, 0.97) 100%
+                );
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                border-radius: 20px;
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                box-shadow: 
+                    0 25px 50px rgba(0, 0, 0, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
                 z-index: 9999;
                 font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-                color: white;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                color: rgba(255, 255, 255, 0.95);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 opacity: 0;
-                transform: translateX(100px);
+                transform: translateX(100px) scale(0.9);
                 pointer-events: auto;
             }
             
             .social-decoder-notification.visible {
                 opacity: 1;
-                transform: translateX(0);
+                transform: translateX(0) scale(1);
             }
             
             .social-decoder-notification.hidden {
                 opacity: 0;
-                transform: translateX(100px);
+                transform: translateX(100px) scale(0.9);
                 pointer-events: none;
             }
             
             .notification-content {
-                padding: 20px;
+                padding: 24px;
             }
             
             .notification-header {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                margin-bottom: 12px;
+                margin-bottom: 16px;
+                padding-bottom: 12px;
+                border-bottom: 1px solid rgba(59, 130, 246, 0.2);
             }
             
             .notification-header .icon {
-                font-size: 18px;
-                margin-right: 8px;
+                font-size: 20px;
+                margin-right: 10px;
+                filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.4));
             }
             
             .notification-header .title {
                 font-weight: 600;
-                color: #60a5fa;
+                color: rgba(96, 165, 250, 0.95);
                 flex: 1;
+                font-size: 16px;
+                letter-spacing: -0.02em;
             }
             
             .close-btn {
@@ -387,20 +400,33 @@ class SocialDecoderUI {
             }
             
             .suggestion-btn, .details-btn {
-                background: rgba(37, 99, 235, 0.2);
-                border: 1px solid rgba(37, 99, 235, 0.3);
-                color: #60a5fa;
-                padding: 8px 12px;
-                border-radius: 8px;
-                font-size: 12px;
+                background: linear-gradient(135deg, 
+                    rgba(37, 99, 235, 0.25) 0%, 
+                    rgba(6, 182, 212, 0.2) 100%
+                );
+                border: 1px solid rgba(59, 130, 246, 0.3);
+                color: rgba(255, 255, 255, 0.9);
+                padding: 10px 16px;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 500;
                 cursor: pointer;
-                transition: all 0.2s;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 white-space: nowrap;
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                position: relative;
+                overflow: hidden;
             }
             
             .suggestion-btn:hover, .details-btn:hover {
-                background: rgba(37, 99, 235, 0.3);
-                border-color: rgba(37, 99, 235, 0.5);
+                background: linear-gradient(135deg, 
+                    rgba(37, 99, 235, 0.35) 0%, 
+                    rgba(6, 182, 212, 0.3) 100%
+                );
+                border-color: rgba(59, 130, 246, 0.5);
+                transform: translateY(-1px);
+                box-shadow: 0 8px 25px rgba(37, 99, 235, 0.2);
             }
         `;
         
@@ -415,20 +441,27 @@ class SocialDecoderUI {
                 position: fixed;
                 top: 50%;
                 left: 50%;
-                transform: translate(-50%, -50%);
-                width: 500px;
-                max-height: 600px;
-                background: rgba(15, 23, 42, 0.95);
-                border: 1px solid rgba(37, 99, 235, 0.3);
-                border-radius: 20px;
-                backdrop-filter: blur(20px);
-                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+                transform: translate(-50%, -50%) scale(0.9);
+                width: 520px;
+                max-height: 650px;
+                background: linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.97) 0%,
+                    rgba(30, 41, 59, 0.92) 50%,
+                    rgba(15, 23, 42, 0.97) 100%
+                );
+                border: 2px solid rgba(59, 130, 246, 0.4);
+                border-radius: 24px;
+                backdrop-filter: blur(32px);
+                -webkit-backdrop-filter: blur(32px);
+                box-shadow: 
+                    0 40px 80px rgba(0, 0, 0, 0.6),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
                 z-index: 10000;
                 font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
-                color: white;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                color: rgba(255, 255, 255, 0.95);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 opacity: 0;
-                transform: translate(-50%, -50%) scale(0.9);
                 pointer-events: auto;
             }
             

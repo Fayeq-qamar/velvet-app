@@ -9,6 +9,7 @@ class UnifiedContextEngine {
         this.contextHistory = [];
         this.currentContext = {};
         this.contextCallbacks = [];
+        this.contextProviders = new Map(); // For additional context providers like Social Decoder
         
         // Configuration
         this.config = {
@@ -208,11 +209,14 @@ class UnifiedContextEngine {
             const screenContext = this.getRecentScreenContext();
             const audioContext = this.getRecentAudioContext();
             
+            // Get contexts from additional providers (like Social Decoder)
+            const providerContexts = this.getProviderContexts();
+            
             // Correlate the contexts
             const correlation = this.correlateScreenAndAudio(screenContext, audioContext);
             
-            // Generate unified context
-            const unifiedContext = this.createUnifiedContext(screenContext, audioContext, correlation);
+            // Generate unified context (including provider contexts)
+            const unifiedContext = this.createUnifiedContext(screenContext, audioContext, correlation, providerContexts);
             
             // Generate insights
             const insights = this.generateContextInsights(unifiedContext);
@@ -382,11 +386,12 @@ class UnifiedContextEngine {
     }
 
     // Create unified context from screen and audio
-    createUnifiedContext(screenContext, audioContext, correlation) {
+    createUnifiedContext(screenContext, audioContext, correlation, providerContexts = {}) {
         console.log('🔍 DEBUG: Creating unified context...');
         console.log('📊 Screen context:', screenContext ? `${screenContext.context?.type} (confidence: ${screenContext.confidence})` : 'null');
         console.log('🎵 Audio context:', audioContext ? `${audioContext.primaryType} (confidence: ${audioContext.confidence})` : 'null');
         console.log('🔗 Correlation:', correlation ? `${correlation.confidence.toFixed(2)} confidence` : 'null');
+        console.log('🧠 Provider contexts:', Object.keys(providerContexts).length ? Object.keys(providerContexts).join(', ') : 'none');
         
         const unified = {
             primaryContext: 'unknown',
@@ -396,8 +401,43 @@ class UnifiedContextEngine {
             mood: 'neutral',
             focusLevel: 'medium',
             socialContext: 'none',
-            workContext: 'unknown'
+            workContext: 'unknown',
+            providers: providerContexts // Include all provider contexts
         };
+        
+        // Integrate Social Decoder context if available
+        if (providerContexts.social_decoder) {
+            const socialContext = providerContexts.social_decoder;
+            console.log('🎭 Integrating Social Decoder context:', {
+                totalAnalyses: socialContext.totalAnalyses,
+                highConfidenceDetections: socialContext.detectionStats?.highConfidenceDetections,
+                isActive: socialContext.isActive
+            });
+            
+            // Update social context based on recent activity
+            if (socialContext.totalAnalyses > 0) {
+                unified.socialContext = 'active_conversation';
+                
+                // Adjust based on detection patterns
+                if (socialContext.detectionStats?.sarcasmDetections > 0) {
+                    unified.socialContext = 'complex_conversation';
+                    unified.mood = 'analytical'; // User is dealing with subtext
+                }
+                
+                if (socialContext.detectionStats?.emotionalDetections > 0) {
+                    unified.socialContext = 'emotional_conversation';
+                    unified.mood = 'engaged'; // Emotional context detected
+                }
+                
+                // Recent high-confidence detection = active social analysis needed
+                const recentActivity = socialContext.recentActivity || [];
+                const hasRecentHighConfidence = recentActivity.some(a => a.confidence > 0.8);
+                if (hasRecentHighConfidence) {
+                    unified.focusLevel = 'high'; // User needs focus for social processing
+                    unified.primaryContext = 'social_analysis';
+                }
+            }
+        }
         
         // Determine primary context based on correlation and individual contexts
         if (correlation.hasCorrelation && correlation.confidence > 0.7) {
@@ -658,6 +698,39 @@ class UnifiedContextEngine {
     // Register callback for unified context updates
     onContextUpdate(callback) {
         this.contextCallbacks.push(callback);
+    }
+
+    // Register additional context providers (like Social Decoder)
+    registerContextProvider(name, provider) {
+        if (!provider.getContext || typeof provider.getContext !== 'function') {
+            console.error(`❌ Invalid context provider '${name}': missing getContext method`);
+            return false;
+        }
+        
+        this.contextProviders.set(name, {
+            ...provider,
+            lastUpdate: Date.now()
+        });
+        
+        console.log(`✅ Context provider '${name}' registered`);
+        return true;
+    }
+
+    // Get context from all registered providers
+    getProviderContexts() {
+        const contexts = {};
+        
+        this.contextProviders.forEach((provider, name) => {
+            if (provider.isActive && provider.isActive()) {
+                try {
+                    contexts[name] = provider.getContext();
+                } catch (error) {
+                    console.error(`❌ Failed to get context from provider '${name}':`, error);
+                }
+            }
+        });
+        
+        return contexts;
     }
 
     // Trigger all context callbacks

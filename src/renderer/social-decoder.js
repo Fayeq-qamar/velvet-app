@@ -8,6 +8,26 @@ class SocialDecoder {
         this.conversationHistory = [];
         this.emotionalContext = {};
         this.detectionCallbacks = [];
+        this.errorCount = 0;
+        this.maxErrors = 10; // Maximum errors before disabling
+        this.lastError = null;
+        this.performanceMetrics = {
+            totalAnalyses: 0,
+            averageProcessingTime: 0,
+            totalProcessingTime: 0,
+            errorsEncountered: 0
+        };
+        
+        // Performance optimization
+        this.analysisQueue = [];
+        this.isProcessing = false;
+        this.maxQueueSize = 5;
+        this.debounceTimeout = null;
+        this.maxProcessingTime = 500; // Max 500ms per analysis
+        
+        // Resource management
+        this.maxHistorySize = 30;
+        this.cleanupInterval = null;
         
         // Sarcasm and subtext detection patterns
         this.sarcasmMarkers = [
@@ -43,6 +63,9 @@ class SocialDecoder {
             // Initialize conversation context tracking
             this.initializeContextTracking();
             
+            // Start resource management
+            this.startResourceManagement();
+            
             this.isActive = true;
             console.log('✅ Social Decoder System active - ready to translate neurotypical communication');
             
@@ -55,7 +78,26 @@ class SocialDecoder {
 
     // Set up real-time audio analysis for emotional tone detection
     async setupAudioAnalysis() {
-        // Hook into existing audio monitoring system
+        console.log('🎧 Setting up Social Decoder audio integration...');
+        
+        // Hook into existing Velvet audio monitoring system
+        if (window.realAudioEnvironmentMonitor) {
+            console.log('✅ Connecting to Real Audio Environment Monitor');
+            
+            // Register callback for audio context updates
+            window.realAudioEnvironmentMonitor.onContextUpdate((audioContext) => {
+                this.processAudioContext(audioContext);
+            });
+            
+            // Register callback for microphone data
+            window.realAudioEnvironmentMonitor.onMicrophoneData((audioData) => {
+                this.processMicrophoneData(audioData);
+            });
+        } else {
+            console.log('⚠️ Real Audio Environment Monitor not available, using fallback analysis');
+        }
+        
+        // Set up audio analyzer with real integration
         this.audioAnalyzer = {
             analyzeEmotionalTone: (audioData, transcript) => {
                 return this.detectEmotionalCues(audioData, transcript);
@@ -67,8 +109,118 @@ class SocialDecoder {
             
             assessCommunicationClarity: (transcript) => {
                 return this.measureAmbiguityLevel(transcript);
+            },
+            
+            // NEW: Real-time audio feature extraction
+            extractAudioFeatures: (audioBuffer) => {
+                return this.extractRealAudioFeatures(audioBuffer);
             }
         };
+        
+        console.log('🎧 Audio analysis setup complete');
+    }
+
+    // Process audio context from the real audio monitor
+    processAudioContext(audioContext) {
+        if (!audioContext || !this.isActive) return;
+        
+        // Extract relevant features for social decoding
+        const socialAudioFeatures = {
+            timestamp: Date.now(),
+            hasSystemAudio: audioContext.hasSystemAudio,
+            hasMicrophoneInput: audioContext.hasMicrophoneInput,
+            audioClassification: audioContext.classification,
+            confidence: audioContext.confidence,
+            
+            // Social decoder specific features
+            isPotentialConversation: audioContext.classification === 'speech' || 
+                                   audioContext.classification === 'call',
+            conversationContext: this.inferConversationContext(audioContext)
+        };
+        
+        // Store for correlation with text analysis
+        this.currentAudioContext = socialAudioFeatures;
+        
+        // If this looks like a conversation, prepare for social analysis
+        if (socialAudioFeatures.isPotentialConversation) {
+            console.log('🎭 Potential conversation detected, Social Decoder on standby');
+        }
+    }
+
+    // Process microphone data for tone analysis
+    processMicrophoneData(audioData) {
+        if (!audioData || !this.isActive) return;
+        
+        // Extract tone features from microphone data
+        const toneFeatures = this.extractToneFeatures(audioData);
+        
+        // Store for correlation with transcripts
+        this.currentToneData = {
+            timestamp: Date.now(),
+            features: toneFeatures,
+            rawData: audioData
+        };
+    }
+
+    // Extract tone features from audio data
+    extractToneFeatures(audioData) {
+        // This would use Web Audio API for real analysis
+        // For now, implementing basic feature extraction
+        
+        if (!audioData.frequencyData) {
+            return { pitch: 0, energy: 0, variance: 0 };
+        }
+        
+        const freqData = audioData.frequencyData;
+        
+        // Calculate basic features
+        let energy = 0;
+        let pitch = 0;
+        let variance = 0;
+        
+        for (let i = 0; i < freqData.length; i++) {
+            energy += freqData[i] * freqData[i];
+            if (i > 50 && i < 200) { // Human speech range
+                pitch += freqData[i] * i;
+            }
+        }
+        
+        energy = Math.sqrt(energy / freqData.length);
+        pitch = pitch / energy || 0;
+        
+        // Calculate variance for detecting flat/monotone speech
+        const mean = freqData.reduce((a, b) => a + b) / freqData.length;
+        variance = freqData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / freqData.length;
+        
+        return {
+            energy: energy,
+            pitch: pitch,
+            variance: variance,
+            monotone: variance < 100, // Low variance = monotone/flat
+            highPitch: pitch > 150,   // Elevated pitch = anxiety/stress
+            lowEnergy: energy < 50    // Low energy = flat delivery
+        };
+    }
+
+    // Infer conversation context from audio
+    inferConversationContext(audioContext) {
+        let context = {
+            isLikelyMeeting: false,
+            isPhoneCall: false,
+            isInPersonChat: false,
+            emotionalTone: 'neutral'
+        };
+        
+        // Basic inference based on audio classification
+        if (audioContext.classification === 'call') {
+            context.isPhoneCall = true;
+        } else if (audioContext.classification === 'speech' && audioContext.hasSystemAudio) {
+            context.isLikelyMeeting = true;
+        } else if (audioContext.classification === 'speech') {
+            context.isInPersonChat = true;
+        }
+        
+        return context;
     }
 
     // Initialize conversation context tracking
@@ -82,11 +234,134 @@ class SocialDecoder {
         };
     }
 
-    // Main analysis function - called when new audio/transcript is received
+    // Start resource management for performance optimization
+    startResourceManagement() {
+        // Clean up old data every 60 seconds
+        this.cleanupInterval = setInterval(() => {
+            this.performCleanup();
+        }, 60000);
+        
+        console.log('🧹 Social Decoder resource management started');
+    }
+
+    // Performance cleanup
+    performCleanup() {
+        // Limit conversation history size
+        if (this.conversationHistory.length > this.maxHistorySize) {
+            const removeCount = this.conversationHistory.length - this.maxHistorySize;
+            this.conversationHistory.splice(0, removeCount);
+            console.log(`🧹 Cleaned up ${removeCount} old conversation entries`);
+        }
+        
+        // Clean up old tone data
+        if (this.currentToneData && Date.now() - this.currentToneData.timestamp > 30000) {
+            this.currentToneData = null;
+            console.log('🧹 Cleaned up old tone data');
+        }
+        
+        // Reset error count gradually if system is stable
+        if (this.errorCount > 0 && this.performanceMetrics.totalAnalyses > 10) {
+            const errorRate = this.performanceMetrics.errorsEncountered / this.performanceMetrics.totalAnalyses;
+            if (errorRate < 0.1) { // Less than 10% error rate
+                this.errorCount = Math.max(0, this.errorCount - 1);
+            }
+        }
+    }
+
+    // Optimized analysis function with queuing and debouncing
     analyzeConversation(transcript, audioData, speakerInfo = {}) {
         if (!this.isActive) return null;
 
+        // Add to analysis queue for performance optimization
+        return this.queueAnalysis(transcript, audioData, speakerInfo);
+    }
+
+    // Queue analysis requests to prevent UI blocking
+    queueAnalysis(transcript, audioData, speakerInfo = {}) {
+        // Check queue size to prevent memory issues
+        if (this.analysisQueue.length >= this.maxQueueSize) {
+            console.warn('⚠️ Social Decoder: Analysis queue full, dropping oldest request');
+            this.analysisQueue.shift(); // Remove oldest
+        }
+        
+        const analysisRequest = {
+            transcript,
+            audioData,
+            speakerInfo,
+            timestamp: Date.now(),
+            resolve: null,
+            reject: null
+        };
+        
+        // Create promise for async processing
+        const promise = new Promise((resolve, reject) => {
+            analysisRequest.resolve = resolve;
+            analysisRequest.reject = reject;
+        });
+        
+        this.analysisQueue.push(analysisRequest);
+        
+        // Debounce processing to avoid overwhelming the system
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+        }
+        
+        this.debounceTimeout = setTimeout(() => {
+            this.processAnalysisQueue();
+        }, 100); // Wait 100ms for more requests
+        
+        return promise;
+    }
+
+    // Process queued analysis requests
+    async processAnalysisQueue() {
+        if (this.isProcessing || this.analysisQueue.length === 0) {
+            return;
+        }
+        
+        this.isProcessing = true;
+        
         try {
+            // Process all queued requests
+            const requests = [...this.analysisQueue];
+            this.analysisQueue = [];
+            
+            for (const request of requests) {
+                try {
+                    const result = await this.performAnalysis(
+                        request.transcript, 
+                        request.audioData, 
+                        request.speakerInfo
+                    );
+                    
+                    request.resolve(result);
+                } catch (error) {
+                    request.reject(error);
+                }
+            }
+        } finally {
+            this.isProcessing = false;
+        }
+    }
+
+    // Perform the actual analysis (moved from analyzeConversation)
+    async performAnalysis(transcript, audioData, speakerInfo = {}) {
+        const startTime = performance.now();
+        
+        try {
+            // Validate input
+            if (!transcript || typeof transcript !== 'string' || transcript.trim().length === 0) {
+                console.warn('⚠️ Social Decoder: Invalid transcript provided');
+                return null;
+            }
+
+            // Check error threshold
+            if (this.errorCount >= this.maxErrors) {
+                console.warn('⚠️ Social Decoder: Maximum error threshold reached, disabling analysis');
+                this.isActive = false;
+                return null;
+            }
+
             // Step 1: Basic sarcasm and subtext detection
             const sarcasmAnalysis = this.detectSarcasm(transcript, audioData);
             
@@ -108,26 +383,92 @@ class SocialDecoder {
             // Step 5: Suggest response templates if needed
             const suggestions = this.generateResponseSuggestions(translation);
 
+            const processingTime = performance.now() - startTime;
+            
             const result = {
                 timestamp: Date.now(),
                 original: transcript,
                 translation: translation,
                 suggestions: suggestions,
-                confidence: this.calculateConfidence(sarcasmAnalysis, emotionalAnalysis, clarityAnalysis)
+                confidence: this.calculateConfidence(sarcasmAnalysis, emotionalAnalysis, clarityAnalysis),
+                processingTime: processingTime,
+                audioDataAvailable: !!audioData,
+                realAudioUsed: !!(this.currentToneData && this.currentToneData.features)
             };
 
-            // Store in conversation history
+            // Update performance metrics
+            this.updatePerformanceMetrics(processingTime);
+
+            // Store in conversation history (with size limit for performance)
             this.conversationHistory.push(result);
+            if (this.conversationHistory.length > 50) {
+                this.conversationHistory = this.conversationHistory.slice(-30); // Keep last 30
+            }
             
-            // Trigger callbacks for UI updates
+            // Trigger callbacks for UI updates with error handling
             this.triggerDetectionCallbacks(result);
+            
+            // Reset error count on successful analysis
+            if (this.errorCount > 0) {
+                this.errorCount--;
+            }
             
             return result;
 
         } catch (error) {
-            console.error('❌ Social Decoder analysis failed:', error);
+            this.handleError('analyzeConversation', error, { transcript: transcript?.substring(0, 50) });
             return null;
         }
+    }
+
+    // Enhanced error handling
+    handleError(context, error, data = {}) {
+        this.errorCount++;
+        this.performanceMetrics.errorsEncountered++;
+        this.lastError = {
+            timestamp: Date.now(),
+            context: context,
+            error: error.message,
+            data: data
+        };
+
+        console.error(`❌ Social Decoder Error (${context}):`, error);
+        console.error('📊 Error count:', this.errorCount, '/', this.maxErrors);
+        
+        if (this.errorCount >= this.maxErrors) {
+            console.error('🚨 Social Decoder: Maximum error threshold reached, entering safe mode');
+            this.enterSafeMode();
+        }
+    }
+
+    // Update performance metrics
+    updatePerformanceMetrics(processingTime) {
+        this.performanceMetrics.totalAnalyses++;
+        this.performanceMetrics.totalProcessingTime += processingTime;
+        this.performanceMetrics.averageProcessingTime = 
+            this.performanceMetrics.totalProcessingTime / this.performanceMetrics.totalAnalyses;
+    }
+
+    // Enter safe mode when too many errors occur
+    enterSafeMode() {
+        this.isActive = false;
+        console.log('🛡️ Social Decoder entering safe mode - analysis disabled');
+        
+        // Notify UI about safe mode
+        this.triggerDetectionCallbacks({
+            timestamp: Date.now(),
+            error: true,
+            message: 'Social Decoder entered safe mode due to errors',
+            safeMode: true
+        });
+    }
+
+    // Reset error state and reactivate
+    resetErrorState() {
+        this.errorCount = 0;
+        this.lastError = null;
+        this.isActive = true;
+        console.log('✅ Social Decoder error state reset - reactivated');
     }
 
     // Detect sarcasm and subtext in communication
@@ -181,22 +522,61 @@ class SocialDecoder {
 
     // Analyze tone mismatch between content and delivery
     analyzeToneMismatch(text, audioData) {
-        // This would integrate with audio analysis pipeline
-        // For now, simulate based on text patterns
-        
         const positiveWords = ['great', 'awesome', 'perfect', 'wonderful', 'fine'];
         const hasPositiveWords = positiveWords.some(word => text.toLowerCase().includes(word));
         
-        // Simulate tone analysis - in real implementation, this would use audio processing
-        const simulatedToneFlat = text.length < 10 || text.includes('.');
-        const simulatedStress = text.includes('!') || text.toUpperCase() === text;
-        
         let mismatch = 0;
-        if (hasPositiveWords && simulatedToneFlat) {
-            mismatch = 0.8; // Positive words with flat delivery = likely sarcasm
+        let indicators = { flat: false, stressed: false, realAudio: false };
+        
+        // Use real audio data if available from current tone data
+        if (this.currentToneData && this.currentToneData.features) {
+            const toneFeatures = this.currentToneData.features;
+            indicators.realAudio = true;
+            
+            // Real audio analysis
+            indicators.flat = toneFeatures.monotone || toneFeatures.lowEnergy;
+            indicators.stressed = toneFeatures.highPitch || toneFeatures.energy > 200;
+            
+            // Detect sarcasm: positive words + flat/monotone delivery
+            if (hasPositiveWords && indicators.flat) {
+                mismatch = 0.85; // High confidence with real audio
+            }
+            
+            // Detect stress: positive words + high pitch/energy
+            if (hasPositiveWords && indicators.stressed) {
+                mismatch = 0.7; // Might be genuine enthusiasm or forced positivity
+            }
+            
+            // Low energy with any content = potential disengagement
+            if (toneFeatures.lowEnergy && text.length > 5) {
+                mismatch += 0.3;
+            }
+            
+            console.log('🎧 Real audio tone analysis:', {
+                text: text.substring(0, 30) + '...',
+                toneFeatures: toneFeatures,
+                mismatch: mismatch.toFixed(2)
+            });
+            
+        } else {
+            // Fallback to text-based simulation
+            const simulatedToneFlat = text.length < 10 || text.includes('.');
+            const simulatedStress = text.includes('!') || text.toUpperCase() === text;
+            
+            indicators.flat = simulatedToneFlat;
+            indicators.stressed = simulatedStress;
+            
+            if (hasPositiveWords && simulatedToneFlat) {
+                mismatch = 0.6; // Lower confidence without real audio
+            }
+            
+            console.log('🎭 Simulated tone analysis (no real audio):', {
+                text: text.substring(0, 30) + '...',
+                mismatch: mismatch.toFixed(2)
+            });
         }
         
-        return { mismatch, indicators: { flat: simulatedToneFlat, stressed: simulatedStress } };
+        return { mismatch: Math.min(mismatch, 1.0), indicators };
     }
 
     // Infer the actual meaning behind sarcastic communication
@@ -399,13 +779,31 @@ class SocialDecoder {
         this.detectionCallbacks.push(callback);
     }
 
-    // Trigger all registered callbacks
+    // Trigger all registered callbacks with enhanced error handling
     triggerDetectionCallbacks(analysis) {
-        this.detectionCallbacks.forEach(callback => {
+        if (!this.detectionCallbacks || this.detectionCallbacks.length === 0) {
+            return;
+        }
+
+        let callbackErrors = 0;
+        
+        this.detectionCallbacks.forEach((callback, index) => {
             try {
-                callback(analysis);
+                if (typeof callback === 'function') {
+                    callback(analysis);
+                } else {
+                    console.warn(`⚠️ Social Decoder: Invalid callback at index ${index}`);
+                }
             } catch (error) {
-                console.error('❌ Social Decoder callback error:', error);
+                callbackErrors++;
+                console.error(`❌ Social Decoder callback error (index ${index}):`, error);
+                
+                // If too many callback errors, remove problematic callbacks
+                if (callbackErrors > 3) {
+                    console.warn('⚠️ Social Decoder: Too many callback errors, cleaning up callbacks');
+                    this.detectionCallbacks = this.detectionCallbacks.filter(cb => typeof cb === 'function');
+                    return;
+                }
             }
         });
     }
@@ -413,6 +811,33 @@ class SocialDecoder {
     // Get conversation history for context
     getConversationHistory() {
         return this.conversationHistory;
+    }
+
+    // Get conversation context for AI brain integration
+    getConversationContext() {
+        return {
+            isActive: this.isActive,
+            totalAnalyses: this.conversationHistory.length,
+            recentActivity: this.conversationHistory.slice(-5),
+            history: this.conversationHistory.map(analysis => ({
+                timestamp: analysis.timestamp,
+                analysis: analysis,
+                summary: {
+                    original: analysis.original,
+                    confidence: analysis.confidence,
+                    isSarcastic: analysis.translation.hiddenMeaning ? true : false,
+                    emotionalTone: analysis.translation.emotionalSubtext,
+                    suggestionsCount: analysis.suggestions.length
+                }
+            })),
+            currentAudioContext: this.currentAudioContext,
+            currentToneData: this.currentToneData,
+            detectionStats: {
+                highConfidenceDetections: this.conversationHistory.filter(a => a.confidence > 0.8).length,
+                sarcasmDetections: this.conversationHistory.filter(a => a.translation.hiddenMeaning).length,
+                emotionalDetections: this.conversationHistory.filter(a => a.translation.emotionalSubtext).length
+            }
+        };
     }
 
     // Clear conversation history
@@ -426,11 +851,70 @@ class SocialDecoder {
         };
     }
 
-    // Deactivate the Social Decoder
+    // Get performance benchmarks
+    getPerformanceBenchmarks() {
+        return {
+            ...this.performanceMetrics,
+            errorRate: this.performanceMetrics.totalAnalyses > 0 ? 
+                (this.performanceMetrics.errorsEncountered / this.performanceMetrics.totalAnalyses * 100).toFixed(2) + '%' : '0%',
+            currentErrorCount: this.errorCount,
+            maxErrors: this.maxErrors,
+            queueSize: this.analysisQueue.length,
+            maxQueueSize: this.maxQueueSize,
+            historySize: this.conversationHistory.length,
+            maxHistorySize: this.maxHistorySize,
+            isProcessing: this.isProcessing,
+            lastError: this.lastError,
+            healthStatus: this.getHealthStatus()
+        };
+    }
+
+    // Get system health status
+    getHealthStatus() {
+        if (!this.isActive) {
+            return 'inactive';
+        }
+        
+        if (this.errorCount >= this.maxErrors) {
+            return 'error';
+        }
+        
+        if (this.errorCount > this.maxErrors * 0.7) {
+            return 'warning';
+        }
+        
+        if (this.performanceMetrics.averageProcessingTime > this.maxProcessingTime) {
+            return 'slow';
+        }
+        
+        return 'healthy';
+    }
+
+    // Deactivate the Social Decoder with proper cleanup
     deactivate() {
         this.isActive = false;
         this.detectionCallbacks = [];
-        console.log('🧠 Social Decoder System deactivated');
+        
+        // Clean up timers and intervals
+        if (this.debounceTimeout) {
+            clearTimeout(this.debounceTimeout);
+            this.debounceTimeout = null;
+        }
+        
+        if (this.cleanupInterval) {
+            clearInterval(this.cleanupInterval);
+            this.cleanupInterval = null;
+        }
+        
+        // Clear queued analyses
+        this.analysisQueue.forEach(request => {
+            if (request.reject) {
+                request.reject(new Error('Social Decoder deactivated'));
+            }
+        });
+        this.analysisQueue = [];
+        
+        console.log('🧠 Social Decoder System deactivated with proper cleanup');
     }
 }
 

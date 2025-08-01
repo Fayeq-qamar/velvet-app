@@ -4965,7 +4965,22 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
 
         async function initializeSocialDecoderWithContext() {
             try {
-                console.log('🧠 Initializing Social Decoder System (Phase 2)...');
+                console.log('🧠 Initializing Social Decoder System (Phase 2) with full context integration...');
+                
+                // Wait for unified context engine to be ready
+                if (!unifiedContextEngine) {
+                    console.log('⏳ Waiting for Unified Context Engine...');
+                    await new Promise(resolve => {
+                        const checkEngine = () => {
+                            if (unifiedContextEngine) {
+                                resolve();
+                            } else {
+                                setTimeout(checkEngine, 100);
+                            }
+                        };
+                        checkEngine();
+                    });
+                }
                 
                 // Create Social Decoder instance
                 socialDecoder = new SocialDecoder();
@@ -4985,11 +5000,49 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
                     return;
                 }
                 
+                // Integrate with Unified Context Engine
+                if (unifiedContextEngine && unifiedContextEngine.registerContextProvider) {
+                    console.log('🔗 Connecting Social Decoder to Unified Context Engine...');
+                    
+                    // Register Social Decoder as a context provider
+                    unifiedContextEngine.registerContextProvider('social_decoder', {
+                        getContext: () => socialDecoder.getConversationContext(),
+                        isActive: () => socialDecoder.isActive,
+                        priority: 'high' // Social context is high priority
+                    });
+                    
+                    // Listen for unified context updates to enhance social analysis
+                    if (unifiedContextEngine.onContextUpdate) {
+                        unifiedContextEngine.onContextUpdate((context) => {
+                            if (socialDecoder.isActive && context.audioContext) {
+                                // Enhance social analysis with unified context
+                                socialDecoder.processAudioContext(context.audioContext);
+                            }
+                        });
+                    }
+                    
+                    console.log('✅ Social Decoder integrated with Unified Context Engine');
+                }
+                
+                // Integrate with Audio Environment Monitor
+                if (audioEnvironmentMonitor && audioEnvironmentMonitor.onAudioContextDetected) {
+                    console.log('🎧 Connecting Social Decoder to Audio Environment Monitor...');
+                    
+                    // Listen for speech/conversation detection
+                    audioEnvironmentMonitor.onAudioContextDetected((audioContext) => {
+                        if (socialDecoder.isActive && (audioContext.classification === 'speech' || audioContext.classification === 'call')) {
+                            socialDecoder.processAudioContext(audioContext);
+                        }
+                    });
+                    
+                    console.log('✅ Social Decoder integrated with Audio Environment Monitor');
+                }
+                
                 // Make globally available for voice integration
                 window.socialDecoder = socialDecoder;
                 window.socialDecoderUI = socialDecoderUI;
                 
-                console.log('✅ Social Decoder System ready - Phase 2 active!');
+                console.log('✅ Social Decoder System ready - Phase 2 fully integrated!');
                 
                 // Demo the system with a test message
                 setTimeout(() => {

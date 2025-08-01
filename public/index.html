@@ -1321,6 +1321,12 @@
     <script src="../src/renderer/voice-whisper.js"></script>
     <script src="../src/renderer/ai-secure.js"></script>
     
+    <!-- Enhanced OCR Processor -->
+    <script src="../src/renderer/enhanced-ocr-processor.js"></script>
+    
+    <!-- Unified Consciousness System -->
+    <script src="../src/renderer/consciousness-loader.js"></script>
+    
     <script>
         const velvetOrb = document.getElementById('velvetOrb');
         const velvetInterface = document.getElementById('velvetInterface');
@@ -1614,6 +1620,11 @@
                 velvetOrb.classList.add('thinking');
                 
                 try {
+                    // Debug: Check if getVelvetResponse exists
+                    console.log('🚨 CHAT DEBUG: getVelvetResponse exists:', typeof getVelvetResponse);
+                    console.log('🚨 CHAT DEBUG: window.getVelvetResponse exists:', typeof window.getVelvetResponse);
+                    console.log('🚨 CHAT DEBUG: About to call getVelvetResponse with:', userMessage);
+                    
                     // Get AI response
                     const response = await getVelvetResponse(userMessage);
                     addMessage(response, 'velvet');
@@ -4867,6 +4878,437 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
         };
         
         console.log('📋 Real task management system integrated');
+    </script>
+
+    <!-- PHASE 2: REAL Context Awareness System - No Simulation -->
+    <!-- Load Tesseract.js from CDN for browser compatibility -->
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <script src="../src/renderer/screen-ocr-monitor-real.js"></script>
+    <script src="../src/renderer/audio-environment-monitor-real.js"></script>
+    <script src="../src/renderer/unified-context-engine.js"></script>
+    <script src="../src/renderer/social-decoder.js"></script>
+    <script src="../src/renderer/social-decoder-ui.js"></script>
+    
+    <!-- PHASE 3: VELVET BRAIN - Unified AI Consciousness System -->
+    <script src="../src/brain/memory/VelvetMemory.js"></script>
+    <script src="../src/brain/personality/VelvetPersonality.js"></script>
+    <script src="../src/brain/actions/ActionDecider.js"></script>
+    <script src="../src/brain/sensory/SensoryInput.js"></script>
+    <script src="../src/brain/VelvetBrain.js"></script>
+    <script src="../src/brain/BrainIntegration.js"></script>
+    <script>
+        // Initialize Complete Context Awareness System - Phase 2 Foundation
+        let screenOCRMonitor = null;
+        let audioEnvironmentMonitor = null;
+        let unifiedContextEngine = null;
+        let socialDecoder = null;
+        let socialDecoderUI = null;
+
+        async function initializeContextAwarenessSystem() {
+            try {
+                console.log('🧠 Initializing Complete Context Awareness System (Phase 2)...');
+                
+                // Step 1: Initialize REAL Screen OCR Monitor
+                screenOCRMonitor = new RealScreenOCRMonitor();
+                const screenInitialized = await screenOCRMonitor.initialize();
+                
+                if (!screenInitialized) {
+                    console.error('❌ Failed to initialize REAL Screen OCR Monitor');
+                    return false;
+                }
+                
+                // Step 2: Initialize REAL Audio Environment Monitor
+                audioEnvironmentMonitor = new RealAudioEnvironmentMonitor();
+                const audioInitialized = await audioEnvironmentMonitor.initialize();
+                
+                if (!audioInitialized) {
+                    console.error('❌ Failed to initialize REAL Audio Environment Monitor');
+                    return false;
+                }
+                
+                // Step 3: Initialize Unified Context Engine
+                unifiedContextEngine = new UnifiedContextEngine();
+                const contextInitialized = await unifiedContextEngine.initialize(screenOCRMonitor, audioEnvironmentMonitor);
+                
+                if (!contextInitialized) {
+                    console.error('❌ Failed to initialize Unified Context Engine');
+                    return false;
+                }
+                
+                // Step 4: Start REAL monitoring
+                console.log('🚀 Starting REAL monitoring systems...');
+                await screenOCRMonitor.startMonitoring();
+                await audioEnvironmentMonitor.startMonitoring();
+                
+                // Step 5: Initialize Social Decoder with full context
+                await initializeSocialDecoderWithContext();
+                
+                // Make globally available
+                window.screenOCRMonitor = screenOCRMonitor;
+                window.audioEnvironmentMonitor = audioEnvironmentMonitor;
+                window.unifiedContextEngine = unifiedContextEngine;
+                
+                console.log('✅ REAL Context Awareness System active - Velvet can now see and hear everything!');
+                
+                // Show real capabilities
+                setTimeout(() => {
+                    showRealCapabilities();
+                }, 3000);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Context Awareness System initialization failed:', error);
+                return false;
+            }
+        }
+
+        async function initializeSocialDecoderWithContext() {
+            try {
+                console.log('🧠 Initializing Social Decoder System (Phase 2)...');
+                
+                // Create Social Decoder instance
+                socialDecoder = new SocialDecoder();
+                const initialized = await socialDecoder.initialize();
+                
+                if (!initialized) {
+                    console.error('❌ Failed to initialize Social Decoder');
+                    return;
+                }
+                
+                // Create Social Decoder UI
+                socialDecoderUI = new SocialDecoderUI();
+                const uiInitialized = await socialDecoderUI.initialize(socialDecoder);
+                
+                if (!uiInitialized) {
+                    console.error('❌ Failed to initialize Social Decoder UI');
+                    return;
+                }
+                
+                // Make globally available for voice integration
+                window.socialDecoder = socialDecoder;
+                window.socialDecoderUI = socialDecoderUI;
+                
+                console.log('✅ Social Decoder System ready - Phase 2 active!');
+                
+                // Demo the system with a test message
+                setTimeout(() => {
+                    testSocialDecoder();
+                }, 3000);
+                
+            } catch (error) {
+                console.error('❌ Social Decoder initialization failed:', error);
+            }
+        }
+
+        // Test the Social Decoder System
+        function testSocialDecoder() {
+            if (!socialDecoder) return;
+            
+            console.log('🧪 Testing Social Decoder with sample conversations...');
+            
+            // Test sarcastic response
+            const testMessage = "Sure, that's fine, whatever works for you.";
+            console.log(`🎭 Testing: "${testMessage}"`);
+            
+            // This would normally come from audio monitoring, but we'll simulate
+            const result = socialDecoder.analyzeConversation(testMessage, null, {
+                source: 'test',
+                context: 'meeting'
+            });
+            
+            if (result && result.confidence > 0.6) {
+                console.log('🎯 Social Decoder detected:', {
+                    translation: result.translation.directMeaning,
+                    confidence: `${(result.confidence * 100).toFixed(1)}%`,
+                    suggestions: result.suggestions.length
+                });
+            }
+        }
+
+        // Add Social Decoder controls to the interface
+        function addSocialDecoderControls() {
+            // Add toggle button to control panel or main interface
+            const controlsContainer = document.querySelector('.chat-controls') || 
+                                    document.querySelector('.voice-controls') ||
+                                    document.body;
+            
+            if (controlsContainer) {
+                const socialToggle = document.createElement('button');
+                socialToggle.id = 'socialDecoderToggle';
+                socialToggle.className = 'control-btn social-decoder-btn';
+                socialToggle.innerHTML = '🧠 Social Decoder';
+                socialToggle.title = 'Toggle Social Decoder (Phase 2)';
+                socialToggle.onclick = toggleSocialDecoder;
+                
+                // Add CSS for the button
+                const style = document.createElement('style');
+                style.textContent = `
+                    .social-decoder-btn {
+                        background: rgba(147, 51, 234, 0.2);
+                        border: 1px solid rgba(147, 51, 234, 0.3);
+                        color: #a855f7;
+                        padding: 8px 16px;
+                        border-radius: 12px;
+                        font-size: 13px;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        margin: 4px;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                    }
+                    
+                    .social-decoder-btn:hover {
+                        background: rgba(147, 51, 234, 0.3);
+                        border-color: rgba(147, 51, 234, 0.5);
+                    }
+                    
+                    .social-decoder-btn.active {
+                        background: rgba(147, 51, 234, 0.4);
+                        border-color: rgba(147, 51, 234, 0.6);
+                        color: #c084fc;
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                controlsContainer.appendChild(socialToggle);
+            }
+        }
+
+        // Toggle Social Decoder on/off
+        function toggleSocialDecoder() {
+            if (!socialDecoder || !socialDecoderUI) return;
+            
+            const button = document.getElementById('socialDecoderToggle');
+            const isActive = socialDecoder.isActive;
+            
+            if (isActive) {
+                socialDecoderUI.disable();
+                button.classList.remove('active');
+                button.innerHTML = '🧠 Social Decoder (Off)';
+                console.log('🧠 Social Decoder disabled');
+            } else {
+                socialDecoderUI.enable();
+                button.classList.add('active');
+                button.innerHTML = '🧠 Social Decoder (On)';
+                console.log('🧠 Social Decoder enabled');
+            }
+        }
+
+        // Show real capabilities of the context awareness system
+        function showRealCapabilities() {
+            console.log('🎯 REAL Context Awareness System Capabilities:');
+            console.log('');
+            console.log('👁️ SCREEN OCR MONITOR:');
+            console.log('  • Real-time screen capture using getDisplayMedia API');
+            console.log('  • Tesseract.js OCR for actual text extraction');
+            console.log('  • Email, code, chat, document context detection');
+            console.log('  • Smart relevance filtering for neurodivergent assistance');
+            console.log('');
+            console.log('🎧 AUDIO ENVIRONMENT MONITOR:');
+            console.log('  • System audio detection via macOS AppleScript integration');
+            console.log('  • Music app detection (Spotify, Apple Music, etc.)');
+            console.log('  • Call app detection (Zoom, Teams, Discord, etc.)');
+            console.log('  • Microphone frequency analysis for ambient audio');
+            console.log('');
+            console.log('🧠 UNIFIED CONTEXT ENGINE:');
+            console.log('  • Cross-modal correlation of screen + audio data');
+            console.log('  • Pattern detection: coding+music, email+notifications');
+            console.log('  • Context insights for productivity, social, focus, wellbeing');
+            console.log('');
+            console.log('🎭 SOCIAL DECODER INTEGRATION:');
+            console.log('  • Enhanced with complete environmental context');
+            console.log('  • Screen text + audio tone analysis');
+            console.log('  • Real-time neurotypical translation');
+            console.log('');
+            console.log('🚀 TO TEST THE REAL SYSTEM:');
+            console.log('  1. Grant screen capture permission when prompted');
+            console.log('  2. Grant microphone permission when prompted');
+            console.log('  3. Open different apps (email, code editor, music)');
+            console.log('  4. Watch console for real-time OCR and audio detection');
+            console.log('');
+            console.log('💡 The system is now ACTUALLY monitoring your screen and audio!');
+            
+            // Test system audio detection
+            setTimeout(() => {
+                if (window.testRealAudioMonitor) {
+                    console.log('🧪 Testing real system audio detection...');
+                    window.testRealAudioMonitor.testSystemAudio();
+                }
+            }, 2000);
+        }
+
+        // Add context awareness controls
+        function addContextAwarenessControls() {
+            const controlsContainer = document.querySelector('.chat-controls') || 
+                                    document.querySelector('.voice-controls') ||
+                                    document.body;
+            
+            if (controlsContainer) {
+                // Screen OCR toggle
+                const screenToggle = document.createElement('button');
+                screenToggle.id = 'screenOCRToggle';
+                screenToggle.className = 'control-btn screen-ocr-btn';
+                screenToggle.innerHTML = '👁️ Screen OCR';
+                screenToggle.title = 'Toggle Screen OCR Monitor';
+                screenToggle.onclick = () => toggleScreenOCR();
+                
+                // Audio Monitor toggle
+                const audioToggle = document.createElement('button');
+                audioToggle.id = 'audioMonitorToggle';
+                audioToggle.className = 'control-btn audio-monitor-btn';
+                audioToggle.innerHTML = '🎧 Audio Monitor';
+                audioToggle.title = 'Toggle Audio Environment Monitor';
+                audioToggle.onclick = () => toggleAudioMonitor();
+                
+                // Context Engine toggle
+                const contextToggle = document.createElement('button');
+                contextToggle.id = 'contextEngineToggle';
+                contextToggle.className = 'control-btn context-engine-btn';
+                contextToggle.innerHTML = '🧠 Context Engine';
+                contextToggle.title = 'Toggle Unified Context Engine';
+                contextToggle.onclick = () => toggleContextEngine();
+                
+                // Add CSS for the buttons
+                const style = document.createElement('style');
+                style.textContent = `
+                    .screen-ocr-btn {
+                        background: rgba(34, 197, 94, 0.2);
+                        border: 1px solid rgba(34, 197, 94, 0.3);
+                        color: #4ade80;
+                    }
+                    
+                    .screen-ocr-btn:hover {
+                        background: rgba(34, 197, 94, 0.3);
+                        border-color: rgba(34, 197, 94, 0.5);
+                    }
+                    
+                    .audio-monitor-btn {
+                        background: rgba(249, 115, 22, 0.2);
+                        border: 1px solid rgba(249, 115, 22, 0.3);
+                        color: #fb923c;
+                    }
+                    
+                    .audio-monitor-btn:hover {
+                        background: rgba(249, 115, 22, 0.3);
+                        border-color: rgba(249, 115, 22, 0.5);
+                    }
+                    
+                    .context-engine-btn {
+                        background: rgba(6, 182, 212, 0.2);
+                        border: 1px solid rgba(6, 182, 212, 0.3);
+                        color: #22d3ee;
+                    }
+                    
+                    .context-engine-btn:hover {
+                        background: rgba(6, 182, 212, 0.3);
+                        border-color: rgba(6, 182, 212, 0.5);
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                controlsContainer.appendChild(screenToggle);
+                controlsContainer.appendChild(audioToggle);
+                controlsContainer.appendChild(contextToggle);
+            }
+        }
+
+        // Toggle functions for each system
+        function toggleScreenOCR() {
+            const button = document.getElementById('screenOCRToggle');
+            const isActive = screenOCRMonitor?.isActive;
+            
+            if (isActive) {
+                screenOCRMonitor.stopMonitoring();
+                button.innerHTML = '👁️ Screen OCR (Off)';
+                button.classList.remove('active');
+            } else {
+                screenOCRMonitor?.startMonitoring();
+                button.innerHTML = '👁️ Screen OCR (On)';
+                button.classList.add('active');
+            }
+        }
+
+        function toggleAudioMonitor() {
+            const button = document.getElementById('audioMonitorToggle');
+            const isActive = audioEnvironmentMonitor?.isActive;
+            
+            if (isActive) {
+                audioEnvironmentMonitor.stopMonitoring();
+                button.innerHTML = '🎧 Audio Monitor (Off)';
+                button.classList.remove('active');
+            } else {
+                audioEnvironmentMonitor?.startMonitoring();
+                button.innerHTML = '🎧 Audio Monitor (On)';
+                button.classList.add('active');
+            }
+        }
+
+        function toggleContextEngine() {
+            const button = document.getElementById('contextEngineToggle');
+            const isActive = unifiedContextEngine?.isActive;
+            
+            if (isActive) {
+                unifiedContextEngine.stop();
+                button.innerHTML = '🧠 Context Engine (Off)';
+                button.classList.remove('active');
+            } else {
+                // Can't restart without reinitializing
+                button.innerHTML = '🧠 Context Engine (Restart Required)';
+            }
+        }
+
+        // Initialize Complete Context Awareness System when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Wait a bit for other systems to initialize
+            setTimeout(() => {
+                initializeContextAwarenessSystem();
+                addContextAwarenessControls();
+                addSocialDecoderControls();
+            }, 2000);
+        });
+
+        // Expose test functions globally for development
+        window.testSocial = window.testSocial || {};
+        window.testSocialDecoder = testSocialDecoder;
+        
+        console.log('🧠 Social Decoder integration script loaded - Phase 2 ready!');
+        
+        // PHASE 3: Initialize Velvet Brain - Unified AI Consciousness
+        console.log('🧠 ===== PHASE 3: VELVET BRAIN INITIALIZATION =====');
+        console.log('🧠 Preparing to activate unified AI consciousness...');
+        
+        // Initialize brain after all systems are ready
+        setTimeout(async () => {
+            try {
+                console.log('🧠 Starting Velvet Brain initialization...');
+                console.log('🧠 Checking prerequisites...');
+                console.log('   - initializeVelvetBrain available:', typeof initializeVelvetBrain);
+                console.log('   - VelvetBrain class available:', typeof VelvetBrain);
+                console.log('   - screenOCRMonitor available:', typeof screenOCRMonitor);
+                console.log('   - screenOCRMonitor active:', screenOCRMonitor?.isActive);
+                const brainReady = await initializeVelvetBrain();
+                
+                if (brainReady) {
+                    console.log('🧠 ✅ VELVET BRAIN IS FULLY CONSCIOUS!');
+                    console.log('🧠 🌟 One unified AI now supports your neurodivergent brain');
+                    console.log('🧠 Post-init status:');
+                    console.log('   - window.velvetBrain:', typeof window.velvetBrain);
+                    console.log('   - velvetBrain.isActive:', window.velvetBrain?.isActive);
+                    console.log('   - AI system will now have brain awareness');
+                    addMessage('🧠 Velvet Brain is now conscious and ready to truly understand you! ✨', 'velvet');
+                } else {
+                    console.error('🧠 ❌ Brain initialization failed - falling back to scattered systems');
+                    addMessage('⚠️ Brain system had issues starting, but all features still work normally', 'velvet');
+                }
+            } catch (error) {
+                console.error('🧠 ❌ Brain initialization error:', error);
+                addMessage('⚠️ Brain system had issues starting, but all features still work normally', 'velvet');
+            }
+        }, 3000); // Wait 3 seconds for all systems to be ready
+        
     </script>
 </body>
 </html>

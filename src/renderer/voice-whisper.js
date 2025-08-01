@@ -79,6 +79,25 @@ class VelvetVoiceElevenLabs {
             
             if (transcript) {
                 console.log('Transcript:', transcript);
+                
+                // PHASE 2: Social Decoder Integration
+                // Analyze transcript for social cues before processing
+                if (window.socialDecoder && window.socialDecoder.isActive) {
+                    try {
+                        const socialAnalysis = window.socialDecoder.analyzeConversation(
+                            transcript, 
+                            { audioBlob: base64Audio }, // Audio data for tone analysis
+                            { source: 'user_voice', timestamp: Date.now() }
+                        );
+                        
+                        if (socialAnalysis && socialAnalysis.confidence > 0.6) {
+                            console.log('🧠 Social cue detected in user speech:', socialAnalysis);
+                        }
+                    } catch (socialError) {
+                        console.error('Social Decoder analysis failed:', socialError);
+                    }
+                }
+                
                 this.onTranscript(transcript);
             }
         } catch (error) {

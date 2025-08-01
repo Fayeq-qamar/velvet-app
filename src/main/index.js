@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, globalShortcut, desktopCapturer } = require('electron');
 const path = require('path');
 require('dotenv').config();
 
@@ -12,7 +12,14 @@ app.commandLine.appendSwitch('disable-features', 'IOSurfaceCapturer,DesktopCaptu
 app.commandLine.appendSwitch('enable-features', 'ScreenCaptureKitPickerSonoma');
 
 console.log('🔧 Stealth command line switches applied');
+
+// NEW: Advanced streaming architecture instead of embarrassing polling
+const { VelvetStreamClient, VelvetBrainContext } = require('./velvet-stream-client');
 const ScreenIntelligence = require('./screen-intelligence');
+
+// Global brain context manager
+global.velvetBrainContext = new VelvetBrainContext();
+let velvetStreamClient = null;
 
 let mainWindow;
 let checklistWindow;
@@ -2948,6 +2955,237 @@ ipcMain.handle('check-audio-playing', async () => {
 });
 
 // Handle system volume level detection
+// PHASE 2: System Audio Capture for Real Audio Environment Monitor
+ipcMain.handle('get-system-audio-devices', async () => {
+  try {
+    console.log('🎧 Getting system audio devices...');
+    
+    // Use macOS system command to get audio devices
+    const { exec } = require('child_process');
+    
+    return new Promise((resolve, reject) => {
+      const command = `
+        osascript -e '
+        tell application "System Events"
+          set audioDevices to {}
+          set audioInfo to do shell script "system_profiler SPAudioDataType -json"
+          return audioInfo
+        end tell'
+      `;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error('❌ Failed to get audio devices:', error);
+          resolve({ devices: [], error: error.message });
+          return;
+        }
+        
+        try {
+          // Parse audio device information
+          const audioData = JSON.parse(stdout);
+          console.log('✅ System audio devices retrieved');
+          resolve({ devices: audioData.SPAudioDataType || [], error: null });
+        } catch (parseError) {
+          console.error('❌ Failed to parse audio device data:', parseError);
+          resolve({ devices: [], error: parseError.message });
+        }
+      });
+    });
+    
+  } catch (error) {
+    console.error('❌ System audio device detection failed:', error);
+    return { devices: [], error: error.message };
+  }
+});
+
+ipcMain.handle('capture-system-audio', async (event, options = {}) => {
+  try {
+    console.log('🎧 Starting system audio capture...');
+    
+    // Use macOS system command to capture audio info
+    const { exec } = require('child_process');
+    
+    return new Promise((resolve, reject) => {
+      const command = `
+        osascript -e '
+        tell application "System Events"
+          set audioApps to {}
+          set musicApps to {"Music", "Spotify", "YouTube Music", "SoundCloud", "Pandora"}
+          set callApps to {"Zoom", "Microsoft Teams", "Discord", "FaceTime", "Skype", "Google Meet"}
+          set browserApps to {"Safari", "Google Chrome", "Firefox", "Arc", "Opera"}
+          
+          repeat with proc in application processes
+            try
+              if (background only of proc is false) then
+                set procName to name of proc
+                set isPlaying to false
+                
+                -- Check if app is likely playing audio
+                if procName is in musicApps then
+                  set audioApps to audioApps & {procName & ":music"}
+                else if procName is in callApps then
+                  set audioApps to audioApps & {procName & ":call"}
+                else if procName is in browserApps then
+                  set audioApps to audioApps & {procName & ":browser"}
+                end if
+              end if
+            end try
+          end repeat
+          
+          return audioApps as string
+        end tell'
+      `;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.error('❌ Failed to capture system audio info:', error);
+          resolve({ 
+            audioSources: [], 
+            timestamp: Date.now(),
+            error: error.message 
+          });
+          return;
+        }
+        
+        try {
+          // Parse the audio app information
+          const audioAppsString = stdout.trim();
+          const audioSources = audioAppsString ? audioAppsString.split(',').map(app => {
+            const [name, type] = app.trim().split(':');
+            return { name: name || app.trim(), type: type || 'unknown' };
+          }) : [];
+          
+          console.log(`✅ System audio capture: ${audioSources.length} sources detected`);
+          
+          resolve({
+            audioSources: audioSources,
+            timestamp: Date.now(),
+            error: null
+          });
+          
+        } catch (parseError) {
+          console.error('❌ Failed to parse audio app data:', parseError);
+          resolve({ 
+            audioSources: [], 
+            timestamp: Date.now(),
+            error: parseError.message 
+          });
+        }
+      });
+    });
+    
+  } catch (error) {
+    console.error('❌ System audio capture failed:', error);
+    return { 
+      audioSources: [], 
+      timestamp: Date.now(),
+      error: error.message 
+    };
+  }
+});
+
+ipcMain.handle('get-current-audio-context', async () => {
+  try {
+    console.log('🎵 Getting current audio context...');
+    
+    const { exec } = require('child_process');
+    
+    return new Promise((resolve, reject) => {
+      const command = `
+        osascript -e '
+        tell application "System Events"
+          set audioContext to {}
+          
+          -- Check Music app
+          try
+            tell application "Music"
+              if player state is playing then
+                set currentTrack to current track
+                set audioContext to audioContext & {"Music:" & name of currentTrack & " by " & artist of currentTrack}
+              end if
+            end tell
+          end try
+          
+          -- Check Spotify
+          try
+            tell application "Spotify"
+              if player state is playing then
+                set currentTrack to current track
+                set audioContext to audioContext & {"Spotify:" & name of currentTrack & " by " & artist of currentTrack}
+              end if
+            end tell
+          end try
+          
+          -- Check system volume
+          set systemVolume to output volume of (get volume settings)
+          set audioContext to audioContext & {"Volume:" & systemVolume}
+          
+          return audioContext as string
+        end tell'
+      `;
+      
+      exec(command, (error, stdout, stderr) => {
+        if (error) {
+          console.log('⚠️ Audio context detection limited:', error.message);
+          resolve({ 
+            context: 'unknown',
+            volume: 50,
+            timestamp: Date.now(),
+            error: error.message 
+          });
+          return;
+        }
+        
+        try {
+          const contextString = stdout.trim();
+          const contextParts = contextString ? contextString.split(',') : [];
+          
+          let audioContext = {
+            context: 'silence',
+            volume: 50,
+            currentTrack: null,
+            app: null,
+            timestamp: Date.now(),
+            error: null
+          };
+          
+          contextParts.forEach(part => {
+            if (part.includes('Music:') || part.includes('Spotify:')) {
+              const [app, track] = part.split(':');
+              audioContext.context = 'music';
+              audioContext.app = app;
+              audioContext.currentTrack = track;
+            } else if (part.includes('Volume:')) {
+              audioContext.volume = parseInt(part.split(':')[1]) || 50;
+            }
+          });
+          
+          console.log(`✅ Audio context: ${audioContext.context} (${audioContext.app || 'system'})`);
+          resolve(audioContext);
+          
+        } catch (parseError) {
+          console.error('❌ Failed to parse audio context:', parseError);
+          resolve({ 
+            context: 'unknown',
+            volume: 50,
+            timestamp: Date.now(),
+            error: parseError.message 
+          });
+        }
+      });
+    });
+    
+  } catch (error) {
+    console.error('❌ Audio context detection failed:', error);
+    return { 
+      context: 'unknown',
+      volume: 50,
+      timestamp: Date.now(),
+      error: error.message 
+    };
+  }
+});
+
 ipcMain.handle('get-system-volume', async () => {
   try {
     if (process.platform === 'darwin') {
@@ -2969,6 +3207,79 @@ ipcMain.handle('get-system-volume', async () => {
   } catch (error) {
     console.error('Error getting system volume:', error);
     return { volume: 50, isMuted: false, level: 'medium', error: error.message };
+  }
+});
+
+// DESKTOP CAPTURER API - Bypass stealth mode for OCR
+ipcMain.handle('get-desktop-sources', async (event, options = {}) => {
+  try {
+    console.log('📺 Getting desktop sources for OCR...');
+    
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],  // Only screens, not individual windows
+      thumbnailSize: options.thumbnailSize || { width: 1920, height: 1080 },
+      fetchWindowIcons: false
+    });
+    
+    console.log(`✅ Found ${sources.length} screen sources`);
+    
+    // Convert sources to serializable format
+    const serializedSources = sources.map(source => ({
+      id: source.id,
+      name: source.name,
+      thumbnail: source.thumbnail.toDataURL()
+    }));
+    
+    return {
+      sources: serializedSources,
+      timestamp: Date.now()
+    };
+    
+  } catch (error) {
+    console.error('❌ Failed to get desktop sources:', error);
+    return {
+      sources: [],
+      error: error.message,
+      timestamp: Date.now()
+    };
+  }
+});
+
+ipcMain.handle('capture-screen-for-ocr', async (event, sourceId) => {
+  try {
+    console.log('📸 Capturing screen for OCR using desktopCapturer...');
+    
+    // Get the specific source
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: { width: 1920, height: 1080 }
+    });
+    
+    const source = sources.find(s => s.id === sourceId) || sources[0];
+    if (!source) {
+      throw new Error('No screen source found');
+    }
+    
+    console.log(`✅ Captured screen: ${source.name}`);
+    
+    // Convert to PNG data URL for better Tesseract compatibility
+    const imageDataUrl = source.thumbnail.toDataURL('image/png');
+    console.log('📷 Image data URL length:', imageDataUrl.length);
+    console.log('📷 Image data URL prefix:', imageDataUrl.substring(0, 50));
+    
+    return {
+      imageDataUrl: imageDataUrl,
+      sourceName: source.name,
+      timestamp: Date.now()
+    };
+    
+  } catch (error) {
+    console.error('❌ Screen capture for OCR failed:', error);
+    return {
+      imageDataUrl: null,
+      error: error.message,
+      timestamp: Date.now()
+    };
   }
 });
 
@@ -3054,12 +3365,108 @@ app.on('child-process-gone', (event, details) => {
 });
 
 // ========================================
+// VELVET STREAMING BRAIN INITIALIZATION
+// ========================================
+
+async function initializeVelvetStreamingBrain() {
+  try {
+    console.log('🧠 Initializing Velvet Streaming Brain Architecture...');
+    
+    // Create stream client
+    velvetStreamClient = new VelvetStreamClient();
+    
+    // Initialize gRPC connection
+    const initialized = await velvetStreamClient.initialize();
+    if (!initialized) {
+      console.error('❌ Failed to initialize stream client');
+      return false;
+    }
+    
+    // Set up brain context event handlers
+    velvetStreamClient.on('brain_context_update', (context) => {
+      console.log('🔥 MAIN PROCESS DEBUG: Received brain context update');
+      console.log(`   📖 Screen Text Length: ${context.screenText.length}`);
+      console.log(`   📖 Screen Text Preview: ${context.screenText.substring(0, 100)}...`);
+      console.log(`   📊 OCR Confidence: ${context.ocrConfidence}`);
+      console.log(`   🎤 Audio Length: ${context.audioTranscript.length}`);
+      
+      // Send brain context to renderer processes
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        console.log('📤 MAIN PROCESS DEBUG: Sending context to renderer');
+        mainWindow.webContents.send('brain-context-update', context);
+      } else {
+        console.log('⚠️ MAIN PROCESS DEBUG: Main window not available');
+      }
+      
+      console.log(`🧠 Brain Context: ${context.screenText.substring(0, 50)}...`);
+    });
+    
+    velvetStreamClient.on('pattern_detected', (pattern) => {
+      console.log(`🚨 Pattern Detected: ${pattern.type} (${pattern.confidence.toFixed(2)})`);
+      
+      // Send pattern detection to renderer for gentle interventions
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('pattern-detected', pattern);
+      }
+    });
+    
+    velvetStreamClient.on('stream_error', (error) => {
+      console.error(`❌ Stream error: ${error.type}`, error.error);
+    });
+    
+    // Start the unified brain context stream (replaces embarrassing polling)
+    console.log('🚀 Starting real-time brain consciousness...');
+    await velvetStreamClient.startBrainContextStream({
+      includeAudio: true,
+      includePatterns: true,
+      confidenceThreshold: 0.6
+    });
+    
+    // Start pattern detection for ADHD/autism support
+    await velvetStreamClient.startPatternStream([
+      'hyperfocus', 
+      'distraction_spiral', 
+      'task_avoidance',
+      'communication_anxiety'
+    ]);
+    
+    console.log('✅ Velvet Streaming Brain is now fully conscious and aware!');
+    console.log('🔥 No more embarrassing 5-second polling - this is REAL-TIME!');
+    
+    return true;
+    
+  } catch (error) {
+    console.error('❌ Failed to initialize Velvet Streaming Brain:', error);
+    return false;
+  }
+}
+
+// IPC handler to get current brain context for AI
+ipcMain.handle('get-brain-context', () => {
+  if (global.velvetBrainContext) {
+    return global.velvetBrainContext.getFormattedContextForAI();
+  }
+  return "Brain context not available";
+});
+
+// IPC handler to get stream status
+ipcMain.handle('get-stream-status', () => {
+  if (velvetStreamClient) {
+    return velvetStreamClient.getStreamStatus();
+  }
+  return { connected: false, activeStreams: [], reconnectAttempts: 0 };
+});
+
+// ========================================
 // APP INITIALIZATION - CRITICAL!
 // ========================================
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   console.log('🚀 Electron app is ready, creating window...');
   createWindow();
+  
+  // Initialize advanced streaming brain architecture
+  await initializeVelvetStreamingBrain();
 });
 
 app.on('activate', () => {

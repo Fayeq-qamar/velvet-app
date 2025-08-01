@@ -448,25 +448,85 @@ class VelvetBrain {
         console.log('🧠 Velvet Brain consciousness ended');
     }
 
-    // Subsystem initialization methods (to be implemented)
+    // Subsystem initialization methods
     async initializeSensoryInput() {
-        // Will initialize unified sensory input system
-        console.log('📡 Sensory input system placeholder - to be implemented');
+        try {
+            // Import and initialize the unified sensory input system
+            if (typeof SensoryInput !== 'undefined') {
+                this.sensoryInput = new SensoryInput();
+                const initialized = await this.sensoryInput.initialize();
+                
+                if (initialized) {
+                    console.log('✅ Sensory Input System connected to brain');
+                } else {
+                    console.warn('⚠️ Sensory Input System initialization failed');
+                }
+            } else {
+                console.warn('⚠️ SensoryInput class not available');
+            }
+        } catch (error) {
+            console.error('❌ Sensory input initialization failed:', error);
+        }
     }
 
     async initializeMemory() {
-        // Will initialize memory and learning system
-        console.log('🧩 Memory system placeholder - to be implemented');
+        try {
+            // Import and initialize the memory system
+            if (typeof VelvetMemory !== 'undefined') {
+                this.memory = new VelvetMemory();
+                const initialized = await this.memory.initialize();
+                
+                if (initialized) {
+                    console.log('✅ Memory System connected to brain');
+                } else {
+                    console.warn('⚠️ Memory System initialization failed');
+                }
+            } else {
+                console.warn('⚠️ VelvetMemory class not available');
+            }
+        } catch (error) {
+            console.error('❌ Memory system initialization failed:', error);
+        }
     }
 
     async initializePersonality() {
-        // Will initialize personality and emotional intelligence
-        console.log('🎭 Personality system placeholder - to be implemented');
+        try {
+            // Import and initialize the personality system
+            if (typeof VelvetPersonality !== 'undefined') {
+                this.personality = new VelvetPersonality();
+                const initialized = await this.personality.initialize();
+                
+                if (initialized) {
+                    console.log('✅ Personality System connected to brain');
+                } else {
+                    console.warn('⚠️ Personality System initialization failed');
+                }
+            } else {
+                console.warn('⚠️ VelvetPersonality class not available');
+            }
+        } catch (error) {
+            console.error('❌ Personality system initialization failed:', error);
+        }
     }
 
     async initializeActionSystems() {
-        // Will initialize all action systems
-        console.log('⚡ Action systems placeholder - to be implemented');
+        try {
+            // Import and initialize the action decision system
+            if (typeof ActionDecider !== 'undefined') {
+                this.actionDecider = new ActionDecider();
+                const initialized = await this.actionDecider.initialize();
+                
+                if (initialized) {
+                    console.log('✅ Action Decision System connected to brain');
+                } else {
+                    console.warn('⚠️ Action Decision System initialization failed');
+                }
+            } else {
+                console.warn('⚠️ ActionDecider class not available');
+            }
+        } catch (error) {
+            console.error('❌ Action systems initialization failed:', error);
+        }
     }
 
     // Action execution methods (to be implemented)

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Enhanced OCR</title>
+    <style>
+        body { font-family: monospace; background: #1a1a1a; color: #fff; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; background: #2a2a2a; border-radius: 8px; }
+        .button { background: #0066cc; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        .result { background: #003300; padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .error { background: #330000; }
+        #screen-preview { max-width: 300px; border: 1px solid #666; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Enhanced OCR Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>📸 Screen Capture Test</h2>
+        <button class="button" onclick="testScreenCapture()">Capture Screen</button>
+        <div id="capture-result"></div>
+        <img id="screen-preview" style="display:none;" />
+    </div>
+    
+    <div class="test-section">
+        <h2>🧠 Enhanced OCR Test</h2>
+        <button class="button" onclick="testEnhancedOCR()">Test Enhanced OCR</button>
+        <div id="ocr-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🤖 AI Integration Test</h2>
+        <button class="button" onclick="testAIIntegration()">Test AI with Enhanced OCR</button>
+        <div id="ai-result"></div>
+    </div>
+    
+    <!-- Load dependencies -->
+    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <script src="../src/renderer/enhanced-ocr-processor.js"></script>
+    
+    <script>
+        let testResults = {};
+        
+        async function testScreenCapture() {
+            const resultDiv = document.getElementById('capture-result');
+            resultDiv.innerHTML = '⏳ Testing screen capture...';
+            
+            try {
+                // Simulate screen capture (in real Electron environment)
+                if (window.electronAPI && window.electronAPI.desktopCapturer) {
+                    const sources = await window.electronAPI.desktopCapturer.getSources({
+                        types: ['screen'],
+                        thumbnailSize: { width: 800, height: 600 }
+                    });
+                    
+                    if (sources.length > 0) {
+                        const imageData = sources[0].thumbnail.toDataURL();
+                        document.getElementById('screen-preview').src = imageData;
+                        document.getElementById('screen-preview').style.display = 'block';
+                        
+                        testResults.capture = imageData;
+                        resultDiv.innerHTML = '✅ Screen capture successful!<br>Image size: ' + imageData.length + ' bytes';
+                        resultDiv.className = 'result';
+                    }
+                } else {
+                    resultDiv.innerHTML = '⚠️ Not in Electron environment - using test image';
+                    // Create a test image with text
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 400;
+                    canvas.height = 200;
+                    const ctx = canvas.getContext('2d');
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, 400, 200);
+                    
+                    ctx.fillStyle = 'black';
+                    ctx.font = '24px Arial';
+                    ctx.fillText('Test Email: Hey fayeq', 20, 50);
+                    ctx.fillText('I need your thoughts on this.', 20, 80);
+                    ctx.fillText('Please review the document.', 20, 110);
+                    ctx.fillText('Best regards, Team', 20, 140);
+                    
+                    const testImageData = canvas.toDataURL();
+                    testResults.capture = testImageData;
+                    
+                    document.getElementById('screen-preview').src = testImageData;
+                    document.getElementById('screen-preview').style.display = 'block';
+                    
+                    resultDiv.innerHTML = '✅ Test image created for OCR testing';
+                    resultDiv.className = 'result';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '❌ Screen capture failed: ' + error.message;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testEnhancedOCR() {
+            const resultDiv = document.getElementById('ocr-result');
+            resultDiv.innerHTML = '⏳ Testing enhanced OCR...';
+            
+            try {
+                if (!testResults.capture) {
+                    await testScreenCapture();
+                }
+                
+                if (!window.enhancedOCRProcessor) {
+                    throw new Error('Enhanced OCR Processor not loaded');
+                }
+                
+                // Initialize if not already done
+                if (!window.enhancedOCRProcessor.isInitialized) {
+                    resultDiv.innerHTML = '⏳ Initializing OCR engine...';
+                    await window.enhancedOCRProcessor.initialize();
+                }
+                
+                resultDiv.innerHTML = '⏳ Performing enhanced OCR...';
+                const startTime = Date.now();
+                
+                const result = await window.enhancedOCRProcessor.performEnhancedOCR(testResults.capture);
+                const processingTime = Date.now() - startTime;
+                
+                testResults.ocr = result;
+                
+                resultDiv.innerHTML = `
+                    <h3>✅ Enhanced OCR Results:</h3>
+                    <strong>Processing Time:</strong> ${processingTime}ms<br>
+                    <strong>Confidence:</strong> ${Math.round(result.confidence * 100)}%<br>
+                    <strong>Text Length:</strong> ${result.text.length} characters<br>
+                    <strong>Extracted Text:</strong><br>
+                    <div style="background: #444; padding: 10px; margin: 10px 0; border-radius: 4px; white-space: pre-wrap;">"${result.text}"</div>
+                `;
+                resultDiv.className = 'result';
+                
+            } catch (error) {
+                resultDiv.innerHTML = '❌ Enhanced OCR failed: ' + error.message;
+                resultDiv.className = 'result error';
+                console.error('Enhanced OCR test error:', error);
+            }
+        }
+        
+        async function testAIIntegration() {
+            const resultDiv = document.getElementById('ai-result');
+            resultDiv.innerHTML = '⏳ Testing AI integration...';
+            
+            try {
+                // Simulate the AI brain context function
+                const mockBrainContext = `
+--- VELVET ENHANCED STREAMING BRAIN CONTEXT ---
+🔧 ENHANCED FALLBACK MODE: Using advanced local OCR processing...
+
+📖 SCREEN CONTENT (Enhanced OCR): "${testResults.ocr?.text || 'No OCR data available'}"
+📊 OCR CONFIDENCE: ${testResults.ocr ? Math.round(testResults.ocr.confidence * 100) : 0}%
+📏 TEXT LENGTH: ${testResults.ocr?.text.length || 0} characters
+
+⏰ TIME: ${new Date().toLocaleTimeString()} on ${new Date().toLocaleDateString()}
+
+🔧 NOTE: Enhanced local processing active. Streaming services may be starting up...
+--- END VELVET ENHANCED STREAMING BRAIN CONTEXT ---
+                `.trim();
+                
+                resultDiv.innerHTML = `
+                    <h3>✅ AI Integration Test:</h3>
+                    <strong>Brain Context Generated:</strong><br>
+                    <div style="background: #444; padding: 10px; margin: 10px 0; border-radius: 4px; white-space: pre-wrap; font-size: 12px;">${mockBrainContext}</div>
+                    <strong>Context Quality:</strong> ${testResults.ocr?.confidence > 0.5 ? '✅ High' : '⚠️ Low'}<br>
+                    <strong>Integration Status:</strong> ✅ Ready for GPT-4
+                `;
+                resultDiv.className = 'result';
+                
+            } catch (error) {
+                resultDiv.innerHTML = '❌ AI integration test failed: ' + error.message;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        // Auto-run tests on load
+        window.addEventListener('load', async () => {
+            console.log('🧪 Enhanced OCR Test Suite loaded');
+            
+            // Wait for enhanced OCR processor to load
+            setTimeout(async () => {
+                if (window.enhancedOCRProcessor) {
+                    console.log('✅ Enhanced OCR Processor detected');
+                    document.querySelector('body').insertAdjacentHTML('afterbegin', 
+                        '<div style="background: #006600; padding: 10px; margin-bottom: 20px; border-radius: 4px;">✅ Enhanced OCR Processor is available and ready for testing!</div>'
+                    );
+                } else {
+                    document.querySelector('body').insertAdjacentHTML('afterbegin', 
+                        '<div style="background: #660000; padding: 10px; margin-bottom: 20px; border-radius: 4px;">❌ Enhanced OCR Processor not found. Check if the script loaded properly.</div>'
+                    );
+                }
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+package velvet_capture;
+
+service VelvetCaptureService {
+  // Real-time screen + audio streaming for Velvet Brain consciousness
+  rpc StreamScreen (ScreenRequest) returns (stream ScreenFrame);
+  rpc StreamAudio (AudioRequest) returns (stream AudioChunk);
+  
+  // Unified OCR + ASR stream for brain context
+  rpc StreamBrainContext (BrainContextRequest) returns (stream BrainContextUpdate);
+  
+  // Advanced: Pattern detection streaming (for ADHD/autism support)
+  rpc StreamPatterns (PatternRequest) returns (stream PatternDetection);
+}
+
+message ScreenRequest {
+  optional int32 fps = 1; // Target FPS for screen capture
+  optional bool high_quality = 2; // Quality vs performance trade-off
+}
+
+message ScreenFrame {
+  bytes data = 1; // PNG encoded image data
+  int64 timestamp = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+message AudioRequest {
+  optional string device_name = 1; // "Aggregate Device" for system audio
+  optional int32 sample_rate = 2; // Default 48000
+}
+
+message AudioChunk {
+  bytes data = 1; // WAV encoded audio data
+  int64 timestamp = 2;
+  int32 duration_ms = 3;
+}
+
+message BrainContextRequest {
+  bool include_audio = 1; // Enable audio transcription
+  bool include_patterns = 2; // Enable pattern detection
+  float confidence_threshold = 3; // OCR confidence threshold
+}
+
+message BrainContextUpdate {
+  string screen_text = 1; // OCR result
+  string audio_transcript = 2; // Whisper ASR result
+  repeated DetectedPattern patterns = 3; // Behavioral patterns
+  float ocr_confidence = 4; // OCR confidence score
+  float asr_confidence = 5; // ASR confidence score
+  int64 timestamp = 6;
+  ContextMetadata metadata = 7;
+}
+
+message PatternRequest {
+  repeated string pattern_types = 1; // ["hyperfocus", "distraction", "task_avoidance"]
+}
+
+message PatternDetection {
+  string pattern_type = 1; // "hyperfocus", "distraction_spiral", etc.
+  float confidence = 2;
+  string description = 3;
+  int64 timestamp = 4;
+  repeated string evidence = 5; // What triggered the detection
+}
+
+message DetectedPattern {
+  string type = 1;
+  float confidence = 2;
+  string description = 3;
+}
+
+message ContextMetadata {
+  string active_app = 1;
+  string active_window_title = 2;
+  int32 word_count = 3;
+  bool is_communication = 4; // Email, chat, etc.
+  bool is_code = 5;
+  bool is_document = 6;
+}

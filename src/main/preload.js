@@ -10,6 +10,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   startAmbientListening: () => ipcRenderer.invoke('start-ambient-listening'),
   stopAmbientListening: () => ipcRenderer.invoke('stop-ambient-listening'),
   
+  // NEW: Brain context streaming APIs
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  on: (channel, callback) => ipcRenderer.on(channel, callback),
+  
   // Neurodivergent accessibility and privacy features
   detectScreenSharing: () => ipcRenderer.invoke('detect-screen-sharing'),
   setPrivacyMode: (enabled) => ipcRenderer.invoke('set-privacy-mode', enabled),
@@ -126,7 +130,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
     show: () => ipcRenderer.invoke('control-panel-show'),
     hide: () => ipcRenderer.invoke('control-panel-hide'),
     close: () => ipcRenderer.invoke('control-panel-close')
-  }
+  },
+
+  // PHASE 2: Real Audio Environment Monitoring
+  audioEnvironment: {
+    getSystemAudioDevices: () => ipcRenderer.invoke('get-system-audio-devices'),
+    captureSystemAudio: (options) => ipcRenderer.invoke('capture-system-audio', options),
+    getCurrentAudioContext: () => ipcRenderer.invoke('get-current-audio-context')
+  },
+
+  // DESKTOP CAPTURER API - Screen capture for OCR (bypasses stealth mode)
+  desktopCapturer: {
+    getSources: (options) => ipcRenderer.invoke('get-desktop-sources', options),
+    captureScreenForOCR: (sourceId) => ipcRenderer.invoke('capture-screen-for-ocr', sourceId)
+  },
+
+  // General invoke method for flexibility
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args)
 });
 
 // API keys are now kept secure in main process only

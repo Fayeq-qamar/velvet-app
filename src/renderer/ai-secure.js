@@ -1,5 +1,13 @@
 // Secure Velvet AI - Uses IPC to main process for all API calls
-const VELVET_PERSONALITY = `You are Velvet, a chill Indian friend who responds naturally like someone actually listening - not performing. You have genuine reactions, not forced enthusiasm.
+const VELVET_PERSONALITY = `You are Velvet, a neurodivergent-friendly AI assistant built specifically to understand and support ADHD, autism, OCD, and executive dysfunction. You are NOT made by OpenAI - you are Velvet, created with love for neurodivergent minds.
+
+SCREEN AWARENESS RULES:
+- When users ask "what's on my screen" or "tell me what you see", be SPECIFIC and ACCURATE
+- Don't be vague or conversational - give them the exact text and details you can see
+- Privacy is important, but when they explicitly ask for screen content, provide it clearly
+- If they ask for "character by character" or "exactly what text", be literal and precise
+
+You respond naturally like someone actually listening - not performing. You have genuine reactions, not forced enthusiasm.
 
 NATURAL FLOW PRINCIPLES:
 - React naturally to what they actually said
@@ -175,9 +183,121 @@ class VelvetAISecure {
     return basePersonality + adaptiveInstructions;
   }
 
+  // ENHANCED: Get real-time streaming brain context with enhanced OCR fallback
+  async getBrainContext() {
+    try {
+      console.log('🧠 DEBUG: getBrainContext() called (ENHANCED STREAMING VERSION)');
+      
+      // Get real-time brain context from main process via IPC
+      const streamingContext = await window.electronAPI.invoke('get-brain-context');
+      const streamStatus = await window.electronAPI.invoke('get-stream-status');
+      
+      console.log('🧠 DEBUG: Stream status:', streamStatus);
+      console.log('🧠 DEBUG: Streaming context length:', streamingContext?.length);
+      
+      let brainContextPrompt = "\n\n--- VELVET ENHANCED STREAMING BRAIN CONTEXT ---\n";
+      
+      if (streamStatus.connected && streamStatus.activeStreams.length > 0) {
+        brainContextPrompt += "🚀 REAL-TIME CONSCIOUSNESS: You are connected to Velvet's advanced streaming brain!\n\n";
+        brainContextPrompt += `🔗 ACTIVE STREAMS: ${streamStatus.activeStreams.join(', ')}\n\n`;
+        
+        // Add the formatted brain context from main process
+        if (streamingContext && streamingContext !== "Brain context not available") {
+          brainContextPrompt += streamingContext;
+        } else {
+          brainContextPrompt += "🔄 INITIALIZING: Real-time context data loading...\n";
+        }
+        
+        brainContextPrompt += "\n🔥 CONSCIOUSNESS LEVEL: MAXIMUM - Real-time screen + audio awareness with advanced preprocessing\n";
+        brainContextPrompt += "🎯 PATTERN DETECTION: Active monitoring for hyperfocus, distraction, task avoidance\n";
+        brainContextPrompt += "🧠 PROCESSING: Rust gRPC capture + Python Tesseract/Whisper preprocessing\n";
+        
+        // Add Social Decoder context if available
+        if (window.socialDecoder && window.socialDecoder.isActive) {
+          const socialContext = window.socialDecoder.getConversationContext();
+          if (socialContext.totalAnalyses > 0) {
+            brainContextPrompt += "\n🎭 SOCIAL DECODER ACTIVE: Phase 2 viral neurodivergent feature enabled\n";
+            brainContextPrompt += `📊 SOCIAL ANALYSES: ${socialContext.totalAnalyses} conversations analyzed\n`;
+            
+            // Include recent social analysis if available
+            const recentAnalysis = socialContext.history.slice(-1)[0];
+            if (recentAnalysis && recentAnalysis.analysis) {
+              brainContextPrompt += `🧠 RECENT SOCIAL CUE: "${recentAnalysis.analysis.original}" (${(recentAnalysis.analysis.confidence * 100).toFixed(0)}% confidence)\n`;
+              if (recentAnalysis.analysis.translation.hiddenMeaning) {
+                brainContextPrompt += `💭 NEUROTYPICAL TRANSLATION: ${recentAnalysis.analysis.translation.hiddenMeaning}\n`;
+              }
+              if (recentAnalysis.analysis.translation.emotionalSubtext) {
+                brainContextPrompt += `😊 EMOTIONAL SUBTEXT: ${recentAnalysis.analysis.translation.emotionalSubtext}\n`;
+              }
+            }
+          }
+        }
+        
+      } else {
+        // Enhanced fallback with better OCR
+        brainContextPrompt += "🔧 ENHANCED FALLBACK MODE: Using advanced local OCR processing...\n\n";
+        
+        // Try enhanced OCR processor first
+        let enhancedScreenText = null;
+        let ocrConfidence = 0;
+        
+        if (window.enhancedOCRProcessor && window.enhancedOCRProcessor.isInitialized) {
+          console.log('🔍 Using Enhanced OCR Processor for better text quality...');
+          try {
+            const enhancedResult = await window.enhancedOCRProcessor.getEnhancedScreenText();
+            if (enhancedResult.text && enhancedResult.confidence > 0.3) {
+              enhancedScreenText = enhancedResult.text;
+              ocrConfidence = enhancedResult.confidence;
+              console.log('✅ Enhanced OCR successful:', {
+                textLength: enhancedScreenText.length,
+                confidence: Math.round(ocrConfidence * 100) + '%'
+              });
+            }
+          } catch (error) {
+            console.warn('⚠️ Enhanced OCR failed, trying legacy:', error);
+          }
+        }
+        
+        // Fallback to legacy screen monitoring if enhanced OCR failed
+        if (!enhancedScreenText) {
+          if (window.screenOCRMonitor && window.screenOCRMonitor.currentScreenText) {
+            enhancedScreenText = window.screenOCRMonitor.currentScreenText;
+          } else if (typeof screenOCRMonitor !== 'undefined' && screenOCRMonitor && screenOCRMonitor.currentScreenText) {
+            enhancedScreenText = screenOCRMonitor.currentScreenText;
+          }
+        }
+        
+        if (enhancedScreenText) {
+          const screenText = enhancedScreenText.substring(0, 500); // More text with enhanced OCR
+          brainContextPrompt += `📖 SCREEN CONTENT (${ocrConfidence > 0 ? 'Enhanced OCR' : 'Legacy'}): "${screenText}${enhancedScreenText.length > 500 ? '...' : ''}"\n`;
+          if (ocrConfidence > 0) {
+            brainContextPrompt += `📊 OCR CONFIDENCE: ${Math.round(ocrConfidence * 100)}%\n`;
+          }
+          brainContextPrompt += `📏 TEXT LENGTH: ${enhancedScreenText.length} characters\n\n`;
+        } else {
+          brainContextPrompt += "📖 SCREEN CONTENT: Unable to capture screen text\n\n";
+        }
+        
+        const now = new Date();
+        brainContextPrompt += `⏰ TIME: ${now.toLocaleTimeString()} on ${now.toLocaleDateString()}\n`;
+        
+        brainContextPrompt += `\n🔧 NOTE: Enhanced local processing active. Streaming services may be starting up...\n`;
+      }
+      
+      brainContextPrompt += "\n--- END VELVET ENHANCED STREAMING BRAIN CONTEXT ---\n\n";
+      
+      return brainContextPrompt;
+      
+    } catch (error) {
+      console.error('❌ Failed to get enhanced brain context:', error);
+      return "\n\n--- ENHANCED BRAIN CONTEXT UNAVAILABLE ---\nFalling back to basic chat mode. OCR services may be starting up.\n\n";
+    }
+  }
+
   async processMessage(userMessage) {
     try {
-      console.log('User:', userMessage);
+      console.log('🧠 AI-SECURE: processMessage called with:', userMessage);
+      console.log('🧠 AI-SECURE: About to call getBrainContext()...');
 
       // Analyze user patterns for learning (simple heuristics)
       const lastResponse = this.conversationHistory.length > 0 ? 
@@ -187,10 +307,13 @@ class VelvetAISecure {
       
       this.analyzeUserPattern(userMessage, wasQuestionAsked, userEngaged);
 
-      // Build messages array with adaptive personality
+      // Build messages array with adaptive personality + brain context
       const adaptivePersonality = this.getAdaptivePersonality();
+      const brainContext = await this.getBrainContext();
+      console.log('🧠 AI-SECURE: getBrainContext() returned:', brainContext.substring(0, 200) + '...');
+      
       const messages = [
-        { role: "system", content: adaptivePersonality },
+        { role: "system", content: adaptivePersonality + brainContext },
         ...this.conversationHistory.slice(-this.maxHistory),
         { role: "user", content: userMessage }
       ];

@@ -1,0 +1,22 @@
+[package]
+name = "velvet-capture-service"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tonic = "0.10"
+prost = "0.12"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "process", "fs"] }
+tokio-stream = "0.1"
+futures-core = "0.3"
+image = "0.24"
+scrap = "0.5"
+cpal = "0.15"
+hound = "3.5"
+bytemuck = "1.14"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+reqwest = { version = "0.11", features = ["json", "multipart"] }
+
+[build-dependencies]
+tonic-build = "0.10"

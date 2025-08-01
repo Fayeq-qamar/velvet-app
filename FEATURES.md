@@ -106,6 +106,104 @@
 - [ ] **Database**: Add local SQLite with encryption for user data
 - [ ] **Security**: Implement end-to-end encryption, local-first approach
 
+### **👁️ Comprehensive Context Awareness** (HIGH PRIORITY)
+- [ ] **Screen OCR Monitoring** - Real-time text extraction from entire screen
+  - [ ] Continuous screen text reading using Tesseract.js or similar
+  - [ ] Context-aware text analysis (emails, documents, websites, apps)
+  - [ ] Smart filtering to focus on relevant content
+  - [ ] Integration with current window tracking for targeted OCR
+- [ ] **Audio Environment Monitoring** - Complete audio context awareness
+  - [ ] Song recognition and music taste analysis
+  - [ ] Call participant identification and conversation content
+  - [ ] Background audio analysis (TV, podcasts, ambient sounds)
+  - [ ] Speaker separation and voice identification
+  - [ ] Real-time transcription of all audio streams
+- [ ] **Unified Context Engine** - Combine screen + audio for intelligent assistance
+  - [ ] Cross-reference screen content with audio context
+  - [ ] Intelligent assistance based on complete environmental awareness
+  - [ ] Predictive suggestions based on screen text + audio patterns
+  - [ ] Smart interruption timing based on context importance
+
+### **🧠 Viral Neurodivergent Features** (HIGH PRIORITY)
+- [ ] **Social Decoder System** - NeuroTranslator++ with real-time analysis
+  - [ ] Real-time social cue detection from audio monitoring (tone, pace, word choice)
+  - [ ] Neurotypical translation engine for ambiguous communications
+  - [ ] Suggested response templates for tricky social situations
+  - [ ] Emotional subtext analysis ("fine" vs "FINE" detection)
+  - [ ] Pre-meeting social context briefing based on participant history
+  - [ ] Post-interaction analysis with learning suggestions
+- [ ] **Executive Dysfunction Emergency Mode** - Crisis detection and micro-interventions
+  - [ ] Pattern recognition for executive dysfunction episodes
+    - Document/app opened/closed repeatedly (>10 times in 30 min)
+    - Rapid music/video switching without engagement
+    - Mouse hovering without clicking for extended periods
+    - Task switching spiral patterns
+  - [ ] Emergency micro-interventions system
+    - 2-minute rule suggestions with hyper-specific first steps
+    - "Body reset" prompts (stretch, breathe, water)
+    - Choice architecture: "Pick ONE: Email Sarah, OR Review document, OR Take break"
+    - Grounding exercises with countdown timers
+  - [ ] Crisis escalation prevention
+    - Early warning detection before full shutdown
+    - Gentle energy preservation suggestions
+    - Auto-simplification of current tasks
+- [ ] **Masking Fatigue Detection** - Behavioral authenticity monitoring
+  - [ ] Professional vs authentic behavior pattern analysis
+    - Communication style shifts (formal vs casual language)
+    - Response time variations (delayed vs immediate)
+    - Energy expenditure patterns during "performance" mode
+    - Micro-expression detection through webcam (optional)
+  - [ ] Safe space identification and unmasking prompts
+    - Home environment = gentle unmasking reminders
+    - Trusted app contexts (personal Discord, etc.)
+    - End-of-workday transition support
+  - [ ] Masking recovery assistance
+    - Post-social battery recharge suggestions
+    - Authenticity celebration ("You can be yourself now")
+    - Energy restoration activity recommendations
+- [ ] **Hyperfocus vs Procrastination AI** - Intent-behavior analysis engine
+  - [ ] Productive vs avoidant hyperfocus classification
+    - Cross-reference stated intentions with current activity
+    - Progress measurement vs time investment analysis
+    - Engagement quality assessment (deep vs surface-level)
+  - [ ] Flow state protection system
+    - Automatic "Do Not Disturb" activation during productive hyperfocus
+    - Notification quarantining with intelligent filtering
+    - Gentle transition management when hyperfocus naturally ends
+  - [ ] Procrastination interrupt patterns
+    - Research rabbit hole vs legitimate learning detection
+    - Social media vs productive app usage analysis
+    - Gentle redirection without shame or judgment
+
+### **🤝 Community & Social Features** (MEDIUM PRIORITY)
+- [ ] **Neurodivergent Study Buddy System** - Anonymous peer matching
+  - [ ] Compatibility matching based on:
+    - Focus music preferences and taste analysis
+    - Work pattern timing (night owl vs morning person)
+    - Communication style preferences (text vs voice vs minimal)
+    - Executive function trading preferences (starter vs finisher)
+  - [ ] Body doubling session management
+    - Shared focus timers with gentle accountability
+    - Ambient presence without pressure to interact
+    - Optional shared playlist creation
+    - Mutual hyperfocus protection ("Both in the zone!")
+  - [ ] Task trading marketplace
+    - "I'll help you start, you help me finish" matching
+    - Skill exchange (organization vs creativity)
+    - Dopamine sharing through celebration co-witnessing
+- [ ] **Context-Aware Achievement System** - Neurodivergent-specific gamification
+  - [ ] Meaningful achievement categories
+    - "Flow State Master" - Sustained productive hyperfocus sessions
+    - "Social Navigator" - Successfully decoded ambiguous communications
+    - "Task Alchemist" - Broke overwhelming projects into manageable steps
+    - "Authenticity Warrior" - Maintained boundaries during high-masking periods
+    - "Crisis Avoider" - Used emergency interventions before full shutdown
+  - [ ] Progress celebration that actually motivates ND brains
+    - Visual progress with satisfying completion animations
+    - Personalized rewards based on individual motivation patterns
+    - Community recognition without comparison pressure
+    - Achievement sharing with context ("I did this WHILE managing ADHD")
+
 ### **🎯 Advanced AI Features**
 - [ ] **Ambient audio awareness** (understanding background sounds)
 - [ ] **Proactive assistance** based on calendar and context
@@ -118,7 +216,7 @@
 
 Built-in test functions available in browser console:
 
-**Pattern Detection Tests:**
+**Phase 1 - Pattern Detection Tests:**
 ```javascript
 testNudges.hyperfocus()        // Test 45+ min focus detection
 testNudges.distractionSpiral() // Test rapid tab switching detection
@@ -126,12 +224,35 @@ testNudges.taskAvoidance()     // Test app open/close pattern detection
 testNudges.idle()              // Test idle time detection
 ```
 
-**Intention-Based Task System Tests:**
+**Phase 1 - Intention-Based Task System Tests:**
 ```javascript
 testSystem.testTaskDeclaration()  // Test "I need to..." detection
 testSystem.testIntentMonitoring() // Test deviation from expected apps
 testSystem.testStepCompletion()   // Test manual step completion
 testSystem.showTaskState()        // Show current task state
+```
+
+**Phase 2 - Viral Neurodivergent Feature Tests:**
+```javascript
+// Social Decoder System Tests
+testSocial.detectSarcasm()           // Test "fine" vs "FINE" detection
+testSocial.suggestResponse()         // Test neurotypical translation
+testSocial.analyzeTone()             // Test emotional subtext analysis
+
+// Executive Dysfunction Emergency Tests
+testEmergency.triggerDocSpiral()     // Test document open/close pattern
+testEmergency.triggerTaskSwitching() // Test rapid app switching detection
+testEmergency.microIntervention()    // Test 2-minute rule suggestions
+
+// Masking Fatigue Detection Tests
+testMasking.detectProfessionalMode() // Test formal vs casual language shift
+testMasking.identifySafeSpace()      // Test home vs work environment detection
+testMasking.unmaskingReminder()      // Test authenticity celebration
+
+// Hyperfocus vs Procrastination Tests
+testFocus.classifyHyperfocus()       // Test productive vs avoidant classification
+testFocus.flowStateProtection()      // Test "Do Not Disturb" activation
+testFocus.gentleRedirection()        // Test procrastination interrupts
 ```
 
 ---
@@ -168,16 +289,28 @@ npm test           # Currently outputs "No tests yet"
 - **Process masking** - Appears as system services for stealth
 - **Content protection** - Invisible to screen capture systems
 - **No data collection** - Your conversations stay private
+- **Enhanced monitoring consent** - Explicit user control over screen/audio monitoring
+- **Selective monitoring** - Granular control over what content types to monitor
+- **Data encryption** - All screen text and audio transcripts encrypted locally
+- **Privacy modes** - Disable monitoring for sensitive apps/websites/calls
 
 ---
 
 ## 🎯 **TARGET SCENARIOS**
 
+### **Current Capabilities:**
 1. **Task Avoidance**: "I see you opening that document - it feels big, doesn't it? What if we just add the title?"
 2. **Hyperfocus Protection**: "You're in the zone! Just checking: moved your body in the last hour?"
 3. **Distraction Spiral**: "Lots of mental tabs open! Want to brain dump, then pick ONE thing?"
 4. **Meeting Support**: Real-time coaching and transcription during video calls
 5. **Stealth Operation**: Complete invisibility during screen sharing while maintaining full functionality
+
+### **Enhanced Context Scenarios (Phase 2):**
+6. **Email Context**: "I see you're reading an important email from Sarah - want me to help draft a thoughtful response?"
+7. **Music Mood Detection**: "That's some intense focus music! You're in deep work mode - I'll hold all notifications."
+8. **Call Intelligence**: "I notice John mentioned the deadline moved to Friday - should I update your task timeline?"
+9. **Content Cross-Reference**: "You're researching React hooks while listening to a coding podcast - perfect focus synergy!"
+10. **Emotional Context**: "I can hear frustration in the call - want me to suggest some grounding techniques for after?"
 
 ---
 

@@ -17,9 +17,16 @@
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^27.3.11"
+    "@types/electron": "^1.4.38",
+    "@types/node": "^24.1.0",
+    "@types/react": "^19.1.9",
+    "@types/react-dom": "^19.1.7",
+    "electron": "^27.3.11",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.8",
     "@livekit/components-react": "^2.9.14",
     "axios": "^1.11.0",
     "cors": "^2.8.5",
@@ -32,6 +39,8 @@
     "openai": "^5.10.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-speech-recognition": "^4.0.1"
+    "react-speech-recognition": "^4.0.1",
+    "tesseract.js": "^6.0.1",
+    "zustand": "^5.0.7"
   }
 }

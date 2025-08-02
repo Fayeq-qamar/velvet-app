@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velvet AI Beta Program - Finally, AI That Gets Neurodivergent Minds</title>
+    <meta name="description" content="Join 100 neurodivergent beta testers discovering breakthrough AI assistance designed specifically for ADHD, autism, and executive dysfunction. Social decoder, gentle task coaching, and more.">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Velvet AI Beta - AI That Finally Gets Neurodivergent Minds">
+    <meta property="og:description" content="Revolutionary AI assistant with social decoder, executive function support, and masking fatigue detection. Join the beta community!">
+    <meta property="og:image" content="https://velvet-ai.app/images/beta-og-image.png">
+    <meta property="og:url" content="https://velvet-ai.app/beta">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Velvet AI Beta - AI That Finally Gets Neurodivergent Minds">
+    <meta name="twitter:description" content="Revolutionary AI assistant with social decoder, executive function support, and masking fatigue detection. Join the beta community!">
+    <meta name="twitter:image" content="https://velvet-ai.app/images/beta-twitter-card.png">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #334155 100%);
+            color: #E2E8F0;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Accessibility Features */
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 6px;
+            background: #6366F1;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 1000;
+            border-radius: 4px;
+        }
+        
+        .skip-link:focus {
+            top: 6px;
+        }
+        
+        /* Header */
+        .header {
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60A5FA, #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .beta-badge {
+            background: linear-gradient(135deg, #F59E0B, #EAB308);
+            color: #1F2937;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 12px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-headline {
+            font-size: clamp(32px, 5vw, 56px);
+            font-weight: 800;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #60A5FA, #A78BFA, #F472B6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+        }
+        
+        .hero-subline {
+            font-size: clamp(18px, 3vw, 24px);
+            color: #CBD5E1;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+        
+        .hero-description {
+            font-size: 18px;
+            color: #94A3B8;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .beta-highlight {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 40px auto;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .beta-highlight h3 {
+            color: #22C55E;
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+        
+        .beta-highlight p {
+            color: #E2E8F0;
+            margin-bottom: 20px;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .cta-button:hover, .cta-button:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(99, 102, 241, 0.4);
+            outline: 2px solid #A78BFA;
+            outline-offset: 2px;
+        }
+        
+        /* Testimonials */
+        .testimonials {
+            padding: 60px 0;
+            background: rgba(15, 23, 42, 0.5);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 48px;
+            color: #F1F5F9;
+        }
+        
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        
+        .testimonial {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .testimonial-quote {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 16px;
+            color: #E2E8F0;
+            font-style: italic;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .author-info h4 {
+            color: #60A5FA;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .author-info p {
+            color: #94A3B8;
+            font-size: 12px;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 80px 0;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-top: 48px;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .feature-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #60A5FA;
+        }
+        
+        .feature-description {
+            color: #CBD5E1;
+            line-height: 1.6;
+        }
+        
+        .breakthrough-highlight {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            font-size: 14px;
+            color: #A78BFA;
+            font-weight: 500;
+        }
+        
+        /* Community Section */
+        .community {
+            padding: 80px 0;
+            background: rgba(15, 23, 42, 0.5);
+        }
+        
+        .community-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 48px;
+            align-items: center;
+            margin-top: 48px;
+        }
+        
+        .community-content h3 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #22C55E;
+        }
+        
+        .community-features {
+            list-style: none;
+            margin-top: 24px;
+        }
+        
+        .community-features li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            color: #CBD5E1;
+        }
+        
+        .community-features li::before {
+            content: '✨';
+            margin-right: 12px;
+            font-size: 16px;
+        }
+        
+        .community-visual {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Application Form */
+        .application {
+            padding: 80px 0;
+        }
+        
+        .application-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        .form-group label {
+            display: block;
+            color: #E2E8F0;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            color: white;
+            font-family: inherit;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #6366F1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #9CA3AF;
+        }
+        
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            accent-color: #6366F1;
+        }
+        
+        .privacy-note {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin: 24px 0;
+            color: #E2E8F0;
+            font-size: 14px;
+        }
+        
+        .privacy-note strong {
+            color: #22C55E;
+        }
+        
+        /* Footer */
+        .footer {
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            color: #94A3B8;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 0 40px;
+            }
+            
+            .community-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .application-form {
+                padding: 24px;
+            }
+            
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* High Contrast Mode */
+        @media (prefers-contrast: high) {
+            body {
+                background: #000;
+                color: #FFF;
+            }
+            
+            .feature-card,
+            .testimonial,
+            .application-form {
+                border: 2px solid #FFF;
+                background: #111;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header class="header">
+        <nav class="nav container">
+            <div class="logo">
+                Velvet AI <span class="beta-badge">BETA</span>
+            </div>
+        </nav>
+    </header>
+    
+    <main id="main-content">
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <h1 class="hero-headline">Finally, AI That Gets Neurodivergent Minds</h1>
+                    <p class="hero-subline">"OMG, it told me Sarah was actually upset!" - Maya, Software Developer</p>
+                    <p class="hero-description">
+                        Join 100 neurodivergent beta testers discovering breakthrough AI assistance designed specifically for ADHD, autism, and executive dysfunction.
+                    </p>
+                    
+                    <div class="beta-highlight">
+                        <h3>🧠 Closed Beta Program</h3>
+                        <p>Be among the first to experience AI that understands how your brain actually works. Social decoder, gentle task coaching, masking fatigue detection, and more.</p>
+                        <a href="#apply" class="cta-button">Apply for Beta Access</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="testimonials">
+            <div class="container">
+                <h2 class="section-title">Real Breakthrough Moments</h2>
+                <div class="testimonials-grid">
+                    <div class="testimonial">
+                        <p class="testimonial-quote">
+                            "Velvet just decoded a conversation for me and I finally understood what my coworker actually meant! This AI gets how neurodivergent brains process social cues."
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">🧠</div>
+                            <div class="author-info">
+                                <h4>Alex Chen</h4>
+                                <p>UX Designer, ADHD</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        <p class="testimonial-quote">
+                            "That overwhelming project that was paralyzing me? Velvet broke it into 23 tiny steps I could actually do. Went from 'impossible' to 'done' in 2 hours!"
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">⚡</div>
+                            <div class="author-info">
+                                <h4>Sam Rodriguez</h4>
+                                <p>Entrepreneur, Executive Dysfunction</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="testimonial">
+                        <p class="testimonial-quote">
+                            "Finally, an AI that understands my brain doesn't work like everyone else's. The masking fatigue detection feature literally saved my mental health."
+                        </p>
+                        <div class="testimonial-author">
+                            <div class="author-avatar">🎭</div>
+                            <div class="author-info">
+                                <h4>Jordan Taylor</h4>
+                                <p>Marketing Manager, Autistic</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="features">
+            <div class="container">
+                <h2 class="section-title">Revolutionary Features for Neurodivergent Minds</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <span class="feature-icon">🔍</span>
+                        <h3 class="feature-title">Social Decoder</h3>
+                        <p class="feature-description">
+                            Translates neurotypical communication patterns, detects sarcasm, and explains implicit social cues in real-time during conversations.
+                        </p>
+                        <div class="breakthrough-highlight">
+                            💡 "Wait, was Sarah being sarcastic or serious?" - Solved!
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <span class="feature-icon">🎯</span>
+                        <h3 class="feature-title">Executive Dysfunction Support</h3>
+                        <p class="feature-description">
+                            Breaks overwhelming tasks into 2-5 minute micro-steps and provides gentle coaching through procrastination spirals.
+                        </p>
+                        <div class="breakthrough-highlight">
+                            ✨ From "impossible project" to "47 tiny doable steps"
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <span class="feature-icon">🎭</span>
+                        <h3 class="feature-title">Masking Fatigue Detection</h3>
+                        <p class="feature-description">
+                            Monitors behavioral authenticity patterns and suggests safe spaces for unmasking when energy levels are depleted.
+                        </p>
+                        <div class="breakthrough-highlight">
+                            🛡️ "You've been masking for 4 hours. Time for authenticity?"
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <span class="feature-icon">⏰</span>
+                        <h3 class="feature-title">Hyperfocus Protection</h3>
+                        <p class="feature-description">
+                            Gently reminds you to take care of basic needs while protecting your flow state and productivity zones.
+                        </p>
+                        <div class="breakthrough-highlight">
+                            🌟 Protects your flow while caring for your health
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <span class="feature-icon">💬</span>
+                        <h3 class="feature-title">Empathetic AI Companion</h3>
+                        <p class="feature-description">
+                            Conversational AI that understands neurodivergent struggles and responds with empathy, not judgment or toxic positivity.
+                        </p>
+                        <div class="breakthrough-highlight">
+                            💖 Finally, someone who gets it!
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <span class="feature-icon">👁️</span>
+                        <h3 class="feature-title">Pattern Recognition</h3>
+                        <p class="feature-description">
+                            Spots distraction spirals, task avoidance, and overwhelm patterns before they derail your day.
+                        </p>
+                        <div class="breakthrough-highlight">
+                            🚨 Catches issues before 3-day procrastination spirals
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="community">
+            <div class="container">
+                <h2 class="section-title">Join the Neurodivergent Beta Community</h2>
+                <div class="community-grid">
+                    <div class="community-content">
+                        <h3>🤝 Your Support Network</h3>
+                        <p class="hero-description">
+                            Connect with other neurodivergent minds, share breakthrough moments, and build lasting friendships in our private Discord community.
+                        </p>
+                        
+                        <ul class="community-features">
+                            <li>Breakthrough moment celebrations</li>
+                            <li>Peer support and buddy matching</li>
+                            <li>Feature co-creation opportunities</li>
+                            <li>Direct developer communication</li>
+                            <li>Safe space for unmasking</li>
+                            <li>Crisis support network</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="community-visual">
+                        <h4 style="color: #60A5FA; margin-bottom: 16px;">Community Stats</h4>
+                        <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+                        <p style="color: #E2E8F0; margin-bottom: 12px;"><strong>78/100</strong> Beta Spots Filled</p>
+                        <p style="color: #E2E8F0; margin-bottom: 12px;"><strong>94%</strong> Report Breakthrough Moments</p>
+                        <p style="color: #E2E8F0;"><strong>4.8/5</strong> Average Impact Rating</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="application" id="apply">
+            <div class="container">
+                <h2 class="section-title">Apply for Beta Access</h2>
+                
+                <form class="application-form" id="beta-application">
+                    <div class="form-group">
+                        <label for="name">Name (first name only is fine)</label>
+                        <input type="text" id="name" name="name" required placeholder="Alex">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required placeholder="alex@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="neurodivergence">How do you identify? (Select all that apply)</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="adhd" name="neurodivergence" value="adhd">
+                                <label for="adhd">ADHD</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="autism" name="neurodivergence" value="autism">
+                                <label for="autism">Autistic</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="ocd" name="neurodivergence" value="ocd">
+                                <label for="ocd">OCD</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="executive-dysfunction" name="neurodivergence" value="executive-dysfunction">
+                                <label for="executive-dysfunction">Executive Dysfunction</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="other" name="neurodivergence" value="other">
+                                <label for="other">Other/Multiple</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="supporter" name="neurodivergence" value="supporter">
+                                <label for="supporter">Supportive Ally</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="challenges">What are your biggest daily challenges? (Help us prioritize features)</label>
+                        <textarea id="challenges" name="challenges" rows="3" placeholder="Example: Understanding social cues in work meetings, breaking down overwhelming projects, managing hyperfocus without neglecting self-care..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tech-comfort">How comfortable are you with beta software?</label>
+                        <select id="tech-comfort" name="tech-comfort" required>
+                            <option value="">Select your comfort level</option>
+                            <option value="beginner">Beginner - I need clear instructions</option>
+                            <option value="intermediate">Intermediate - I can figure things out</option>
+                            <option value="advanced">Advanced - I love testing new tech</option>
+                            <option value="expert">Expert - I can help others troubleshoot</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="commitment">Can you commit to:</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="testing-time" name="commitment" value="testing-time" required>
+                                <label for="testing-time">1-2 weeks of active testing</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="feedback-session" name="commitment" value="feedback-session" required>
+                                <label for="feedback-session">15-30 min feedback session</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="community-participation" name="commitment" value="community-participation">
+                                <label for="community-participation">Optional community participation</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sharing-comfort">Would you be comfortable sharing breakthrough moments?</label>
+                        <select id="sharing-comfort" name="sharing-comfort" required>
+                            <option value="">Select your preference</option>
+                            <option value="anonymous">Yes, but keep me anonymous</option>
+                            <option value="first-name">Yes, first name only</option>
+                            <option value="public">Yes, I'm happy to be quoted publicly</option>
+                            <option value="private">No, keep my feedback private</option>
+                        </select>
+                    </div>
+                    
+                    <div class="privacy-note">
+                        <strong>🔒 Privacy First:</strong> All Velvet processing happens locally on your device. We collect minimal data for beta improvement only. You can review, edit, or delete any feedback before sharing. Community participation is always optional.
+                    </div>
+                    
+                    <button type="submit" class="cta-button">Submit Beta Application</button>
+                </form>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Velvet AI. Made with 💜 for neurodivergent minds.</p>
+            <p>Questions? Email <a href="mailto:beta@velvet-ai.app" style="color: #60A5FA;">beta@velvet-ai.app</a></p>
+        </div>
+    </footer>
+    
+    <script>
+        // Form submission handling
+        document.getElementById('beta-application').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const data = {};
+            
+            // Handle regular fields
+            for (let [key, value] of formData.entries()) {
+                if (data[key]) {
+                    if (Array.isArray(data[key])) {
+                        data[key].push(value);
+                    } else {
+                        data[key] = [data[key], value];
+                    }
+                } else {
+                    data[key] = value;
+                }
+            }
+            
+            // Handle checkboxes that might have multiple values
+            const neurodivergence = formData.getAll('neurodivergence');
+            const commitment = formData.getAll('commitment');
+            
+            data.neurodivergence = neurodivergence;
+            data.commitment = commitment;
+            data.timestamp = Date.now();
+            
+            // In a real implementation, this would send to your backend
+            console.log('Beta application submitted:', data);
+            
+            // Show thank you message
+            showThankYouMessage();
+        });
+        
+        function showThankYouMessage() {
+            const form = document.getElementById('beta-application');
+            form.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 24px;">🎉</div>
+                    <h3 style="color: #22C55E; margin-bottom: 16px; font-size: 28px;">Application Submitted!</h3>
+                    <p style="color: #E2E8F0; margin-bottom: 24px; font-size: 18px;">
+                        Thank you for your interest in joining the Velvet beta community!
+                    </p>
+                    <p style="color: #CBD5E1; margin-bottom: 32px;">
+                        We'll review your application and get back to you within 2-3 business days. 
+                        If selected, you'll receive beta access instructions and an invitation to our private Discord community.
+                    </p>
+                    <div style="background: rgba(99, 102, 241, 0.1); padding: 20px; border-radius: 12px; border-left: 4px solid #6366F1;">
+                        <p style="color: #A78BFA; margin: 0; font-weight: 500;">
+                            💜 In the meantime, follow us on social media for updates and neurodivergent tech insights!
+                        </p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+        
+        // Accessibility: Focus management for form submission
+        document.getElementById('beta-application').addEventListener('submit', function() {
+            setTimeout(() => {
+                const thankYouHeading = document.querySelector('h3');
+                if (thankYouHeading) {
+                    thankYouHeading.focus();
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

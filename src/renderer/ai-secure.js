@@ -294,6 +294,99 @@ class VelvetAISecure {
     }
   }
 
+  // Get emergency context for crisis support
+  async getEmergencyContext() {
+    try {
+      console.log('🚨 DEBUG: getEmergencyContext() called');
+      
+      let emergencyContextPrompt = "\n\n--- EXECUTIVE DYSFUNCTION EMERGENCY CONTEXT ---\n";
+      
+      // Check if emergency mode is active
+      if (window.electronAPI?.emergencyMode) {
+        const emergencyStatus = await window.electronAPI.emergencyMode.getStatus();
+        
+        if (emergencyStatus.isActive) {
+          emergencyContextPrompt += "🚨 EMERGENCY MODE ACTIVE: Executive dysfunction monitoring enabled\n\n";
+          emergencyContextPrompt += `🔍 CRISIS LEVEL: ${emergencyStatus.crisisLevel.toUpperCase()}\n`;
+          
+          if (emergencyStatus.activePatterns.length > 0) {
+            emergencyContextPrompt += `⚠️ ACTIVE CRISIS PATTERNS: ${emergencyStatus.activePatterns.join(', ')}\n`;
+          }
+          
+          if (emergencyStatus.safeSpaceActive) {
+            emergencyContextPrompt += "🏠 SAFE SPACE MODE: User is in protected recovery environment\n";
+          }
+          
+          emergencyContextPrompt += `📊 OVERWHELM SCORE: ${emergencyStatus.overwhelmScore}/100\n`;
+          emergencyContextPrompt += `⚡ ENERGY LEVEL: ${emergencyStatus.energyLevel}\n`;
+          
+          if (emergencyStatus.lastIntervention) {
+            const intervention = emergencyStatus.lastIntervention;
+            const timeAgo = Math.floor((Date.now() - intervention.timestamp) / 60000);
+            emergencyContextPrompt += `🕒 LAST INTERVENTION: ${intervention.pattern} (${timeAgo} min ago) - Level: ${intervention.level}\n`;
+          }
+          
+          // Add crisis-specific guidance
+          switch (emergencyStatus.crisisLevel) {
+            case 'early_warning':
+              emergencyContextPrompt += "\n💡 RESPONSE GUIDANCE: Gentle acknowledgment, offer micro-support\n";
+              break;
+            case 'crisis':
+              emergencyContextPrompt += "\n🤝 RESPONSE GUIDANCE: Supportive, normalize struggle, suggest tiny steps\n";
+              break;
+            case 'emergency':
+              emergencyContextPrompt += "\n🛡️ RESPONSE GUIDANCE: Maximum gentleness, validate feelings, no pressure\n";
+              break;
+          }
+          
+          // Add energy-aware guidance
+          if (emergencyStatus.energyLevel === 'low') {
+            emergencyContextPrompt += "🔋 LOW ENERGY DETECTED: Use simple language, shorter responses, more encouragement\n";
+          }
+          
+          // Add analytics context
+          const analytics = emergencyStatus.analytics;
+          if (analytics.crisesAverted > 0) {
+            emergencyContextPrompt += `📈 SUCCESS RECORD: Helped avert ${analytics.crisesAverted} crisis episodes\n`;
+          }
+          
+        } else {
+          emergencyContextPrompt += "✅ MONITORING MODE: Crisis patterns being watched preventively\n";
+        }
+      } else {
+        emergencyContextPrompt += "❌ EMERGENCY MODE UNAVAILABLE: Standard support mode only\n";
+      }
+      
+      // Check for emergency context from interventions
+      if (this.emergencyContext) {
+        emergencyContextPrompt += "\n🎯 CURRENT INTERVENTION CONTEXT:\n";
+        emergencyContextPrompt += `Pattern: ${this.emergencyContext.pattern}\n`;
+        emergencyContextPrompt += `Level: ${this.emergencyContext.level}\n`;
+        emergencyContextPrompt += `Timestamp: ${new Date(this.emergencyContext.timestamp).toLocaleTimeString()}\n`;
+      }
+      
+      emergencyContextPrompt += "\n🧠 EXECUTIVE DYSFUNCTION SUPPORT PRINCIPLES:\n";
+      emergencyContextPrompt += "- NEVER say 'just focus' or 'just do it' - these phrases are harmful\n";
+      emergencyContextPrompt += "- Break everything into micro-steps (30 seconds to 2 minutes max)\n";
+      emergencyContextPrompt += "- Normalize executive dysfunction as brain difference, not moral failing\n";
+      emergencyContextPrompt += "- Offer choice between 2-3 tiny options rather than overwhelming with many\n";
+      emergencyContextPrompt += "- Celebrate every tiny step forward, no matter how small\n";
+      emergencyContextPrompt += "- Use 'we' language: 'let's try' instead of 'you should'\n";
+      emergencyContextPrompt += "- Validate emotions: 'this feels hard' before offering solutions\n";
+      emergencyContextPrompt += "- Suggest body-based resets: breathing, stretching, water, movement\n";
+      emergencyContextPrompt += "- Offer 'good enough' as a valid goal, not perfectionism\n";
+      emergencyContextPrompt += "- SHAME-FREE ZONE: No judgment for struggles or failed attempts\n";
+      
+      emergencyContextPrompt += "\n--- END EXECUTIVE DYSFUNCTION EMERGENCY CONTEXT ---\n\n";
+      
+      return emergencyContextPrompt;
+      
+    } catch (error) {
+      console.error('❌ Failed to get emergency context:', error);
+      return "\n\n--- EMERGENCY CONTEXT UNAVAILABLE ---\nStandard neurodivergent support active.\n\n";
+    }
+  }
+
   async processMessage(userMessage) {
     try {
       console.log('🧠 AI-SECURE: processMessage called with:', userMessage);
@@ -307,13 +400,15 @@ class VelvetAISecure {
       
       this.analyzeUserPattern(userMessage, wasQuestionAsked, userEngaged);
 
-      // Build messages array with adaptive personality + brain context
+      // Build messages array with adaptive personality + brain context + emergency context
       const adaptivePersonality = this.getAdaptivePersonality();
       const brainContext = await this.getBrainContext();
+      const emergencyContext = await this.getEmergencyContext();
       console.log('🧠 AI-SECURE: getBrainContext() returned:', brainContext.substring(0, 200) + '...');
+      console.log('🚨 AI-SECURE: getEmergencyContext() returned:', emergencyContext.substring(0, 200) + '...');
       
       const messages = [
-        { role: "system", content: adaptivePersonality + brainContext },
+        { role: "system", content: adaptivePersonality + brainContext + emergencyContext },
         ...this.conversationHistory.slice(-this.maxHistory),
         { role: "user", content: userMessage }
       ];

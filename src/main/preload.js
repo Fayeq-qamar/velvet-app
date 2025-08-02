@@ -33,6 +33,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
 
+  // Executive Dysfunction Emergency Mode APIs
+  emergencyMode: {
+    getStatus: () => ipcRenderer.invoke('emergency-mode-status'),
+    activateSafeSpace: () => ipcRenderer.invoke('emergency-mode-activate-safe-space'),
+    test: (testType) => ipcRenderer.invoke('emergency-mode-test', testType),
+    
+    // Event listeners for crisis interventions
+    onCrisisIntervention: (callback) => {
+      ipcRenderer.on('crisis-intervention', (event, data) => callback(data));
+    },
+    onSafeSpaceActivation: (callback) => {
+      ipcRenderer.on('safe-space-activation', (event, data) => callback(data));
+    },
+    onCrisisLevelChange: (callback) => {
+      ipcRenderer.on('crisis-level-change', (event, data) => callback(data));
+    }
+  },
+
   // Checklist window controls
   checklist: {
     show: (taskData) => ipcRenderer.invoke('checklist-show', taskData),
@@ -146,7 +164,60 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   // General invoke method for flexibility
-  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args)
+  invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+  
+  // Beta testing and production features
+  beta: {
+    submitFeedback: (feedbackData) => ipcRenderer.invoke('submit-feedback', feedbackData),
+    checkPermissions: () => ipcRenderer.invoke('check-permissions'),
+    requestPermissions: () => ipcRenderer.invoke('request-permissions'),
+    reportError: (errorData) => ipcRenderer.invoke('report-error', errorData),
+    getErrorStats: () => ipcRenderer.invoke('get-error-stats'),
+    performHealthCheck: () => ipcRenderer.invoke('perform-health-check')
+  },
+
+  // ===========================================
+  // ENCRYPTED DATABASE API
+  // ===========================================
+  
+  // Database health and system operations
+  database: {
+    // System operations
+    getHealth: () => ipcRenderer.invoke('db:health'),
+    getAnalytics: (timeRange) => ipcRenderer.invoke('db:analytics', timeRange),
+    getLearningInsights: () => ipcRenderer.invoke('db:learning-insights'),
+    
+    // Social Decoder operations
+    social: {
+      startSession: (sessionData) => ipcRenderer.invoke('db:social:start-session', sessionData),
+      storeAnalysis: (analysisData) => ipcRenderer.invoke('db:social:store-analysis', analysisData),
+      getInsights: (sessionId, limit) => ipcRenderer.invoke('db:social:get-insights', sessionId, limit),
+      getLearningEffectiveness: () => ipcRenderer.invoke('db:social:learning-effectiveness')
+    },
+    
+    // Executive Dysfunction operations
+    executive: {
+      storePattern: (patternData) => ipcRenderer.invoke('db:executive:store-pattern', patternData),
+      storeIntervention: (interventionData) => ipcRenderer.invoke('db:executive:store-intervention', interventionData),
+      storeEnergy: (energyData) => ipcRenderer.invoke('db:executive:store-energy', energyData),
+      getPatternHistory: (patternType, limit) => ipcRenderer.invoke('db:executive:pattern-history', patternType, limit),
+      getEffectiveInterventions: (interventionType) => ipcRenderer.invoke('db:executive:effective-interventions', interventionType)
+    },
+    
+    // Masking Fatigue operations
+    masking: {
+      startSession: (sessionData) => ipcRenderer.invoke('db:masking:start-session', sessionData),
+      storeAnalysis: (analysisData) => ipcRenderer.invoke('db:masking:store-analysis', analysisData),
+      updatePattern: (patternData) => ipcRenderer.invoke('db:masking:update-pattern', patternData),
+      getPatterns: (patternType) => ipcRenderer.invoke('db:masking:get-patterns', patternType)
+    },
+    
+    // Cross-feature learning operations
+    crossFeature: {
+      storeInsight: (insightData) => ipcRenderer.invoke('db:cross:store-insight', insightData),
+      updateProgress: (progressData) => ipcRenderer.invoke('db:cross:update-progress', progressData)
+    }
+  }
 });
 
 // API keys are now kept secure in main process only

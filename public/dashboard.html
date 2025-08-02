@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velvet Dashboard - Soft Support for Sharp Minds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+            backdrop-filter: blur(20px);
+        }
+
+        /* Glassmorphism Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            margin-bottom: 30px;
+        }
+
+        .sidebar-title {
+            font-size: 24px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .nav-item {
+            padding: 12px 16px;
+            margin: 4px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item:hover {
+            background: rgba(100, 181, 246, 0.1);
+            border-color: rgba(100, 181, 246, 0.3);
+        }
+
+        .nav-item.active {
+            background: rgba(100, 181, 246, 0.2);
+            border-color: rgba(100, 181, 246, 0.5);
+        }
+
+        .nav-icon {
+            margin-right: 12px;
+            font-size: 18px;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .welcome-section {
+            margin-bottom: 30px;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .welcome-subtitle {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        /* Glassmorphism Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(100, 181, 246, 0.3);
+            box-shadow: 0 8px 32px rgba(100, 181, 246, 0.1);
+        }
+
+        .card-title {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #64b5f6;
+        }
+
+        .card-content {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Progress Bars */
+        .progress-container {
+            margin: 12px 0;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #64b5f6, #42a5f5);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin: 2px;
+        }
+
+        .badge.good {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .badge.warning {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .badge.info {
+            background: rgba(100, 181, 246, 0.2);
+            color: #64b5f6;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            background: rgba(100, 181, 246, 0.2);
+            color: #64b5f6;
+            border: 1px solid rgba(100, 181, 246, 0.3);
+        }
+
+        .btn:hover {
+            background: rgba(100, 181, 246, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        /* Task Table */
+        .task-table {
+            width: 100%;
+        }
+
+        .task-row {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task-name {
+            flex: 1;
+        }
+
+        .task-progress {
+            width: 60px;
+            margin-left: 12px;
+        }
+
+        /* Mood Tracker */
+        .mood-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .mood-option {
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mood-option:hover {
+            background: rgba(100, 181, 246, 0.1);
+            border-color: rgba(100, 181, 246, 0.3);
+        }
+
+        .mood-option.selected {
+            background: rgba(100, 181, 246, 0.2);
+            border-color: rgba(100, 181, 246, 0.5);
+        }
+
+        /* Close Button */
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6b6b;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">🎭 Velvet</div>
+                <div class="sidebar-subtitle">Soft support for sharp minds</div>
+            </div>
+            
+            <div class="nav-item active" data-section="home">
+                <span class="nav-icon">🏠</span>Home Dashboard
+            </div>
+            <div class="nav-item" data-section="social">
+                <span class="nav-icon">🎭</span>Social Intelligence
+            </div>
+            <div class="nav-item" data-section="tasks">
+                <span class="nav-icon">✅</span>Task Support
+            </div>
+            <div class="nav-item" data-section="meeting">
+                <span class="nav-icon">🎤</span>Meeting Assistant
+            </div>
+            <div class="nav-item" data-section="patterns">
+                <span class="nav-icon">📊</span>Pattern Insights
+            </div>
+            <div class="nav-item" data-section="settings">
+                <span class="nav-icon">⚙️</span>Settings
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <button class="close-btn" onclick="window.close()">✕</button>
+            
+            <!-- Home Section -->
+            <div id="home-section" class="section">
+                <div class="welcome-section">
+                    <div class="welcome-title">Hey yaar! 👋</div>
+                    <div class="welcome-subtitle">How's your mind feeling today? Let's check in together.</div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Today's Energy Card -->
+                    <div class="card">
+                        <div class="card-title">Today's Energy ⚡</div>
+                        <div class="card-content">
+                            <div class="progress-container">
+                                <div class="progress-label">
+                                    <span>Focus Level</span>
+                                    <span>78%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 78%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-label">
+                                    <span>Social Battery</span>
+                                    <span>45%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div class="progress-container">
+                                <div class="progress-label">
+                                    <span>Executive Function</span>
+                                    <span>62%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 62%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Tasks Card -->
+                    <div class="card">
+                        <div class="card-title">Active Tasks 📝</div>
+                        <div class="card-content">
+                            <div class="task-table">
+                                <div class="task-row">
+                                    <div class="task-name">Finish project proposal</div>
+                                    <div class="task-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 60%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-row">
+                                    <div class="task-name">Reply to emails</div>
+                                    <div class="task-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 20%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="task-row">
+                                    <div class="task-name">Take a break (important!)</div>
+                                    <div class="task-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 0%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pattern Alerts Card -->
+                    <div class="card">
+                        <div class="card-title">Pattern Alerts 🎯</div>
+                        <div class="card-content">
+                            <div style="margin-bottom: 12px;">
+                                <span class="badge good">Hyperfocus Detected</span>
+                                <p style="font-size: 14px; margin-top: 8px;">You've been focused for 2.5 hours! Maybe stretch a bit? 🧘‍♀️</p>
+                            </div>
+                            <div style="margin-bottom: 12px;">
+                                <span class="badge info">Social Recovery Mode</span>
+                                <p style="font-size: 14px; margin-top: 8px;">Taking some alone time after that meeting - bas relax karo yaar 💜</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Card -->
+                    <div class="card">
+                        <div class="card-title">Quick Actions ⚡</div>
+                        <div class="card-content">
+                            <div class="btn-grid">
+                                <button class="btn">Break Down Task</button>
+                                <button class="btn">Social Decoder</button>
+                                <button class="btn">Meeting Mode</button>
+                                <button class="btn">Emergency Support</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mood Tracker Card -->
+                    <div class="card">
+                        <div class="card-title">How are you feeling? 💝</div>
+                        <div class="card-content">
+                            <div class="mood-selector">
+                                <div class="mood-option selected">😊 Good</div>
+                                <div class="mood-option">😴 Tired</div>
+                                <div class="mood-option">🧠 Overwhelmed</div>
+                                <div class="mood-option">✨ Energized</div>
+                            </div>
+                            <p style="font-size: 14px; margin-top: 12px; color: rgba(255,255,255,0.7);">
+                                You're doing great today! Remember to be gentle with yourself 💜
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Focus Chart Card -->
+                    <div class="card">
+                        <div class="card-title">Focus Patterns 📈</div>
+                        <div class="card-content">
+                            <div style="height: 120px; display: flex; align-items: end; gap: 8px;">
+                                <div style="background: linear-gradient(to top, #64b5f6, #42a5f5); width: 20px; height: 60%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(to top, #64b5f6, #42a5f5); width: 20px; height: 80%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(to top, #64b5f6, #42a5f5); width: 20px; height: 40%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(to top, #64b5f6, #42a5f5); width: 20px; height: 90%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(to top, #64b5f6, #42a5f5); width: 20px; height: 70%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(to top, #64b5f6, #42a5f5); width: 20px; height: 50%; border-radius: 4px;"></div>
+                                <div style="background: linear-gradient(to top, #64b5f6, #42a5f5); width: 20px; height: 85%; border-radius: 4px;"></div>
+                            </div>
+                            <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 8px;">
+                                Mon • Tue • Wed • Thu • Fri • Sat • Sun
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other sections would go here -->
+            <div id="social-section" class="section" style="display: none;">
+                <div class="welcome-section">
+                    <div class="welcome-title">Social Intelligence 🎭</div>
+                    <div class="welcome-subtitle">Understanding the social world, one interaction at a time</div>
+                </div>
+                <!-- Social features content -->
+            </div>
+
+            <div id="tasks-section" class="section" style="display: none;">
+                <div class="welcome-section">
+                    <div class="welcome-title">Task Support ✅</div>
+                    <div class="welcome-subtitle">Breaking down the overwhelming into manageable micro-steps</div>
+                </div>
+                <!-- Task features content -->
+            </div>
+
+            <div id="meeting-section" class="section" style="display: none;">
+                <div class="welcome-section">
+                    <div class="welcome-title">Meeting Assistant 🎤</div>
+                    <div class="welcome-subtitle">Your communication companion for every conversation</div>
+                </div>
+                <!-- Meeting features content -->
+            </div>
+
+            <div id="patterns-section" class="section" style="display: none;">
+                <div class="welcome-section">
+                    <div class="welcome-title">Pattern Insights 📊</div>
+                    <div class="welcome-subtitle">Understanding your unique neurodivergent patterns</div>
+                </div>
+                <!-- Pattern analysis content -->
+            </div>
+
+            <div id="settings-section" class="section" style="display: none;">
+                <div class="welcome-section">
+                    <div class="welcome-title">Settings ⚙️</div>
+                    <div class="welcome-subtitle">Customize Velvet to work perfectly for your mind</div>
+                </div>
+                <!-- Settings content -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functionality
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                // Remove active class from all nav items
+                document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                // Add active class to clicked item
+                item.classList.add('active');
+
+                // Hide all sections
+                document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+                
+                // Show selected section
+                const sectionId = item.dataset.section + '-section';
+                const targetSection = document.getElementById(sectionId);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                }
+            });
+        });
+
+        // Mood selector functionality
+        document.querySelectorAll('.mood-option').forEach(option => {
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.mood-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+
+        // Button click handlers
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                console.log('Button clicked:', btn.textContent);
+                // Add actual functionality here
+            });
+        });
+
+        console.log('🎭 Velvet Dashboard loaded - separate from main app!');
+    </script>
+</body>
+</html>

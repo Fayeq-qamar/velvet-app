@@ -32,7 +32,6 @@ let mainWindow;
 let checklistWindow;
 let meetingAssistantWindow;
 let controlPanelWindow;
-let dashboardWindow;
 
 let stealthManager = {
     isHidden: false,
@@ -406,51 +405,6 @@ ipcMain.handle('checklist-close', async () => {
         checklistWindow.close();
         checklistWindow = null;
         console.log('✅ Checklist closed');
-    }
-});
-
-// Open Dashboard (SEPARATE WINDOW - NOT INTEGRATED)
-ipcMain.handle('open-dashboard', async () => {
-    if (dashboardWindow) {
-        dashboardWindow.focus();
-        return;
-    }
-
-    dashboardWindow = new BrowserWindow({
-        width: 1200,
-        height: 800,
-        frame: false,
-        transparent: true,
-        alwaysOnTop: false,
-        skipTaskbar: false,
-        resizable: true,
-        show: false,
-        webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            webSecurity: true
-        }
-    });
-
-    dashboardWindow.loadFile(path.join(__dirname, '../../public/dashboard.html'));
-    
-    dashboardWindow.once('ready-to-show', () => {
-        dashboardWindow.show();
-        console.log('✅ Velvet Dashboard opened (separate window)');
-    });
-
-    dashboardWindow.on('closed', () => {
-        dashboardWindow = null;
-        console.log('🪟 Dashboard closed');
-    });
-});
-
-// Close Dashboard
-ipcMain.handle('dashboard-close', async () => {
-    if (dashboardWindow) {
-        dashboardWindow.close();
-        dashboardWindow = null;
-        console.log('✅ Dashboard closed');
     }
 });
 

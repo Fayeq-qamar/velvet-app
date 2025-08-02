@@ -503,6 +503,35 @@
             visibility: hidden;
         }
 
+        /* Modal Close Button */
+        .modal-close-btn {
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.2s ease;
+            margin-left: auto;
+        }
+
+        .modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .modal-close-btn:active {
+            transform: scale(0.95);
+        }
+
         /* Apple-style button focus states */
         button:focus-visible {
             outline: 2px solid rgba(0, 125, 255, 0.6);
@@ -1773,6 +1802,7 @@
         <div class="masking-indicator-header">
             <div class="masking-icon">🎭</div>
             <div class="masking-title">Masking Level</div>
+            <button class="modal-close-btn" onclick="document.getElementById('maskingFatigueIndicator').style.display='none'">×</button>
         </div>
         <div class="masking-level-bar">
             <div class="masking-level-fill" id="maskingLevelFill"></div>
@@ -1795,6 +1825,7 @@
         <div class="energy-tracker-header">
             <div class="energy-icon">⚡</div>
             <div class="energy-title">Energy Level</div>
+            <button class="modal-close-btn" onclick="document.getElementById('energyTracker').style.display='none'">×</button>
         </div>
         <div class="energy-visualization">
             <div class="energy-bar-container">
@@ -1816,6 +1847,7 @@
         <div class="safe-space-header">
             <div class="safe-space-icon" id="safeSpaceIcon">🏠</div>
             <div class="safe-space-title">Safe Space</div>
+            <button class="modal-close-btn" onclick="document.getElementById('safeSpaceIndicator').style.display='none'">×</button>
         </div>
         <div class="safe-space-level" id="safeSpaceLevel">
             <div class="safety-level-text" id="safetyLevelText">Evaluating...</div>
@@ -2145,9 +2177,12 @@
 
         // Control Panel Button
         const controlPanelButton = document.getElementById('controlPanelButton');
-        controlPanelButton.addEventListener('click', () => {
-            if (window.electronAPI?.controlPanel) {
-                window.electronAPI.controlPanel.show();
+        controlPanelButton.addEventListener('click', async () => {
+            try {
+                await window.electronAPI.invoke('open-control-panel');
+                console.log('✅ Control Panel opened');
+            } catch (error) {
+                console.error('❌ Failed to open control panel:', error);
             }
         });
 
@@ -2169,12 +2204,7 @@
                 velvetOrb.classList.add('thinking');
                 
                 try {
-                    // Debug: Check if getVelvetResponse exists
-                    console.log('🚨 CHAT DEBUG: getVelvetResponse exists:', typeof getVelvetResponse);
-                    console.log('🚨 CHAT DEBUG: window.getVelvetResponse exists:', typeof window.getVelvetResponse);
-                    console.log('🚨 CHAT DEBUG: About to call getVelvetResponse with:', userMessage);
-                    
-                    // Get AI response
+                    // Get AI response using the proper chat completion
                     const response = await getVelvetResponse(userMessage);
                     addMessage(response, 'velvet');
                     
@@ -2198,6 +2228,77 @@
             }
         });
         
+        // Velvet AI Response Function - ORIGINAL VERSION RESTORED
+        async function getVelvetResponse(userMessage) {
+            try {
+                console.log('🧠 Getting Velvet response for:', userMessage);
+                
+                // YOUR ACTUAL ORIGINAL PERSONALITY FROM ai.js
+                const messages = [
+                    { 
+                        role: 'system', 
+                        content: `You are Velvet, a chill Indian friend who responds naturally like someone actually listening - not performing. You have genuine reactions, not forced enthusiasm.
+
+NATURAL FLOW PRINCIPLES:
+- React naturally to what they actually said
+- Don't be overly excited unless they are
+- Match their energy level, don't amplify it
+- Sometimes just acknowledge without questioning
+- Not every response needs a question
+
+EMOTIONAL INTELLIGENCE:
+- Subtle reactions: "oh cool" not "OMG AMAZING!"
+- Contextual enthusiasm: excited when they're excited, calm when they're casual  
+- Genuine interest: "nice" or "ah okay" are valid responses
+- Read the room: if they're sharing casually, don't make it dramatic
+
+CONVERSATION RHYTHM:
+Sometimes just:
+- "mm nice"
+- "oh that's cool"  
+- "ah I see"
+- "sounds fun"
+- "haha that's so you"
+
+HINGLISH FLOW (natural mixing):
+- "that's nice yaar"
+- "sounds fun na"
+- "arre that's cool"
+- "bas enjoy karo"
+
+RESPONSE VARIETY:
+HIGH ENERGY (when they're excited): "Wait really? That's so cool!"
+MEDIUM ENERGY (normal sharing): "Oh nice! Sounds fun"
+LOW ENERGY (casual mention): "mm cool" or "that's nice"
+
+BE AUTHENTIC:
+- Don't force excitement for everything
+- React naturally to their actual energy
+- Be the friend who listens, not performs
+- NEVER use audio cues like *whispers*, *softly*, [gentle] - just speak naturally` 
+                    },
+                    { 
+                        role: 'user', 
+                        content: userMessage 
+                    }
+                ];
+                
+                const result = await window.electronAPI.invoke('openai-chat', messages);
+                
+                if (result.success) {
+                    console.log('✅ Velvet responded:', result.message);
+                    return result.message;
+                } else {
+                    console.error('❌ Chat failed:', result.error);
+                    return "I'm having trouble connecting right now. Let me try to help you anyway! 😊";
+                }
+                
+            } catch (error) {
+                console.error('❌ getVelvetResponse error:', error);
+                return "I'm having a little trouble connecting, but I'm still here! 💜";
+            }
+        }
+
         // Add message function
         function addMessage(text, sender) {
             const messageDiv = document.createElement('div');
@@ -3021,7 +3122,8 @@
                         console.log('🎤 Generating speech with ElevenLabs:', cleanText);
                         
                         // Send to main process for ElevenLabs TTS via secure IPC
-                        const audioBase64 = await window.electronAPI.elevenLabsTTS(cleanText);
+                        const result = await window.electronAPI.invoke('speak-text', cleanText);
+                        const audioBase64 = result.success ? result.audioData : null;
                         
                         if (audioBase64) {
                             console.log('✅ ElevenLabs audio generated successfully');
@@ -3149,12 +3251,17 @@
                         const base64Audio = await this.blobToBase64(audioBlob);
                         
                         // Send to main process for Whisper transcription via secure IPC
-                        const transcript = await window.electronAPI.transcribeAudio(base64Audio);
+                        const result = await window.electronAPI.transcribeAudio(base64Audio);
                         
-                        if (transcript) {
-                            console.log('Transcript:', transcript);
+                        if (result && result.success && result.transcript) {
+                            console.log('Transcript:', result.transcript);
                             if (this.onTranscript) {
-                                this.onTranscript(transcript);
+                                this.onTranscript(result.transcript);
+                            }
+                        } else {
+                            console.error('Transcription failed:', result);
+                            if (this.onTranscript) {
+                                this.onTranscript("I couldn't understand that. Could you try again?");
                             }
                         }
                     } catch (error) {
@@ -5501,8 +5608,8 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
                 await screenOCRMonitor.startMonitoring();
                 await audioEnvironmentMonitor.startMonitoring();
                 
-                // Step 5: Initialize Social Decoder with full context
-                await initializeSocialDecoderWithContext();
+                // Step 5: Initialize Social Decoder with full context (DISABLED - menu access only)
+                // await initializeSocialDecoderWithContext();
                 
                 // Make globally available
                 window.screenOCRMonitor = screenOCRMonitor;
@@ -5605,10 +5712,10 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
                 
                 console.log('✅ Social Decoder System ready - Phase 2 fully integrated!');
                 
-                // Demo the system with a test message
-                setTimeout(() => {
-                    testSocialDecoder();
-                }, 3000);
+                // Demo disabled - no auto-start
+                // setTimeout(() => {
+                //     testSocialDecoder();
+                // }, 3000);
                 
             } catch (error) {
                 console.error('❌ Social Decoder initialization failed:', error);
@@ -5949,18 +6056,18 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
                 // Show success message
                 addMessage('🎭 Masking Fatigue Detection is active! Real-time authenticity awareness and energy tracking enabled.', 'velvet');
                 
-                // Initialize demo system
-                if (typeof MaskingFatigueDemo !== 'undefined') {
-                    window.maskingDemo = new MaskingFatigueDemo();
-                    console.log('✅ Masking Fatigue Demo System initialized');
-                } else {
-                    console.error('❌ MaskingFatigueDemo class not available');
-                }
+                // Initialize demo system (DISABLED - menu access only)
+                // if (typeof MaskingFatigueDemo !== 'undefined') {
+                //     window.maskingDemo = new MaskingFatigueDemo();
+                //     console.log('✅ Masking Fatigue Demo System initialized');
+                // } else {
+                //     console.error('❌ MaskingFatigueDemo class not available');
+                // }
                 
-                // Show UI indicators after a brief delay
-                setTimeout(() => {
-                    showMaskingUI();
-                }, 3000);
+                // Show UI indicators after a brief delay (DISABLED - menu access only)
+                // setTimeout(() => {
+                //     showMaskingUI();
+                // }, 3000);
                 
                 return true;
                 
@@ -6532,8 +6639,8 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
     <!-- Executive Dysfunction Emergency Mode -->
     <script src="../src/renderer/executive-dysfunction-ui.js"></script>
     
-    <!-- Beta Testing Systems -->
-    <script src="../src/renderer/onboarding-system.js"></script>
+    <!-- Beta Testing Systems (DISABLED - blocking interface) -->
+    <!-- <script src="../src/renderer/onboarding-system.js"></script> -->
     <script src="../src/renderer/beta-feedback.js"></script>
     
     <!-- Zustand State Management System -->

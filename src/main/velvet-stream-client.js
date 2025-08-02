@@ -330,6 +330,7 @@ class VelvetBrainContext {
         this.currentContext = null;
         this.contextHistory = [];
         this.maxHistory = 10;
+        this.emergencyContext = null; // Executive Dysfunction Emergency Mode context
     }
 
     updateContext(brainContext) {
@@ -342,8 +343,22 @@ class VelvetBrainContext {
         }
     }
 
+    updateEmergencyContext(emergencyData) {
+        this.emergencyContext = {
+            ...emergencyData,
+            timestamp: Date.now(),
+            contextId: Math.random().toString(36).substr(2, 9)
+        };
+        
+        console.log('🚨 Emergency context updated:', this.emergencyContext);
+    }
+
     getCurrentContext() {
         return this.currentContext;
+    }
+
+    getEmergencyContext() {
+        return this.emergencyContext;
     }
 
     getContextHistory() {

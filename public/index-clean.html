@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.openai.com https://api.elevenlabs.io; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
+    <title>Velvet</title>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --secondary-blue: #1d4ed8;
+            --accent-cyan: #06b6d4;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --radius: 20px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+            pointer-events: none;
+        }
+        
+        body.interface-open {
+            pointer-events: auto;
+        }
+        
+        .velvet-orb,
+        .velvet-interface.open,
+        .velvet-interface.open * {
+            pointer-events: auto;
+        }
+
+        /* Glass Orb Button */
+        .velvet-orb {
+            width: 70px;
+            height: 70px;
+            position: fixed !important;
+            top: auto !important;
+            left: auto !important;
+            bottom: 25px !important;
+            right: 25px !important;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            z-index: 1000;
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.9) 0%,
+                rgba(29, 78, 216, 0.85) 50%,
+                rgba(6, 182, 212, 0.8) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(37, 99, 235, 0.3),
+                0 4px 16px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .velvet-orb::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.6) 0%,
+                rgba(6, 182, 212, 0.4) 100%);
+            z-index: -1;
+            filter: blur(8px);
+            transition: all 0.3s var(--ease);
+        }
+
+        .velvet-orb:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                0 12px 40px rgba(37, 99, 235, 0.4),
+                0 6px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .velvet-orb:active {
+            transform: scale(0.98);
+        }
+
+        .velvet-orb.listening {
+            background: linear-gradient(135deg, 
+                rgba(168, 85, 247, 0.9) 0%,
+                rgba(139, 92, 246, 0.85) 50%,
+                rgba(124, 58, 237, 0.8) 100%);
+            animation: pulse-listening 2s ease-in-out infinite;
+        }
+
+        .velvet-orb.speaking {
+            background: linear-gradient(135deg, 
+                rgba(34, 197, 94, 0.9) 0%,
+                rgba(22, 163, 74, 0.85) 50%,
+                rgba(21, 128, 61, 0.8) 100%);
+            animation: pulse-speaking 1.5s ease-in-out infinite;
+        }
+
+        .velvet-orb.thinking {
+            background: linear-gradient(135deg, 
+                rgba(251, 191, 36, 0.9) 0%,
+                rgba(245, 158, 11, 0.85) 50%,
+                rgba(217, 119, 6, 0.8) 100%);
+            animation: pulse-thinking 2.5s ease-in-out infinite;
+        }
+
+        /* Glass Chat Interface */
+        .velvet-interface {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 420px;
+            max-height: 480px;
+            min-height: 350px;
+            border-radius: var(--radius);
+            padding: 28px;
+            z-index: -1;
+            max-width: calc(100vw - 40px);
+            
+            display: none;
+            visibility: hidden;
+            opacity: 0;
+            transform: translateX(20px) scale(0.95);
+            pointer-events: none;
+            
+            background: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            border: none;
+            box-shadow: none;
+            
+            transition: all 0.4s var(--ease);
+        }
+
+        .velvet-interface.open {
+            display: block;
+            z-index: 999;
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            pointer-events: auto;
+            
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.95) 0%,
+                    rgba(30, 41, 59, 0.92) 50%,
+                    rgba(51, 65, 85, 0.88) 100%);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.4),
+                0 8px 24px rgba(0, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        /* Header */
+        .velvet-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .velvet-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.8) 0%,
+                rgba(6, 182, 212, 0.6) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .velvet-avatar::before {
+            content: 'V';
+        }
+
+        .velvet-title {
+            flex: 1;
+        }
+
+        .velvet-title h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .velvet-title p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Header Buttons */
+        .voice-output-toggle,
+        .control-panel-button {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .voice-output-toggle:hover,
+        .control-panel-button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            transform: scale(1.05);
+        }
+
+        .voice-output-toggle.active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .voice-output-toggle svg,
+        .control-panel-button svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Messages Area */
+        .chat-messages {
+            height: 280px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding-right: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 16px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.5;
+            animation: fadeIn 0.3s var(--ease);
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.8) 0%,
+                rgba(29, 78, 216, 0.7) 100%);
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .message.velvet {
+            background: linear-gradient(135deg, 
+                rgba(51, 65, 85, 0.8) 0%,
+                rgba(71, 85, 105, 0.7) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .welcome-message h4 {
+            margin: 0 0 12px 0;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .welcome-message p {
+            margin: 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* Input Area */
+        .chat-input-area {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s var(--ease);
+        }
+
+        .chat-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .chat-input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 
+                0 0 0 3px rgba(37, 99, 235, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .voice-button {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(37, 99, 235, 0.3) 0%, 
+                    rgba(6, 182, 212, 0.25) 100%
+                );
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 
+                0 4px 16px rgba(37, 99, 235, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .voice-button svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 1.5;
+            transition: all 0.3s ease;
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                0 6px 20px rgba(37, 99, 235, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .voice-button.listening {
+            background: 
+                linear-gradient(135deg, 
+                    rgba(239, 68, 68, 0.4) 0%, 
+                    rgba(249, 115, 22, 0.3) 100%
+                );
+            border-color: rgba(249, 115, 22, 0.5);
+            color: #ff453a;
+        }
+
+        .voice-button.listening svg {
+            animation: micPulse 1.2s infinite;
+        }
+
+        /* Animations */
+        @keyframes pulse-listening {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes pulse-speaking {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+
+        @keyframes pulse-thinking {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes micPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s var(--ease);
+            margin-bottom: 8px;
+            z-index: 10000;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Glass Chat Interface -->
+    <div class="velvet-interface" id="velvetInterface">
+        <div class="velvet-header">
+            <div class="velvet-avatar"></div>
+            <div class="velvet-title">
+                <h3>Velvet</h3>
+                <p>Your AI companion</p>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <button class="voice-output-toggle tooltip" id="voiceOutputToggle" data-tooltip="Toggle voice responses" aria-label="Toggle voice output">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 0 1 0 12.728M16.463 8.288a5.25 5.25 0 0 1 0 7.424M6.75 8.25l4.72-4.72a.75.75 0 0 1 1.28.53v15.88a.75.75 0 0 1-1.28.53l-4.72-4.72H4.51c-.88 0-1.59-.79-1.59-1.59V9.51c0-.97.71-1.76 1.59-1.76h2.24Z" />
+                    </svg>
+                </button>
+                <button class="control-panel-button tooltip" id="controlPanelButton" data-tooltip="Open Velvet Control Panel" aria-label="Open control panel">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <h4>Hey there! 👋</h4>
+                <p>I'm Velvet, your neurodivergent-friendly AI companion. Ready to chat!</p>
+            </div>
+        </div>
+        
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type your message...">
+            <button class="voice-button tooltip" id="voiceButton" data-tooltip="Press to speak" aria-label="Voice input">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                </svg>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Glass Orb Button -->
+    <button class="velvet-orb tooltip" id="velvetOrb" data-tooltip="Click to open Velvet">V</button>
+
+    <script>
+        // YOUR ORIGINAL VELVET INTERFACE LOGIC - NO AUTO-STARTING FEATURES
+        let isInterfaceOpen = false;
+        let isTyping = false;
+        let isListening = false;
+        let isVoiceOutputEnabled = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+
+        // DOM Elements
+        const velvetOrb = document.getElementById('velvetOrb');
+        const velvetInterface = document.getElementById('velvetInterface');
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const voiceButton = document.getElementById('voiceButton');
+        const voiceOutputToggle = document.getElementById('voiceOutputToggle');
+        const controlPanelButton = document.getElementById('controlPanelButton');
+
+        // Toggle Interface
+        function toggleInterface() {
+            isInterfaceOpen = !isInterfaceOpen;
+            
+            if (isInterfaceOpen) {
+                document.body.classList.add('interface-open');
+                velvetInterface.classList.add('open');
+                chatInput.focus();
+                console.log('✅ Velvet interface opened');
+            } else {
+                document.body.classList.remove('interface-open');
+                velvetInterface.classList.remove('open');
+                console.log('✅ Velvet interface closed');
+            }
+        }
+
+        // Add Message
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            messageDiv.textContent = text;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Update Orb State
+        function updateOrbState(state) {
+            velvetOrb.classList.remove('listening', 'speaking', 'thinking');
+            if (state) {
+                velvetOrb.classList.add(state);
+            }
+        }
+
+        // Send Message
+        async function sendMessage() {
+            if (isTyping) return;
+            
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addMessage(message, 'user');
+            chatInput.value = '';
+            
+            // Start processing
+            isTyping = true;
+            updateOrbState('thinking');
+
+            try {
+                // Send to AI
+                const response = await window.electronAPI.invoke('openai-chat', [
+                    { role: 'system', content: 'You are Velvet, a gentle AI companion for neurodivergent people. Be warm, supportive, and understanding. Keep responses to 2-3 sentences max.' },
+                    { role: 'user', content: message }
+                ]);
+
+                updateOrbState('speaking');
+
+                if (response.success) {
+                    addMessage(response.message, 'velvet');
+                    
+                    // Speak if voice output enabled
+                    if (isVoiceOutputEnabled) {
+                        await speakText(response.message);
+                    }
+                } else {
+                    addMessage("I'm having a little trouble connecting, but I'm still here! 💜", 'velvet');
+                }
+
+                updateOrbState('');
+                
+            } catch (error) {
+                console.error('Chat error:', error);
+                updateOrbState('');
+                addMessage("I'm having a little trouble connecting, but I'm still here! 💜", 'velvet');
+            }
+
+            isTyping = false;
+            chatInput.focus();
+        }
+
+        // Voice Input
+        async function toggleVoiceInput() {
+            if (isListening) {
+                stopListening();
+            } else {
+                startListening();
+            }
+        }
+
+        async function startListening() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const arrayBuffer = await audioBlob.arrayBuffer();
+                    const base64Audio = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+                    try {
+                        updateOrbState('thinking');
+                        const result = await window.electronAPI.invoke('transcribe-audio', base64Audio);
+                        
+                        if (result.success && result.transcript.trim()) {
+                            chatInput.value = result.transcript;
+                            await sendMessage();
+                        } else {
+                            console.log('No speech detected');
+                            updateOrbState('');
+                        }
+                    } catch (error) {
+                        console.error('Transcription error:', error);
+                        updateOrbState('');
+                    }
+                };
+
+                mediaRecorder.start();
+                isListening = true;
+                updateOrbState('listening');
+                voiceButton.classList.add('listening');
+                console.log('🎤 Voice recording started');
+
+            } catch (error) {
+                console.error('Microphone access error:', error);
+                alert('Microphone access is required for voice input.');
+            }
+        }
+
+        function stopListening() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop());
+            }
+            isListening = false;
+            updateOrbState('');
+            voiceButton.classList.remove('listening');
+            console.log('🎤 Voice recording stopped');
+        }
+
+        // Text-to-Speech
+        async function speakText(text) {
+            try {
+                updateOrbState('speaking');
+                const response = await window.electronAPI.invoke('speak-text', text);
+                
+                if (response.success && response.audioData) {
+                    const audio = new Audio('data:audio/mpeg;base64,' + response.audioData);
+                    
+                    audio.onended = () => {
+                        updateOrbState('');
+                    };
+                    
+                    await audio.play();
+                } else {
+                    updateOrbState('');
+                }
+            } catch (error) {
+                console.error('TTS error:', error);
+                updateOrbState('');
+            }
+        }
+
+        // Voice Output Toggle
+        function toggleVoiceOutput() {
+            isVoiceOutputEnabled = !isVoiceOutputEnabled;
+            voiceOutputToggle.classList.toggle('active', isVoiceOutputEnabled);
+            
+            addMessage(isVoiceOutputEnabled ? 
+                "Voice output enabled! I'll speak my responses. 🔊" : 
+                "Voice output disabled. I'll stay quiet now. 🤫", 'velvet');
+        }
+
+        // Control Panel
+        async function openControlPanel() {
+            try {
+                await window.electronAPI.invoke('open-control-panel');
+                console.log('✅ Control Panel opened');
+            } catch (error) {
+                console.error('Control Panel error:', error);
+            }
+        }
+
+        // Event Listeners
+        velvetOrb.addEventListener('click', toggleInterface);
+        voiceButton.addEventListener('click', toggleVoiceInput);
+        voiceOutputToggle.addEventListener('click', toggleVoiceOutput);
+        controlPanelButton.addEventListener('click', openControlPanel);
+
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Click outside to close
+        document.addEventListener('click', (e) => {
+            if (isInterfaceOpen && !velvetInterface.contains(e.target) && e.target !== velvetOrb) {
+                toggleInterface();
+            }
+        });
+
+        console.log('✅ YOUR ORIGINAL VELVET INTERFACE IS READY!');
+        console.log('🔮 Click the glass orb to start chatting');
+        console.log('🔊 Use the speaker icon to toggle voice responses');
+        console.log('⚙️ Use the gear icon to open control panel');
+    </script>
+</body>
+</html>

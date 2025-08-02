@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "shadcn-ui": {
+      "command": "shadcn-ui-mcp-server",
+      "args": [],
+      "env": {}
+    }
+  }
+}

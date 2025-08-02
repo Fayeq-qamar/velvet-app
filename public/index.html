@@ -2,6 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.openai.com https://api.elevenlabs.io; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
     <title>Velvet</title>
     <style>
         :root {
@@ -1244,6 +1245,483 @@
                     inset 0 1px 0 rgba(255, 255, 255, 0.15);
             }
         }
+
+        /* Masking Fatigue Detection UI */
+        .masking-fatigue-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 280px;
+            padding: 16px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.96) 0%,
+                    rgba(30, 41, 59, 0.94) 100%
+                );
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            border-radius: var(--radius);
+            box-shadow: 
+                0 20px 25px rgba(0, 0, 0, 0.6),
+                0 8px 16px rgba(147, 51, 234, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            opacity: 0;
+            transform: translateX(-100%);
+            transition: all 0.5s var(--ease);
+            pointer-events: none;
+            font-size: 13px;
+            z-index: 1000;
+        }
+
+        .masking-fatigue-indicator.show {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .masking-indicator-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .masking-icon {
+            font-size: 18px;
+            filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.6));
+        }
+
+        .masking-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .masking-level-bar {
+            position: relative;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .masking-level-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(34, 197, 94, 0.8) 0%,
+                rgba(251, 191, 36, 0.8) 50%,
+                rgba(239, 68, 68, 0.8) 100%
+            );
+            border-radius: 3px;
+            transition: width 0.8s var(--ease);
+            width: 30%; /* Default authentic level */
+        }
+
+        .masking-level-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .masking-details {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .masking-indicator-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .indicator-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .indicator-value {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        /* Energy Tracking Visualization */
+        .energy-tracker {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 260px;
+            padding: 16px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.96) 0%,
+                    rgba(30, 41, 59, 0.94) 100%
+                );
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: var(--radius);
+            box-shadow: 
+                0 20px 25px rgba(0, 0, 0, 0.6),
+                0 8px 16px rgba(34, 197, 94, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.5s var(--ease);
+            pointer-events: none;
+            font-size: 13px;
+            z-index: 1000;
+        }
+
+        .energy-tracker.show {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .energy-tracker-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .energy-icon {
+            font-size: 18px;
+            filter: drop-shadow(0 0 8px rgba(34, 197, 94, 0.6));
+        }
+
+        .energy-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .energy-visualization {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .energy-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .energy-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(239, 68, 68, 0.8) 0%,
+                rgba(251, 191, 36, 0.8) 30%,
+                rgba(34, 197, 94, 0.8) 100%
+            );
+            border-radius: 4px;
+            transition: width 0.8s var(--ease);
+            width: 100%; /* Default full energy */
+        }
+
+        .energy-percentage {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 35px;
+        }
+
+        .energy-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .energy-details {
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .energy-spent {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .recovery-suggestion {
+            font-size: 11px;
+            color: rgba(34, 197, 94, 0.8);
+            font-style: italic;
+        }
+
+        /* Safe Space Indicator */
+        .safe-space-indicator {
+            position: fixed;
+            bottom: 120px;
+            left: 20px;
+            width: 300px;
+            padding: 16px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(15, 23, 42, 0.96) 0%,
+                    rgba(30, 41, 59, 0.94) 100%
+                );
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: var(--radius);
+            box-shadow: 
+                0 20px 25px rgba(0, 0, 0, 0.6),
+                0 8px 16px rgba(6, 182, 212, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            opacity: 0;
+            transform: translateX(-100%);
+            transition: all 0.5s var(--ease);
+            pointer-events: none;
+            font-size: 13px;
+            z-index: 1000;
+        }
+
+        .safe-space-indicator.show {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+
+        .safe-space-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .safe-space-icon {
+            font-size: 18px;
+            filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.6));
+            transition: filter 0.3s var(--ease);
+        }
+
+        .safe-space-icon.safe {
+            filter: drop-shadow(0 0 12px rgba(34, 197, 94, 0.8));
+        }
+
+        .safe-space-title {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .safe-space-level {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .safety-level-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .safety-level-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .safety-level-fill {
+            height: 100%;
+            background: linear-gradient(90deg, 
+                rgba(239, 68, 68, 0.8) 0%,
+                rgba(251, 191, 36, 0.8) 50%,
+                rgba(34, 197, 94, 0.8) 100%
+            );
+            border-radius: 3px;
+            transition: width 0.8s var(--ease);
+            width: 50%; /* Default moderate safety */
+        }
+
+        .unmasking-prompt {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+            border-radius: 8px;
+            animation: gentleGlow 2s ease-in-out infinite;
+        }
+
+        .prompt-message {
+            font-size: 12px;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .prompt-actions {
+            display: flex;
+            justify-content: center;
+        }
+
+        .prompt-acknowledge {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: transform 0.2s var(--ease);
+        }
+
+        .prompt-acknowledge:hover {
+            transform: scale(1.1);
+        }
+
+        /* Authenticity Celebration */
+        .authenticity-celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 24px;
+            background: 
+                linear-gradient(135deg, 
+                    rgba(147, 51, 234, 0.2) 0%,
+                    rgba(15, 23, 42, 0.98) 100%
+                );
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(147, 51, 234, 0.4);
+            border-radius: var(--radius);
+            box-shadow: 
+                0 25px 35px rgba(0, 0, 0, 0.7),
+                0 12px 24px rgba(147, 51, 234, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            color: var(--text-primary);
+            text-align: center;
+            z-index: 2000;
+            animation: celebrationAppear 0.8s var(--ease);
+        }
+
+        .celebration-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .celebration-icon {
+            font-size: 36px;
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        .celebration-message {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            max-width: 300px;
+            line-height: 1.4;
+        }
+
+        @keyframes celebrationAppear {
+            0% { 
+                opacity: 0; 
+                transform: translate(-50%, -50%) scale(0.8); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: translate(-50%, -50%) scale(1); 
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { 
+                transform: scale(1) rotate(0deg);
+                filter: drop-shadow(0 0 8px rgba(147, 51, 234, 0.6));
+            }
+            50% { 
+                transform: scale(1.1) rotate(5deg);
+                filter: drop-shadow(0 0 16px rgba(147, 51, 234, 0.8));
+            }
+        }
+
+        @keyframes gentleGlow {
+            0%, 100% { 
+                box-shadow: 
+                    0 20px 25px rgba(0, 0, 0, 0.6),
+                    0 8px 16px rgba(6, 182, 212, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            }
+            50% { 
+                box-shadow: 
+                    0 25px 35px rgba(0, 0, 0, 0.7),
+                    0 12px 24px rgba(6, 182, 212, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            }
+        }
+
+        /* Masking level color states */
+        .masking-fatigue-indicator.high-masking {
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .masking-fatigue-indicator.high-masking .masking-level-fill {
+            width: 80%;
+        }
+
+        .masking-fatigue-indicator.medium-masking {
+            border-color: rgba(251, 191, 36, 0.4);
+        }
+
+        .masking-fatigue-indicator.medium-masking .masking-level-fill {
+            width: 60%;
+        }
+
+        .masking-fatigue-indicator.low-masking {
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+        .masking-fatigue-indicator.low-masking .masking-level-fill {
+            width: 30%;
+        }
+
+        /* Energy level color states */
+        .energy-tracker.low-energy {
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .energy-tracker.low-energy .energy-fill {
+            width: 25%;
+        }
+
+        .energy-tracker.medium-energy {
+            border-color: rgba(251, 191, 36, 0.4);
+        }
+
+        .energy-tracker.medium-energy .energy-fill {
+            width: 60%;
+        }
+
+        .energy-tracker.high-energy {
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+        .energy-tracker.high-energy .energy-fill {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -1289,6 +1767,77 @@
     
     <!-- Glass Orb Button -->
     <button class="velvet-orb tooltip" id="velvetOrb" data-tooltip="Click to open Velvet">V</button>
+    
+    <!-- Masking Fatigue Detection UI -->
+    <div class="masking-fatigue-indicator" id="maskingFatigueIndicator">
+        <div class="masking-indicator-header">
+            <div class="masking-icon">🎭</div>
+            <div class="masking-title">Masking Level</div>
+        </div>
+        <div class="masking-level-bar">
+            <div class="masking-level-fill" id="maskingLevelFill"></div>
+            <div class="masking-level-text" id="maskingLevelText">Authentic</div>
+        </div>
+        <div class="masking-details" id="maskingDetails">
+            <div class="masking-indicator-item">
+                <span class="indicator-label">Communication</span>
+                <span class="indicator-value" id="communicationIndicator">Natural</span>
+            </div>
+            <div class="masking-indicator-item">
+                <span class="indicator-label">Environment</span>
+                <span class="indicator-value" id="environmentIndicator">Safe</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Energy Tracking Visualization -->
+    <div class="energy-tracker" id="energyTracker">
+        <div class="energy-tracker-header">
+            <div class="energy-icon">⚡</div>
+            <div class="energy-title">Energy Level</div>
+        </div>
+        <div class="energy-visualization">
+            <div class="energy-bar-container">
+                <div class="energy-bar" id="energyBar">
+                    <div class="energy-fill" id="energyFill"></div>
+                </div>
+                <div class="energy-percentage" id="energyPercentage">100%</div>
+            </div>
+            <div class="energy-status" id="energyStatus">Energized</div>
+        </div>
+        <div class="energy-details">
+            <div class="energy-spent" id="energySpent">Daily spent: 0%</div>
+            <div class="recovery-suggestion" id="recoverySuggestion"></div>
+        </div>
+    </div>
+    
+    <!-- Safe Space Indicator -->
+    <div class="safe-space-indicator" id="safeSpaceIndicator">
+        <div class="safe-space-header">
+            <div class="safe-space-icon" id="safeSpaceIcon">🏠</div>
+            <div class="safe-space-title">Safe Space</div>
+        </div>
+        <div class="safe-space-level" id="safeSpaceLevel">
+            <div class="safety-level-text" id="safetyLevelText">Evaluating...</div>
+            <div class="safety-level-bar">
+                <div class="safety-level-fill" id="safetyLevelFill"></div>
+            </div>
+        </div>
+        <div class="unmasking-prompt" id="unmaskingPrompt" style="display: none;">
+            <div class="prompt-message" id="promptMessage"></div>
+            <div class="prompt-actions">
+                <button class="prompt-acknowledge" id="promptAcknowledge">💜</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Authenticity Celebration -->
+    <div class="authenticity-celebration" id="authenticityCelebration" style="display: none;">
+        <div class="celebration-content">
+            <div class="celebration-icon">✨</div>
+            <div class="celebration-message" id="celebrationMessage"></div>
+        </div>
+    </div>
     
     <!-- Gentle Intervention Elements -->
     <div class="breathing-guide" id="breathingGuide"></div>
@@ -4887,6 +5436,18 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
     <script src="../src/renderer/audio-environment-monitor-real.js"></script>
     <script src="../src/renderer/unified-context-engine.js"></script>
     <script src="../src/renderer/social-decoder.js"></script>
+    <script src="../src/renderer/enhanced-social-decoder.js"></script>
+    
+    <!-- Masking Fatigue Detection System -->
+    <script src="../src/renderer/masking-fatigue-detector.js"></script>
+    <script src="../src/renderer/communication-style-tracker.js"></script>
+    <script src="../src/renderer/context-awareness-system.js"></script>
+    <script src="../src/renderer/safe-space-detector.js"></script>
+    <script src="../src/renderer/masking-ai-integration.js"></script>
+    <script src="../src/renderer/masking-fatigue-demo.js"></script>
+    <script src="../src/renderer/viral-social-decoder.js"></script>
+    <script src="../src/renderer/viral-social-decoder-integration.js"></script>
+    <script src="../src/renderer/viral-social-decoder-demo.js"></script>
     <script src="../src/renderer/social-decoder-ui.js"></script>
     
     <!-- PHASE 3: VELVET BRAIN - Unified AI Consciousness System -->
@@ -5320,12 +5881,581 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
                 initializeContextAwarenessSystem();
                 addContextAwarenessControls();
                 addSocialDecoderControls();
+                initializeViralSocialDecoder();
+                
+                // Initialize Masking Fatigue Detection System
+                initializeMaskingFatigueDetectionSystem();
             }, 2000);
         });
+
+        // Initialize Masking Fatigue Detection System
+        async function initializeMaskingFatigueDetectionSystem() {
+            try {
+                console.log('🎭 ===== INITIALIZING MASKING FATIGUE DETECTION SYSTEM =====');
+                console.log('🎭 Third viral neurodivergent feature: "Finally, someone validates my energy drain"');
+                
+                // Initialize main masking detector
+                if (typeof MaskingFatigueDetector !== 'undefined') {
+                    window.maskingFatigueDetector = new MaskingFatigueDetector();
+                    await window.maskingFatigueDetector.initialize();
+                    console.log('✅ Masking Fatigue Detector initialized');
+                } else {
+                    console.error('❌ MaskingFatigueDetector class not available');
+                }
+                
+                // Initialize communication style tracker
+                if (typeof CommunicationStyleTracker !== 'undefined') {
+                    window.communicationStyleTracker = new CommunicationStyleTracker();
+                    await window.communicationStyleTracker.initialize();
+                    console.log('✅ Communication Style Tracker initialized');
+                } else {
+                    console.error('❌ CommunicationStyleTracker class not available');
+                }
+                
+                // Initialize context awareness system
+                if (typeof ContextAwarenessSystem !== 'undefined') {
+                    window.contextAwarenessSystem = new ContextAwarenessSystem();
+                    await window.contextAwarenessSystem.initialize();
+                    console.log('✅ Context Awareness System initialized');
+                } else {
+                    console.error('❌ ContextAwarenessSystem class not available');
+                }
+                
+                // Initialize safe space detector
+                if (typeof SafeSpaceDetector !== 'undefined') {
+                    window.safeSpaceDetector = new SafeSpaceDetector();
+                    await window.safeSpaceDetector.initialize();
+                    console.log('✅ Safe Space Detector initialized');
+                } else {
+                    console.error('❌ SafeSpaceDetector class not available');
+                }
+                
+                // Initialize AI integration
+                if (typeof MaskingAIIntegration !== 'undefined') {
+                    window.maskingAIIntegration = new MaskingAIIntegration();
+                    await window.maskingAIIntegration.initialize();
+                    console.log('✅ Masking AI Integration initialized');
+                } else {
+                    console.error('❌ MaskingAIIntegration class not available');
+                }
+                
+                // Initialize UI controls and event handlers
+                initializeMaskingUI();
+                
+                console.log('✅ 🎭 MASKING FATIGUE DETECTION SYSTEM FULLY ACTIVE!');
+                console.log('🎯 Ready to create "finally, someone understands masking fatigue" moments');
+                console.log('🎉 Real-time masking awareness, safe space detection, and authenticity validation ready');
+                
+                // Show success message
+                addMessage('🎭 Masking Fatigue Detection is active! Real-time authenticity awareness and energy tracking enabled.', 'velvet');
+                
+                // Initialize demo system
+                if (typeof MaskingFatigueDemo !== 'undefined') {
+                    window.maskingDemo = new MaskingFatigueDemo();
+                    console.log('✅ Masking Fatigue Demo System initialized');
+                } else {
+                    console.error('❌ MaskingFatigueDemo class not available');
+                }
+                
+                // Show UI indicators after a brief delay
+                setTimeout(() => {
+                    showMaskingUI();
+                }, 3000);
+                
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Masking Fatigue Detection System initialization failed:', error);
+                addMessage('⚠️ Masking detection had issues starting - basic features still available', 'velvet');
+                return false;
+            }
+        }
+        
+        // Initialize Masking UI and Event Handlers
+        function initializeMaskingUI() {
+            console.log('🎨 Initializing masking UI components...');
+            
+            // Set up UI event handlers
+            const promptAcknowledge = document.getElementById('promptAcknowledge');
+            if (promptAcknowledge) {
+                promptAcknowledge.addEventListener('click', () => {
+                    acknowledgeMaskingPrompt();
+                });
+            }
+            
+            // Set up masking level updates
+            if (window.maskingFatigueDetector) {
+                window.maskingFatigueDetector.on('maskingLevelChanged', (data) => {
+                    updateMaskingLevelUI(data);
+                });
+                
+                window.maskingFatigueDetector.on('energyLevelChanged', (data) => {
+                    updateEnergyLevelUI(data);
+                });
+            }
+            
+            // Set up safe space updates
+            if (window.safeSpaceDetector) {
+                window.safeSpaceDetector.on('safetyLevelUpdated', (data) => {
+                    updateSafeSpaceLevelUI(data);
+                });
+                
+                window.safeSpaceDetector.on('unmaskingPromptDelivered', (prompt) => {
+                    showUnmaskingPrompt(prompt);
+                });
+                
+                window.safeSpaceDetector.on('authenticityValidationDelivered', (validation) => {
+                    showAuthenticityValidation(validation);
+                });
+            }
+            
+            console.log('✅ Masking UI initialized');
+        }
+        
+        // Show Masking UI Components
+        function showMaskingUI() {
+            const maskingIndicator = document.getElementById('maskingFatigueIndicator');
+            const energyTracker = document.getElementById('energyTracker');
+            const safeSpaceIndicator = document.getElementById('safeSpaceIndicator');
+            
+            if (maskingIndicator) {
+                maskingIndicator.classList.add('show');
+            }
+            
+            if (energyTracker) {
+                energyTracker.classList.add('show');
+            }
+            
+            if (safeSpaceIndicator) {
+                safeSpaceIndicator.classList.add('show');
+            }
+        }
+        
+        // Update Masking Level UI
+        function updateMaskingLevelUI(data) {
+            const maskingFill = document.getElementById('maskingLevelFill');
+            const maskingText = document.getElementById('maskingLevelText');
+            const communicationIndicator = document.getElementById('communicationIndicator');
+            const environmentIndicator = document.getElementById('environmentIndicator');
+            const maskingIndicator = document.getElementById('maskingFatigueIndicator');
+            
+            if (maskingFill) {
+                maskingFill.style.width = `${data.level * 100}%`;
+            }
+            
+            if (maskingText) {
+                if (data.level > 0.7) {
+                    maskingText.textContent = 'High Performance';
+                } else if (data.level > 0.4) {
+                    maskingText.textContent = 'Moderate Masking';
+                } else {
+                    maskingText.textContent = 'Authentic';
+                }
+            }
+            
+            if (communicationIndicator && data.indicators) {
+                if (data.indicators.formality > 0.7) {
+                    communicationIndicator.textContent = 'Formal';
+                } else if (data.indicators.formality < 0.3) {
+                    communicationIndicator.textContent = 'Natural';
+                } else {
+                    communicationIndicator.textContent = 'Mixed';
+                }
+            }
+            
+            if (environmentIndicator && window.contextAwarenessSystem) {
+                const contextStatus = window.contextAwarenessSystem.getContextStatus();
+                if (contextStatus.currentContext.environment) {
+                    environmentIndicator.textContent = contextStatus.currentContext.environment.charAt(0).toUpperCase() + 
+                                                    contextStatus.currentContext.environment.slice(1);
+                }
+            }
+            
+            // Update masking indicator color state
+            if (maskingIndicator) {
+                maskingIndicator.classList.remove('high-masking', 'medium-masking', 'low-masking');
+                if (data.level > 0.7) {
+                    maskingIndicator.classList.add('high-masking');
+                } else if (data.level > 0.4) {
+                    maskingIndicator.classList.add('medium-masking');
+                } else {
+                    maskingIndicator.classList.add('low-masking');
+                }
+            }
+        }
+        
+        // Update Energy Level UI
+        function updateEnergyLevelUI(data) {
+            const energyFill = document.getElementById('energyFill');
+            const energyPercentage = document.getElementById('energyPercentage');
+            const energyStatus = document.getElementById('energyStatus');
+            const energySpent = document.getElementById('energySpent');
+            const recoverySuggestion = document.getElementById('recoverySuggestion');
+            const energyTracker = document.getElementById('energyTracker');
+            
+            if (energyFill) {
+                energyFill.style.width = `${data.currentEnergy * 100}%`;
+            }
+            
+            if (energyPercentage) {
+                energyPercentage.textContent = `${Math.round(data.currentEnergy * 100)}%`;
+            }
+            
+            if (energyStatus) {
+                if (data.currentEnergy > 0.8) {
+                    energyStatus.textContent = 'Energized';
+                } else if (data.currentEnergy > 0.5) {
+                    energyStatus.textContent = 'Moderate';
+                } else if (data.currentEnergy > 0.2) {
+                    energyStatus.textContent = 'Low Energy';
+                } else {
+                    energyStatus.textContent = 'Depleted';
+                }
+            }
+            
+            if (energySpent) {
+                energySpent.textContent = `Daily spent: ${Math.round(data.dailyExpenditure * 100)}%`;
+            }
+            
+            if (recoverySuggestion && data.currentEnergy < 0.5) {
+                recoverySuggestion.textContent = 'Consider taking a break to recharge';
+            } else if (recoverySuggestion) {
+                recoverySuggestion.textContent = '';
+            }
+            
+            // Update energy tracker color state
+            if (energyTracker) {
+                energyTracker.classList.remove('high-energy', 'medium-energy', 'low-energy');
+                if (data.currentEnergy > 0.7) {
+                    energyTracker.classList.add('high-energy');
+                } else if (data.currentEnergy > 0.4) {
+                    energyTracker.classList.add('medium-energy');
+                } else {
+                    energyTracker.classList.add('low-energy');
+                }
+            }
+        }
+        
+        // Update Safe Space Level UI
+        function updateSafeSpaceLevelUI(data) {
+            const safetyFill = document.getElementById('safetyLevelFill');
+            const safetyText = document.getElementById('safetyLevelText');
+            const safeSpaceIcon = document.getElementById('safeSpaceIcon');
+            
+            if (safetyFill) {
+                safetyFill.style.width = `${data.safetyLevel * 100}%`;
+            }
+            
+            if (safetyText) {
+                if (data.isInSafeSpace) {
+                    safetyText.textContent = 'Safe to be authentic';
+                } else if (data.safetyLevel > 0.6) {
+                    safetyText.textContent = 'Moderately safe';
+                } else {
+                    safetyText.textContent = 'Performance expected';
+                }
+            }
+            
+            if (safeSpaceIcon) {
+                if (data.isInSafeSpace) {
+                    safeSpaceIcon.classList.add('safe');
+                    safeSpaceIcon.textContent = '🏠';
+                } else {
+                    safeSpaceIcon.classList.remove('safe');
+                    safeSpaceIcon.textContent = '🏢';
+                }
+            }
+        }
+        
+        // Show Unmasking Prompt
+        function showUnmaskingPrompt(prompt) {
+            const unmaskingPrompt = document.getElementById('unmaskingPrompt');
+            const promptMessage = document.getElementById('promptMessage');
+            
+            if (unmaskingPrompt && promptMessage) {
+                promptMessage.textContent = prompt.prompt.message;
+                unmaskingPrompt.style.display = 'block';
+                
+                // Auto-hide after 10 seconds
+                setTimeout(() => {
+                    unmaskingPrompt.style.display = 'none';
+                }, 10000);
+            }
+        }
+        
+        // Show Authenticity Validation
+        function showAuthenticityValidation(validation) {
+            const celebration = document.getElementById('authenticityCelebration');
+            const celebrationMessage = document.getElementById('celebrationMessage');
+            
+            if (celebration && celebrationMessage) {
+                celebrationMessage.textContent = validation.message;
+                celebration.style.display = 'block';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    celebration.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        // Acknowledge Masking Prompt
+        function acknowledgeMaskingPrompt() {
+            const unmaskingPrompt = document.getElementById('unmaskingPrompt');
+            if (unmaskingPrompt) {
+                unmaskingPrompt.style.display = 'none';
+            }
+            
+            // Optional: Send acknowledgment to safe space detector
+            if (window.safeSpaceDetector) {
+                // Could track user engagement with prompts
+                console.log('💜 User acknowledged unmasking prompt');
+            }
+        }
+
+        // Initialize Viral Social Decoder System
+        async function initializeViralSocialDecoder() {
+            try {
+                console.log('🎭 ===== INITIALIZING VIRAL SOCIAL DECODER SYSTEM =====');
+                console.log('🎭 This is the breakthrough neurodivergent feature!');
+                
+                // Check if ViralSocialDecoder is available
+                if (typeof ViralSocialDecoder === 'undefined') {
+                    console.error('❌ ViralSocialDecoder class not available');
+                    return false;
+                }
+                
+                // Initialize the viral system
+                window.viralSocialDecoder = new ViralSocialDecoder();
+                const initialized = await window.viralSocialDecoder.initialize();
+                
+                if (initialized) {
+                    console.log('✅ 🎭 VIRAL SOCIAL DECODER SYSTEM FULLY ACTIVE!');
+                    console.log('🎯 Ready to create "finally, someone gets it!" moments');
+                    console.log('🎉 Social cue detection, sarcasm translation, and live interventions ready');
+                    
+                    // Add UI controls for the viral system
+                    addViralSocialDecoderControls();
+                    
+                    // Show success message
+                    addMessage('🎭 Viral Social Decoder is active! Real-time social cue detection ready for calls and meetings.', 'velvet');
+                    
+                    return true;
+                } else {
+                    console.error('❌ Viral Social Decoder initialization failed');
+                    addMessage('⚠️ Social decoder had issues starting - basic features still available', 'velvet');
+                    return false;
+                }
+                
+            } catch (error) {
+                console.error('❌ Viral Social Decoder initialization error:', error);
+                addMessage('⚠️ Social decoder system error - basic features available', 'velvet');
+                return false;
+            }
+        }
+
+        // Add UI controls for Viral Social Decoder
+        function addViralSocialDecoderControls() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+            
+            // Create viral social decoder control section
+            const viralSection = document.createElement('div');
+            viralSection.innerHTML = `
+                <div style="margin: 16px 0; padding: 16px; background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(168, 85, 247, 0.1)); border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);">
+                    <h4 style="margin: 0 0 12px 0; color: #ef4444; font-size: 14px; font-weight: 600;">🎭 Viral Social Decoder</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <button id="viral-social-status" class="test-button" style="font-size: 12px; padding: 8px 12px;">
+                            🎭 Status: Loading...
+                        </button>
+                        <button id="test-sarcasm-detection" class="test-button" style="font-size: 12px; padding: 8px 12px;">
+                            🎭 Test Sarcasm Detection
+                        </button>
+                        <button id="test-meeting-mode" class="test-button" style="font-size: 12px; padding: 8px 12px;">
+                            📹 Test Meeting Mode
+                        </button>
+                        <button id="show-intervention-demo" class="test-button" style="font-size: 12px; padding: 8px 12px;">
+                            🚨 Demo Live Intervention
+                        </button>
+                        <button id="viral-social-stats" class="test-button" style="font-size: 12px; padding: 8px 12px;">
+                            📊 Show Statistics
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add to sidebar after social decoder section
+            const socialSection = sidebar.querySelector('#social-decoder-section');
+            if (socialSection) {
+                socialSection.parentNode.insertBefore(viralSection, socialSection.nextSibling);
+            } else {
+                sidebar.appendChild(viralSection);
+            }
+            
+            // Add event listeners
+            setupViralSocialDecoderEventListeners();
+            
+            // Update status periodically
+            updateViralSocialDecoderStatus();
+            setInterval(updateViralSocialDecoderStatus, 10000); // Every 10 seconds
+        }
+
+        // Set up event listeners for viral social decoder controls
+        function setupViralSocialDecoderEventListeners() {
+            const statusBtn = document.getElementById('viral-social-status');
+            const testSarcasmBtn = document.getElementById('test-sarcasm-detection');
+            const testMeetingBtn = document.getElementById('test-meeting-mode');
+            const demoInterventionBtn = document.getElementById('show-intervention-demo');
+            const statsBtn = document.getElementById('viral-social-stats');
+            
+            if (statusBtn) {
+                statusBtn.addEventListener('click', () => {
+                    if (window.viralSocialDecoder) {
+                        const status = window.viralSocialDecoder.getSystemStatus();
+                        console.log('🎭 Viral Social Decoder Status:', status);
+                        addMessage(`🎭 System Status: ${status.isActive ? 'Active' : 'Inactive'}, Meeting Mode: ${status.isMeetingMode ? 'On' : 'Off'}, Detections: ${status.metrics.totalDetections}`, 'system');
+                    }
+                });
+            }
+            
+            if (testSarcasmBtn) {
+                testSarcasmBtn.addEventListener('click', async () => {
+                    if (window.testViralSocial && window.testViralSocial.testSarcasm) {
+                        await window.testViralSocial.testSarcasm();
+                        addMessage('🎭 Sarcasm detection test completed - check console for results', 'system');
+                    }
+                });
+            }
+            
+            if (testMeetingBtn) {
+                testMeetingBtn.addEventListener('click', () => {
+                    if (window.testViralSocial && window.testViralSocial.testMeetingMode) {
+                        window.testViralSocial.testMeetingMode();
+                        addMessage('📹 Meeting mode test activated - check for green indicator on orb', 'system');
+                    }
+                });
+            }
+            
+            if (demoInterventionBtn) {
+                demoInterventionBtn.addEventListener('click', () => {
+                    if (window.testViralSocial && window.testViralSocial.showInterventionDemo) {
+                        window.testViralSocial.showInterventionDemo();
+                        addMessage('🚨 Live intervention demo triggered - watch for notifications!', 'system');
+                    }
+                });
+            }
+            
+            if (statsBtn) {
+                statsBtn.addEventListener('click', () => {
+                    if (window.testViralSocial && window.testViralSocial.getStats) {
+                        const stats = window.testViralSocial.getStats();
+                        addMessage(`📊 Session Stats: ${stats.metrics.totalDetections} detections, ${stats.metrics.interventionsTrigger} interventions, ${Math.round(stats.metrics.averageConfidence * 100)}% avg confidence`, 'system');
+                    }
+                });
+            }
+        }
+
+        // Update viral social decoder status display
+        function updateViralSocialDecoderStatus() {
+            const statusBtn = document.getElementById('viral-social-status');
+            if (!statusBtn || !window.viralSocialDecoder) return;
+            
+            const status = window.viralSocialDecoder.getSystemStatus();
+            
+            if (status.isActive) {
+                if (status.isMeetingMode) {
+                    statusBtn.innerHTML = '🎭 Status: Meeting Mode 📹';
+                    statusBtn.style.background = 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2))';
+                } else {
+                    statusBtn.innerHTML = '🎭 Status: Active ✅';
+                    statusBtn.style.background = 'linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1))';
+                }
+            } else {
+                statusBtn.innerHTML = '🎭 Status: Inactive ❌';
+                statusBtn.style.background = 'linear-gradient(135deg, rgba(107, 114, 128, 0.2), rgba(107, 114, 128, 0.1))';
+            }
+        }
 
         // Expose test functions globally for development
         window.testSocial = window.testSocial || {};
         window.testSocialDecoder = testSocialDecoder;
+        
+        // Executive Dysfunction Emergency Mode Test Functions
+        window.testEmergencyMode = {
+            async testDocumentSpiral() {
+                console.log('🧪 Testing document spiral pattern...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.test('testDocumentSpiral');
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async testAppSwitchingStorm() {
+                console.log('🧪 Testing app switching storm pattern...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.test('testAppSwitchingStorm');
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async testMouseHoverParalysis() {
+                console.log('🧪 Testing mouse hover paralysis pattern...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.test('testMouseHoverParalysis');
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async testTaskSwitchingSpiral() {
+                console.log('🧪 Testing task switching spiral pattern...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.test('testTaskSwitchingSpiral');
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async testProcrastinationPattern() {
+                console.log('🧪 Testing procrastination pattern...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.test('testProcrastinationPattern');
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async testSafeSpaceActivation() {
+                console.log('🧪 Testing safe space activation...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.test('testSafeSpaceActivation');
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async testEmergencyEscalation() {
+                console.log('🧪 Testing emergency escalation...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.test('testEmergencyEscalation');
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async showCurrentStatus() {
+                console.log('📊 Getting emergency mode status...');
+                if (window.electronAPI?.emergencyMode) {
+                    const status = await window.electronAPI.emergencyMode.getStatus();
+                    console.log('Emergency Mode Status:', status);
+                    return status;
+                }
+                console.warn('Emergency mode not available');
+            },
+            
+            async activateSafeSpace() {
+                console.log('🏠 Manually activating safe space...');
+                if (window.electronAPI?.emergencyMode) {
+                    return await window.electronAPI.emergencyMode.activateSafeSpace();
+                }
+                console.warn('Emergency mode not available');
+            }
+        };
         
         console.log('🧠 Social Decoder integration script loaded - Phase 2 ready!');
         
@@ -5344,6 +6474,40 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
                 console.log('   - screenOCRMonitor active:', screenOCRMonitor?.isActive);
                 const brainReady = await initializeVelvetBrain();
                 
+                // Initialize Executive Dysfunction Emergency Mode
+                console.log('🚨 Initializing Executive Dysfunction Emergency Mode UI...');
+                try {
+                    if (window.executiveDysfunctionUI) {
+                        const emergencyUIReady = await window.executiveDysfunctionUI.initialize();
+                        if (emergencyUIReady) {
+                            console.log('✅ Executive Dysfunction Emergency Mode UI ready');
+                            
+                            // Set up event listeners for emergency events
+                            if (window.electronAPI?.emergencyMode) {
+                                window.electronAPI.emergencyMode.onCrisisIntervention((data) => {
+                                    console.log('🚨 Crisis intervention UI triggered:', data);
+                                    window.executiveDysfunctionUI.handleCrisisIntervention(data);
+                                });
+                                
+                                window.electronAPI.emergencyMode.onSafeSpaceActivation((data) => {
+                                    console.log('🏠 Safe space activation UI triggered:', data);
+                                    window.executiveDysfunctionUI.handleSafeSpaceActivation(data);
+                                });
+                                
+                                window.electronAPI.emergencyMode.onCrisisLevelChange((data) => {
+                                    console.log('📊 Crisis level change:', data);
+                                });
+                            }
+                        } else {
+                            console.warn('⚠️ Executive Dysfunction Emergency Mode UI failed to initialize');
+                        }
+                    } else {
+                        console.warn('⚠️ Executive Dysfunction UI not available');
+                    }
+                } catch (error) {
+                    console.error('❌ Executive Dysfunction UI initialization error:', error);
+                }
+                
                 if (brainReady) {
                     console.log('🧠 ✅ VELVET BRAIN IS FULLY CONSCIOUS!');
                     console.log('🧠 🌟 One unified AI now supports your neurodivergent brain');
@@ -5352,6 +6516,7 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
                     console.log('   - velvetBrain.isActive:', window.velvetBrain?.isActive);
                     console.log('   - AI system will now have brain awareness');
                     addMessage('🧠 Velvet Brain is now conscious and ready to truly understand you! ✨', 'velvet');
+                    addMessage('🚨 Executive Dysfunction Emergency Mode is now watching for crisis patterns to help prevent spirals before they happen!', 'velvet');
                 } else {
                     console.error('🧠 ❌ Brain initialization failed - falling back to scattered systems');
                     addMessage('⚠️ Brain system had issues starting, but all features still work normally', 'velvet');
@@ -5363,5 +6528,23 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
         }, 3000); // Wait 3 seconds for all systems to be ready
         
     </script>
+    
+    <!-- Executive Dysfunction Emergency Mode -->
+    <script src="../src/renderer/executive-dysfunction-ui.js"></script>
+    
+    <!-- Beta Testing Systems -->
+    <script src="../src/renderer/onboarding-system.js"></script>
+    <script src="../src/renderer/beta-feedback.js"></script>
+    
+    <!-- Zustand State Management System -->
+    <script src="https://unpkg.com/zustand@4.4.7/index.umd.js"></script>
+    <script src="../src/renderer/stores/velvet-state-simple.js"></script>
+    <script src="../src/renderer/stores/store-coordinator.js"></script>
+    <script src="../src/renderer/stores/store-selectors.js"></script>
+    <script src="../src/renderer/stores/index.js"></script>
+    <script src="../src/renderer/store-integration.js"></script>
+    
+    <!-- Store Integration Testing (Development) -->
+    <script src="../src/renderer/test-store-integration.js"></script>
 </body>
 </html>

@@ -16,16 +16,39 @@ console.log('🔧 Stealth command line switches applied');
 // NEW: Advanced streaming architecture instead of embarrassing polling
 const { VelvetStreamClient, VelvetBrainContext } = require('./velvet-stream-client');
 const ScreenIntelligence = require('./screen-intelligence');
+const ExecutiveDysfunctionEmergencyMode = require('./executive-dysfunction-emergency');
+
+// NEW: Encrypted database service for persistent learning
+const VelvetDatabaseIPCHandlers = require('./database-ipc-handlers');
+
+// SECURITY: Initialize comprehensive security manager
+const VelvetSecurityManager = require('./security-manager');
+const SecureErrorHandler = require('./secure-error-handler');
+const SecureAPIClient = require('./secure-api-client');
+const VelvetSecurityAudit = require('./security-audit');
 
 // Global brain context manager
 global.velvetBrainContext = new VelvetBrainContext();
 let velvetStreamClient = null;
+
+// Database service for persistent learning
+let databaseService = null;
+
+// SECURITY: Initialize security manager for production hardening
+const securityManager = new VelvetSecurityManager();
+const errorHandler = new SecureErrorHandler();
+const secureApiClient = new SecureAPIClient(securityManager, errorHandler);
+let securityAudit = null;
+
+// Setup global security error handlers
+errorHandler.setupGlobalHandlers();
 
 let mainWindow;
 let checklistWindow;
 let meetingAssistantWindow;
 let controlPanelWindow;
 let screenIntelligence;
+let executiveDysfunctionMode;
 let stealthManager = {
   isHidden: false,
   contentProtectionActive: false,
@@ -54,11 +77,8 @@ function createWindow() {
       resizable: false,
       show: false,                // Start hidden, show manually
       webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        webSecurity: true,
-        backgroundThrottling: false,  // Keep overlay responsive
-        preload: path.join(__dirname, 'preload.js')
+        ...securityManager.getSecureWebPreferences(path.join(__dirname, 'preload.js')),
+        backgroundThrottling: false  // Keep overlay responsive
       }
     });
 
@@ -514,12 +534,7 @@ function createChecklistWindow() {
       skipTaskbar: true,
       movable: true,  // Make checklist draggable
       resizable: false,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        webSecurity: true,
-        preload: path.join(__dirname, 'preload.js')
-      }
+      webPreferences: securityManager.getSecureWebPreferences(path.join(__dirname, 'preload.js'))
     });
 
     // Add stability event handlers
@@ -575,12 +590,7 @@ function createMeetingAssistantWindow() {
       skipTaskbar: true,
       movable: true,  // Make meeting assistant draggable
       resizable: true, // Allow auto-expansion
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        webSecurity: true,
-        preload: path.join(__dirname, 'preload.js')
-      }
+      webPreferences: securityManager.getSecureWebPreferences(path.join(__dirname, 'preload.js'))
     });
 
     // Add stability event handlers
@@ -650,12 +660,7 @@ function createControlPanelWindow() {
       skipTaskbar: true,
       movable: true,  // Make control panel draggable
       resizable: false,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-        webSecurity: true,
-        preload: path.join(__dirname, 'preload.js')
-      }
+      webPreferences: securityManager.getSecureWebPreferences(path.join(__dirname, 'preload.js'))
     });
 
     // Add stability event handlers
@@ -711,6 +716,9 @@ function initializeScreenIntelligence() {
       }
     });
     
+    // Initialize Executive Dysfunction Emergency Mode
+    initializeExecutiveDysfunctionMode();
+    
     screenIntelligence.on('windowChange', (window) => {
       try {
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -732,6 +740,67 @@ function initializeScreenIntelligence() {
   } catch (error) {
     console.error('Failed to initialize screen intelligence:', error);
     screenIntelligence = null;
+  }
+}
+
+// Initialize Executive Dysfunction Emergency Mode
+function initializeExecutiveDysfunctionMode() {
+  try {
+    console.log('🚨 Initializing Executive Dysfunction Emergency Mode...');
+    
+    executiveDysfunctionMode = new ExecutiveDysfunctionEmergencyMode();
+    
+    // Initialize with screen intelligence
+    executiveDysfunctionMode.initialize(screenIntelligence).then((success) => {
+      if (success) {
+        console.log('✅ Executive Dysfunction Emergency Mode active');
+        
+        // Set up emergency event listeners
+        executiveDysfunctionMode.onEmergency((emergencyData) => {
+          handleEmergencyEvent(emergencyData);
+        });
+        
+      } else {
+        console.error('❌ Executive Dysfunction Emergency Mode initialization failed');
+      }
+    }).catch((error) => {
+      console.error('❌ Executive Dysfunction Emergency Mode initialization error:', error);
+    });
+    
+  } catch (error) {
+    console.error('❌ Executive Dysfunction Emergency Mode creation failed:', error);
+  }
+}
+
+// Handle emergency events from Executive Dysfunction mode
+function handleEmergencyEvent(emergencyData) {
+  try {
+    console.log('🚨 Emergency event:', emergencyData.type);
+    
+    // Send to renderer for UI updates
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      switch (emergencyData.type) {
+        case 'intervention':
+          mainWindow.webContents.send('crisis-intervention', emergencyData);
+          break;
+        case 'safe_space_activated':
+          mainWindow.webContents.send('safe-space-activation', emergencyData);
+          break;
+        case 'early_warning':
+        case 'crisis_escalation':
+        case 'emergency_escalation':
+          mainWindow.webContents.send('crisis-level-change', emergencyData);
+          break;
+      }
+    }
+    
+    // Update global brain context with emergency information
+    if (global.velvetBrainContext) {
+      global.velvetBrainContext.updateEmergencyContext(emergencyData);
+    }
+    
+  } catch (error) {
+    console.error('❌ Error handling emergency event:', error);
   }
 }
 
@@ -757,8 +826,31 @@ function checkRateLimit(type) {
 
 // Note: Click-through handling moved to privacy features section
 
+// SECURITY: Secure IPC wrapper function
+function secureIpcHandle(channel, handler) {
+  ipcMain.handle(channel, async (event, ...args) => {
+    try {
+      // Validate IPC request with security manager
+      securityManager.validateIPCRequest(channel, event);
+      
+      // Sanitize input arguments
+      const sanitizedArgs = args.map(arg => securityManager.sanitizeInput(arg));
+      
+      // Call the original handler with sanitized args
+      const result = await handler(event, ...sanitizedArgs);
+      
+      // Return result (no sensitive data logging)
+      return result;
+    } catch (error) {
+      // Secure error handling - don't leak sensitive information
+      console.error(`🚨 IPC Security Error [${channel}]:`, error.message);
+      throw new Error('Request validation failed');
+    }
+  });
+}
+
 // Handle screen intelligence controls
-ipcMain.handle('screen-intelligence-start', async () => {
+secureIpcHandle('screen-intelligence-start', async () => {
   if (screenIntelligence) {
     await screenIntelligence.startMonitoring();
     return { success: true };
@@ -779,6 +871,34 @@ ipcMain.handle('screen-intelligence-stats', async () => {
     return screenIntelligence.getStats();
   }
   return null;
+});
+
+// Handle Executive Dysfunction Emergency Mode controls
+ipcMain.handle('emergency-mode-status', async () => {
+  if (executiveDysfunctionMode) {
+    return executiveDysfunctionMode.getEmergencyStatus();
+  }
+  return { isActive: false, error: 'Emergency mode not initialized' };
+});
+
+ipcMain.handle('emergency-mode-activate-safe-space', async () => {
+  if (executiveDysfunctionMode) {
+    executiveDysfunctionMode.activateSafeSpace();
+    return { success: true };
+  }
+  return { success: false, error: 'Emergency mode not initialized' };
+});
+
+ipcMain.handle('emergency-mode-test', async (event, testType) => {
+  if (executiveDysfunctionMode) {
+    const testFunctions = executiveDysfunctionMode.getTestingFunctions();
+    if (testFunctions[testType]) {
+      testFunctions[testType]();
+      return { success: true, message: `Test ${testType} executed` };
+    }
+    return { success: false, error: `Test type ${testType} not found` };
+  }
+  return { success: false, error: 'Emergency mode not initialized' };
 });
 
 // Handle checklist window controls
@@ -1528,14 +1648,9 @@ ipcMain.handle('control-panel-close', async () => {
   return { success: true };
 });
 
-// Handle GPT-4 chat completion
-ipcMain.handle('chat-completion', async (event, messages) => {
+// Handle GPT-4 chat completion with secure API client
+secureIpcHandle('chat-completion', async (event, messages) => {
   try {
-    // Rate limiting
-    if (!checkRateLimit('chatCompletion')) {
-      return "I'm thinking... try again in a moment.";
-    }
-    
     // Input validation
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return "I need some context to respond to.";
@@ -1546,78 +1661,47 @@ ipcMain.handle('chat-completion', async (event, messages) => {
       return "My connection isn't configured. Check your API setup.";
     }
     
-    console.log('=== GPT-4 CHAT ===');
+    console.log('=== SECURE GPT-4 CHAT ===');
     console.log('Messages:', messages.length);
-    console.log('API Key exists:', !!process.env.OPENAI_API_KEY);
+    console.log('API Key configured:', !!process.env.OPENAI_API_KEY);
     
-    const https = require('https');
-    
-    const postData = JSON.stringify({
+    // Prepare request data
+    const requestData = {
       model: 'gpt-4',
       messages: messages,
       max_tokens: 120,
       temperature: 0.8,
       frequency_penalty: 0.5,
       presence_penalty: 0.3
-    });
-    
-    const options = {
-      hostname: 'api.openai.com',
-      port: 443,
-      path: '/v1/chat/completions',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Length': Buffer.byteLength(postData)
-      }
     };
     
-    console.log('Sending GPT-4 request...');
+    console.log('Sending secure GPT-4 request...');
     
-    return new Promise((resolve, reject) => {
-      const req = https.request(options, (res) => {
-        console.log('GPT-4 response status:', res.statusCode);
-        
-        let data = '';
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        
-        res.on('end', () => {
-          try {
-            if (res.statusCode !== 200) {
-              console.error('GPT-4 API error response:', data);
-              resolve("I'm having trouble thinking right now. Try again in a moment.");
-              return;
-            }
-            
-            const result = JSON.parse(data);
-            console.log('=== GPT-4 SUCCESS ===');
-            console.log('Response:', result.choices[0].message.content);
-            
-            resolve(result.choices[0].message.content.trim());
-          } catch (parseError) {
-            console.error('Parse error:', parseError);
-            resolve("Something's wonky with my connection, but I'm still here with you.");
-          }
-        });
-      });
-      
-      req.on('error', (error) => {
-        console.error('=== GPT-4 ERROR ===');
-        console.error('Request error:', error);
-        resolve("My brain glitched, but I'm here. What's up?");
-      });
-      
-      req.write(postData);
-      req.end();
-    });
+    // Use secure API client
+    const response = await secureApiClient.callOpenAI(
+      '/v1/chat/completions',
+      requestData,
+      process.env.OPENAI_API_KEY
+    );
+    
+    if (response.status !== 200) {
+      console.error('GPT-4 API error status:', response.status);
+      return "I'm having trouble thinking right now. Try again in a moment.";
+    }
+    
+    const result = response.data;
+    if (!result.choices || !result.choices[0] || !result.choices[0].message) {
+      console.error('Invalid GPT-4 response structure');
+      return "I got a bit confused processing that. Try rephrasing?";
+    }
+    
+    console.log('=== SECURE GPT-4 SUCCESS ===');
+    console.log('Response length:', result.choices[0].message.content.length);
+    
+    return result.choices[0].message.content.trim();
     
   } catch (error) {
-    console.error('=== GPT-4 ERROR ===');
-    console.error('Error details:', error.message);
-    console.error('Full error:', error);
+    errorHandler.logError(error, { context: 'CHAT_COMPLETION_ERROR', model: 'gpt-4' });
     return "Something's wonky with my connection, but I'm still here with you.";
   }
 });
@@ -3458,12 +3542,84 @@ ipcMain.handle('get-stream-status', () => {
 });
 
 // ========================================
+// DATABASE INITIALIZATION
+// ========================================
+
+async function initializeVelvetDatabase() {
+  try {
+    console.log('🧠 Initializing Velvet encrypted database...');
+    
+    databaseService = new VelvetDatabaseIPCHandlers();
+    const result = await databaseService.initialize();
+    
+    if (result.success) {
+      console.log('✅ Velvet database initialized successfully');
+      
+      // Set global reference for other modules
+      global.velvetDatabase = databaseService;
+      
+      // Initialize security audit system
+      securityAudit = new VelvetSecurityAudit(securityManager, errorHandler, databaseService.databaseService);
+      console.log('🛡️ Security audit system initialized');
+      
+      return true;
+    } else {
+      console.error('❌ Database initialization failed:', result.error);
+      
+      // Continue without database (graceful degradation)
+      databaseService = null;
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Critical database initialization error:', error);
+    databaseService = null;
+    return false;
+  }
+}
+
+// SECURITY MONITORING IPC HANDLERS
+secureIpcHandle('security-run-audit', async () => {
+  if (!securityAudit) {
+    return { success: false, error: 'Security audit not initialized' };
+  }
+  
+  try {
+    const auditResults = await securityAudit.runSecurityAudit();
+    return { success: true, results: auditResults };
+  } catch (error) {
+    errorHandler.logError(error, { context: 'SECURITY_AUDIT_IPC' });
+    return { success: false, error: 'Audit failed' };
+  }
+});
+
+secureIpcHandle('security-get-summary', async () => {
+  if (!securityAudit) {
+    return { success: false, error: 'Security audit not initialized' };
+  }
+  
+  const summary = securityAudit.getAuditSummary();
+  return { success: true, summary };
+});
+
+secureIpcHandle('security-get-stats', async () => {
+  const stats = {
+    securityManager: securityManager.getSecurityStats(),
+    errorHandler: errorHandler.getErrorStats(),
+    apiClient: secureApiClient.getStats()
+  };
+  return { success: true, stats };
+});
+
+// ========================================
 // APP INITIALIZATION - CRITICAL!
 // ========================================
 
 app.whenReady().then(async () => {
   console.log('🚀 Electron app is ready, creating window...');
   createWindow();
+  
+  // Initialize encrypted database service for persistent learning
+  await initializeVelvetDatabase();
   
   // Initialize advanced streaming brain architecture
   await initializeVelvetStreamingBrain();
@@ -3484,9 +3640,20 @@ app.on('window-all-closed', () => {
   }
 });
 
-app.on('will-quit', () => {
+app.on('will-quit', async () => {
   // Ensure hotkeys are cleaned up
   globalShortcut.unregisterAll();
+  
+  // Gracefully close database
+  if (databaseService) {
+    console.log('🔒 Closing encrypted database...');
+    try {
+      await databaseService.close();
+      console.log('✅ Database closed successfully');
+    } catch (error) {
+      console.error('❌ Error closing database:', error);
+    }
+  }
   
   // Cleanup stealth monitoring
   if (stealthManager.streamDetectionInterval) {

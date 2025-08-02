@@ -6,8 +6,22 @@
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
+    "dev-safe": "electron src/main/index-safe.js --dev",
+    "dev-working": "electron src/main/index-working.js --dev",
+    "dev-minimal": "electron src/main/index-minimal.js",
+    "dev-fixed": "electron src/main/index-fixed.js --dev",
+    "dev-main": "electron src/main/index-main-working.js --dev",
     "build": "webpack",
-    "test": "echo 'No tests yet'"
+    "build:prod": "npm run build:services && npm run build:electron",
+    "build:services": "npm run build:rust && npm run build:python",
+    "build:rust": "cd services/capture-service && cargo build --release",
+    "build:python": "cd services/preproc-worker && pip install -r requirements.txt",
+    "build:electron": "webpack --mode=production",
+    "dist": "npm run build:prod && electron-builder",
+    "dist:mac": "npm run dist --mac",
+    "pack": "electron-builder --dir",
+    "test": "echo 'No tests yet'",
+    "postinstall": "electron-builder install-app-deps"
   },
   "keywords": [
     "adhd",
@@ -16,13 +30,91 @@
   ],
   "author": "Your Name",
   "license": "MIT",
+  "homepage": "https://velvet-ai.app",
+  "build": {
+    "appId": "com.velvet.ai.assistant",
+    "productName": "Velvet AI Assistant",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "public/**/*",
+      "services/**/*",
+      "node_modules/**/*",
+      "!services/**/target/**/*",
+      "!services/**/venv/**/*",
+      "!services/**/debug_*.png"
+    ],
+    "extraResources": [
+      {
+        "from": "services/capture-service/target/release/velvet-capture-service",
+        "to": "services/"
+      },
+      {
+        "from": "services/preproc-worker/",
+        "to": "services/preproc-worker/",
+        "filter": [
+          "!venv/**/*",
+          "!debug_*.png"
+        ]
+      },
+      {
+        "from": "start-velvet-services.sh",
+        "to": "."
+      },
+      {
+        "from": "stop-velvet-services.sh",
+        "to": "."
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.icns",
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "dmg": {
+      "title": "Velvet AI Assistant",
+      "icon": "assets/icon.icns",
+      "background": "assets/dmg-background.png",
+      "contents": [
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ]
+    },
+    "afterSign": "scripts/notarize.js"
+  },
   "devDependencies": {
     "@types/electron": "^1.4.38",
     "@types/node": "^24.1.0",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "electron": "^27.3.11",
-    "typescript": "^5.9.2"
+    "electron-builder": "^24.13.3",
+    "electron-notarize": "^1.2.2",
+    "typescript": "^5.9.2",
+    "webpack": "^5.101.0",
+    "webpack-cli": "^5.1.4"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.9.0",
@@ -33,6 +125,7 @@
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "form-data": "^4.0.4",
+    "keytar": "^7.9.0",
     "livekit-client": "^2.15.3",
     "mic": "^2.1.2",
     "node-fetch": "^3.3.2",
@@ -40,6 +133,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-speech-recognition": "^4.0.1",
+    "sqlite3": "^5.1.7",
     "tesseract.js": "^6.0.1",
     "zustand": "^5.0.7"
   }

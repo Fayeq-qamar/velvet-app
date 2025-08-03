@@ -70,6 +70,11 @@ function createWindow() {
             }
         });
 
+        // 🥷 CRITICAL: Enable stealth mode - hide from screen capture/recording
+        mainWindow.setContentProtection(true);
+        mainWindow.setVisibleOnAllWorkspaces(false);
+        console.log('🥷 Main window stealth mode enabled');
+
         // Error handlers
         mainWindow.on('unresponsive', () => {
             console.warn('⚠️ Main window became unresponsive');
@@ -278,9 +283,20 @@ ipcMain.handle('open-control-panel', async () => {
         return;
     }
 
+    // Get screen dimensions for proper positioning
+    const { width: screenWidth, height: screenHeight } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+    
+    // Position control panel in center-right area
+    const panelWidth = 500;
+    const panelHeight = 700;
+    const panelX = Math.max(screenWidth - panelWidth - 50, (screenWidth * 2) / 3); // Right third of screen
+    const panelY = Math.max(50, (screenHeight - panelHeight) / 2); // Centered vertically
+    
     controlPanelWindow = new BrowserWindow({
-        width: 500,
-        height: 700,
+        width: panelWidth,
+        height: panelHeight,
+        x: panelX,
+        y: panelY,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
@@ -294,6 +310,11 @@ ipcMain.handle('open-control-panel', async () => {
             preload: path.join(__dirname, 'preload.js')
         }
     });
+
+    // 🥷 Enable stealth mode for control panel
+    controlPanelWindow.setContentProtection(true);
+    controlPanelWindow.setVisibleOnAllWorkspaces(false);
+    console.log('🥷 Control panel stealth mode enabled');
 
     controlPanelWindow.loadFile(path.join(__dirname, '../../public/control-panel.html'));
     
@@ -315,14 +336,29 @@ ipcMain.handle('open-meeting-assistant', async () => {
         return;
     }
 
+    // Get screen dimensions for proper positioning
+    const { width: screenWidth, height: screenHeight } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+    
+    // Position meeting assistant as floating bar at top of screen
+    const meetingWidth = 900;   // Even wider horizontal bar
+    const meetingHeight = 250;  // Responsive height for varying content
+    const meetingX = (screenWidth - meetingWidth) / 2;  // Centered horizontally
+    const meetingY = 50;        // Near top of screen
+    
     meetingAssistantWindow = new BrowserWindow({
-        width: 400,
-        height: 600,
+        width: meetingWidth,
+        height: meetingHeight,
+        x: meetingX,
+        y: meetingY,
         frame: false,
         transparent: true,
         alwaysOnTop: true,
         skipTaskbar: true,
-        resizable: false,
+        resizable: true,
+        minWidth: 600,
+        maxWidth: 1200,
+        minHeight: 150,
+        maxHeight: 400,
         show: false,
         webPreferences: {
             nodeIntegration: false,
@@ -331,6 +367,11 @@ ipcMain.handle('open-meeting-assistant', async () => {
             preload: path.join(__dirname, 'preload.js')
         }
     });
+
+    // 🥷 Enable stealth mode for meeting assistant
+    meetingAssistantWindow.setContentProtection(true);
+    meetingAssistantWindow.setVisibleOnAllWorkspaces(false);
+    console.log('🥷 Meeting assistant stealth mode enabled');
 
     meetingAssistantWindow.loadFile(path.join(__dirname, '../../public/meeting-assistant.html'));
     
@@ -369,6 +410,11 @@ ipcMain.handle('open-checklist', async () => {
         }
     });
 
+    // 🥷 Enable stealth mode for checklist
+    checklistWindow.setContentProtection(true);
+    checklistWindow.setVisibleOnAllWorkspaces(false);
+    console.log('🥷 Checklist stealth mode enabled');
+
     checklistWindow.loadFile(path.join(__dirname, '../../public/checklist.html'));
     
     checklistWindow.once('ready-to-show', () => {
@@ -380,6 +426,14 @@ ipcMain.handle('open-checklist', async () => {
         checklistWindow = null;
         console.log('🪟 Checklist closed');
     });
+});
+
+// Hide Control Panel
+ipcMain.handle('control-panel-hide', async () => {
+    if (controlPanelWindow) {
+        controlPanelWindow.hide();
+        console.log('✅ Control Panel hidden');
+    }
 });
 
 // Close Control Panel
@@ -397,6 +451,92 @@ ipcMain.handle('meeting-assistant-close', async () => {
         meetingAssistantWindow.close();
         meetingAssistantWindow = null;
         console.log('✅ Meeting Assistant closed');
+    }
+});
+
+// Show Meeting Assistant (called from frontend meetingAssistant.show())
+ipcMain.handle('meeting-assistant-show', async (event, meetingData) => {
+    try {
+        console.log('🎤 Showing Meeting Assistant with data:', meetingData);
+        
+        // If window doesn't exist, create it first
+        if (!meetingAssistantWindow) {
+            // Call the handler function directly instead of through ipcMain.handle
+            const openHandler = require('events').EventEmitter.prototype.emit.call(
+                ipcMain, 'open-meeting-assistant'
+            );
+            // Actually just call our existing handler logic directly
+            if (meetingAssistantWindow) {
+                meetingAssistantWindow.focus();
+            } else {
+                // Get screen dimensions for proper positioning
+                const { width: screenWidth, height: screenHeight } = require('electron').screen.getPrimaryDisplay().workAreaSize;
+                
+                // Position meeting assistant as floating bar at top of screen
+                const meetingWidth = 900;   // Even wider horizontal bar
+                const meetingHeight = 250;  // Responsive height for varying content
+                const meetingX = (screenWidth - meetingWidth) / 2;  // Centered horizontally
+                const meetingY = 50;        // Near top of screen
+                
+                meetingAssistantWindow = new BrowserWindow({
+                    width: meetingWidth,
+                    height: meetingHeight,
+                    x: meetingX,
+                    y: meetingY,
+                    frame: false,
+                    transparent: true,
+                    alwaysOnTop: true,
+                    skipTaskbar: true,
+                    resizable: true,
+                    minWidth: 600,
+                    maxWidth: 1200,
+                    minHeight: 150,
+                    maxHeight: 400,
+                    show: false,
+                    webPreferences: {
+                        nodeIntegration: false,
+                        contextIsolation: true,
+                        webSecurity: true,
+                        preload: path.join(__dirname, 'preload.js')
+                    }
+                });
+                
+                // 🥷 Enable stealth mode for meeting assistant (show handler)
+                meetingAssistantWindow.setContentProtection(true);
+                meetingAssistantWindow.setVisibleOnAllWorkspaces(false);
+                console.log('🥷 Meeting assistant stealth mode enabled (show)');
+
+                meetingAssistantWindow.loadFile(path.join(__dirname, '../../public/meeting-assistant.html'));
+                
+                meetingAssistantWindow.once('ready-to-show', () => {
+                    meetingAssistantWindow.show();
+                });
+                
+                meetingAssistantWindow.on('closed', () => {
+                    meetingAssistantWindow = null;
+                    console.log('🪟 Meeting Assistant closed');
+                });
+            }
+        }
+        
+        // Show and focus the window
+        if (meetingAssistantWindow) {
+            meetingAssistantWindow.show();
+            meetingAssistantWindow.focus();
+            
+            // Send meeting data to the window if provided
+            if (meetingData) {
+                meetingAssistantWindow.webContents.send('meeting-data-update', meetingData);
+            }
+            
+            console.log('✅ Meeting Assistant shown successfully');
+            return { success: true };
+        } else {
+            throw new Error('Failed to create meeting assistant window');
+        }
+    } catch (error) {
+        console.error('❌ Error in meeting-assistant-show handler:', error);
+        return { success: false, error: error.message };
     }
 });
 
@@ -431,6 +571,11 @@ ipcMain.handle('open-dashboard', async () => {
             webSecurity: true
         }
     });
+
+    // 🥷 Enable stealth mode for dashboard
+    dashboardWindow.setContentProtection(true);
+    dashboardWindow.setVisibleOnAllWorkspaces(false);
+    console.log('🥷 Dashboard stealth mode enabled');
 
     dashboardWindow.loadFile(path.join(__dirname, '../../public/dashboard.html'));
     

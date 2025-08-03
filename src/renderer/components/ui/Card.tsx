@@ -52,6 +52,22 @@ export const CardTitle: React.FC<CardTitleProps> = ({
   );
 };
 
+interface CardDescriptionProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const CardDescription: React.FC<CardDescriptionProps> = ({ 
+  children, 
+  className = '' 
+}) => {
+  return (
+    <p className={`velvet-card-description ${className}`}>
+      {children}
+    </p>
+  );
+};
+
 interface CardContentProps {
   children: React.ReactNode;
   className?: string;
@@ -109,6 +125,15 @@ const cardStyles = `
   color: rgba(255, 255, 255, 0.95);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
   line-height: 1.4;
+}
+
+.velvet-card-description {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.65);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  line-height: 1.5;
 }
 
 .velvet-card-content {

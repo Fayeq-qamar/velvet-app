@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velvet Dashboard - Neurodivergent Intelligence</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.95) 0%,
+                rgba(30, 41, 59, 0.90) 25%,
+                rgba(37, 99, 235, 0.05) 50%,
+                rgba(30, 41, 59, 0.90) 75%,
+                rgba(15, 23, 42, 0.95) 100%
+            );
+            color: rgba(255, 255, 255, 0.9);
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* Animated background elements */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(37, 99, 235, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(37, 99, 235, 0.05) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(1deg); }
+            66% { transform: translate(-20px, 20px) rotate(-1deg); }
+        }
+
+        .dashboard-container {
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* React component mount point */
+        #react-dashboard {
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Loading state */
+        .loading-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.95) 0%,
+                rgba(30, 41, 59, 0.90) 50%,
+                rgba(15, 23, 42, 0.95) 100%
+            );
+        }
+
+        .loading-card {
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.95) 0%,
+                rgba(30, 41, 59, 0.90) 50%,
+                rgba(15, 23, 42, 0.95) 100%
+            );
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 
+                0 8px 32px rgba(37, 99, 235, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .loading-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.95) 0%,
+                rgba(59, 130, 246, 0.8) 100%
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .loading-subtitle {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 24px;
+        }
+
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(59, 130, 246, 0.2);
+            border-top: 3px solid rgba(59, 130, 246, 0.8);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { 
+                transform: scale(1);
+                box-shadow: 
+                    0 8px 32px rgba(37, 99, 235, 0.1),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            }
+            50% { 
+                transform: scale(1.02);
+                box-shadow: 
+                    0 12px 40px rgba(37, 99, 235, 0.15),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            }
+        }
+
+        /* Error state */
+        .error-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .error-card {
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.95) 0%,
+                rgba(239, 68, 68, 0.05) 50%,
+                rgba(15, 23, 42, 0.95) 100%
+            );
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+        }
+
+        .error-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: rgba(239, 68, 68, 0.9);
+            margin-bottom: 16px;
+        }
+
+        .error-message {
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.8) 0%,
+                rgba(59, 130, 246, 0.7) 100%
+            );
+            color: rgba(255, 255, 255, 0.95);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 14px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.8) 0%,
+                rgba(30, 41, 59, 0.7) 100%
+            );
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(148, 163, 184, 0.3);
+        }
+
+        /* Close button */
+        .close-btn {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.8) 0%,
+                rgba(239, 68, 68, 0.1) 100%
+            );
+            backdrop-filter: blur(10px);
+            color: rgba(239, 68, 68, 0.8);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            font-weight: 600;
+            z-index: 1000;
+        }
+
+        .close-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(239, 68, 68, 0.2) 0%,
+                rgba(239, 68, 68, 0.1) 100%
+            );
+            border-color: rgba(239, 68, 68, 0.5);
+            color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.05);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .loading-card,
+            .error-card {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Close button -->
+        <button class="close-btn" onclick="window.close()" title="Close Dashboard">✕</button>
+        
+        <!-- Loading state -->
+        <div id="loading-state" class="loading-container">
+            <div class="loading-card">
+                <div class="loading-title">🧠 Velvet Dashboard</div>
+                <div class="loading-subtitle">Initializing your neurodivergent intelligence center...</div>
+                <div class="loading-spinner"></div>
+                <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">
+                    Soft support for sharp minds
+                </p>
+            </div>
+        </div>
+
+        <!-- Error state (hidden by default) -->
+        <div id="error-state" class="error-container" style="display: none;">
+            <div class="error-card">
+                <div class="error-title">🚧 Dashboard Loading Issue</div>
+                <div class="error-message">
+                    We're having trouble loading your dashboard components. This might be due to missing dependencies or a configuration issue.
+                </div>
+                <div class="error-actions">
+                    <button class="btn" onclick="location.reload()">🔄 Retry</button>
+                    <button class="btn btn-secondary" onclick="window.close()">❌ Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- React dashboard mount point -->
+        <div id="react-dashboard" style="display: none;"></div>
+    </div>
+
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX transformation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Our dashboard components -->
+    <script type="text/babel">
+        // Simple loading simulation and dashboard initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🎭 Velvet Dashboard loading...');
+            
+            // Simulate loading time
+            setTimeout(() => {
+                try {
+                    // Hide loading, show dashboard
+                    document.getElementById('loading-state').style.display = 'none';
+                    document.getElementById('react-dashboard').style.display = 'block';
+                    
+                    // Simple dashboard component
+                    const Dashboard = () => {
+                        const [activeTab, setActiveTab] = React.useState('overview');
+                        
+                        return React.createElement('div', {
+                            style: {
+                                minHeight: '100vh',
+                                background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.90) 25%, rgba(37, 99, 235, 0.05) 50%, rgba(30, 41, 59, 0.90) 75%, rgba(15, 23, 42, 0.95) 100%)',
+                                color: 'rgba(255, 255, 255, 0.9)',
+                                fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif'
+                            }
+                        }, [
+                            // Header
+                            React.createElement('div', {
+                                key: 'header',
+                                style: {
+                                    borderBottom: '1px solid rgba(59, 130, 246, 0.1)',
+                                    backdropFilter: 'blur(20px)',
+                                    position: 'sticky',
+                                    top: 0,
+                                    zIndex: 50,
+                                    padding: '0 24px',
+                                    height: '64px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '24px'
+                                }
+                            }, [
+                                React.createElement('div', {
+                                    key: 'brand',
+                                    style: { 
+                                        fontSize: '18px',
+                                        fontWeight: '600',
+                                        background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(59, 130, 246, 0.8) 100%)',
+                                        WebkitBackgroundClip: 'text',
+                                        WebkitTextFillColor: 'transparent',
+                                        backgroundClip: 'text'
+                                    }
+                                }, '🧠 Velvet Brain'),
+                                React.createElement('nav', {
+                                    key: 'nav',
+                                    style: { display: 'flex', gap: '24px', marginLeft: '24px' }
+                                }, [
+                                    React.createElement('a', {
+                                        key: 'overview',
+                                        href: '#',
+                                        onClick: (e) => { e.preventDefault(); setActiveTab('overview'); },
+                                        style: {
+                                            color: activeTab === 'overview' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)',
+                                            textDecoration: 'none',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            padding: '8px 12px',
+                                            borderRadius: '8px',
+                                            background: activeTab === 'overview' ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                            transition: 'all 0.3s ease'
+                                        }
+                                    }, 'Overview'),
+                                    React.createElement('a', {
+                                        key: 'analytics',
+                                        href: '#',
+                                        onClick: (e) => { e.preventDefault(); setActiveTab('analytics'); },
+                                        style: {
+                                            color: activeTab === 'analytics' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)',
+                                            textDecoration: 'none',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            padding: '8px 12px',
+                                            borderRadius: '8px',
+                                            background: activeTab === 'analytics' ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                            transition: 'all 0.3s ease'
+                                        }
+                                    }, 'Analytics'),
+                                    React.createElement('a', {
+                                        key: 'patterns',
+                                        href: '#',
+                                        onClick: (e) => { e.preventDefault(); setActiveTab('patterns'); },
+                                        style: {
+                                            color: activeTab === 'patterns' ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.7)',
+                                            textDecoration: 'none',
+                                            fontSize: '14px',
+                                            fontWeight: '500',
+                                            padding: '8px 12px',
+                                            borderRadius: '8px',
+                                            background: activeTab === 'patterns' ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                            transition: 'all 0.3s ease'
+                                        }
+                                    }, 'Patterns')
+                                ])
+                            ]),
+                            
+                            // Main Content
+                            React.createElement('div', {
+                                key: 'main',
+                                style: {
+                                    flex: 1,
+                                    padding: '32px 24px',
+                                    maxWidth: '1400px',
+                                    margin: '0 auto',
+                                    width: '100%'
+                                }
+                            }, [
+                                // Page Header
+                                React.createElement('div', {
+                                    key: 'page-header',
+                                    style: {
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '32px'
+                                    }
+                                }, [
+                                    React.createElement('div', { key: 'title-section' }, [
+                                        React.createElement('h1', {
+                                            key: 'title',
+                                            style: {
+                                                fontSize: '32px',
+                                                fontWeight: '700',
+                                                margin: '0 0 8px 0',
+                                                background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(59, 130, 246, 0.8) 100%)',
+                                                WebkitBackgroundClip: 'text',
+                                                WebkitTextFillColor: 'transparent',
+                                                backgroundClip: 'text'
+                                            }
+                                        }, '🧠 Neurodivergent Dashboard'),
+                                        React.createElement('p', {
+                                            key: 'subtitle',
+                                            style: {
+                                                fontSize: '16px',
+                                                color: 'rgba(255, 255, 255, 0.7)',
+                                                margin: 0
+                                            }
+                                        }, 'Your gentle companion for ADHD, autism, and executive function support')
+                                    ])
+                                ]),
+                                
+                                // Content based on active tab
+                                activeTab === 'overview' && React.createElement('div', {
+                                    key: 'overview-content',
+                                    style: {
+                                        display: 'grid',
+                                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+                                        gap: '24px',
+                                        marginBottom: '32px'
+                                    }
+                                }, [
+                                    // KPI Cards
+                                    React.createElement('div', {
+                                        key: 'card1',
+                                        style: {
+                                            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.90) 50%, rgba(15, 23, 42, 0.95) 100%)',
+                                            backdropFilter: 'blur(20px)',
+                                            border: '1px solid rgba(59, 130, 246, 0.2)',
+                                            borderRadius: '16px',
+                                            padding: '24px',
+                                            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                                        }
+                                    }, [
+                                        React.createElement('div', {
+                                            key: 'header',
+                                            style: { paddingBottom: '16px', borderBottom: '1px solid rgba(59, 130, 246, 0.1)' }
+                                        }, [
+                                            React.createElement('h3', {
+                                                key: 'title',
+                                                style: {
+                                                    margin: 0,
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    color: 'rgba(255, 255, 255, 0.95)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }
+                                            }, ['💰 Focus Revenue']),
+                                            React.createElement('p', {
+                                                key: 'desc',
+                                                style: {
+                                                    margin: '8px 0 0 0',
+                                                    fontSize: '14px',
+                                                    color: 'rgba(255, 255, 255, 0.65)'
+                                                }
+                                            }, 'Value created during deep focus sessions')
+                                        ]),
+                                        React.createElement('div', {
+                                            key: 'content',
+                                            style: { padding: '20px 0 0 0' }
+                                        }, [
+                                            React.createElement('div', {
+                                                key: 'value',
+                                                style: {
+                                                    fontSize: '28px',
+                                                    fontWeight: '700',
+                                                    color: 'rgba(255, 255, 255, 0.95)',
+                                                    margin: '8px 0'
+                                                }
+                                            }, '$3,247.00'),
+                                            React.createElement('p', {
+                                                key: 'change',
+                                                style: {
+                                                    fontSize: '13px',
+                                                    fontWeight: '500',
+                                                    color: 'rgba(34, 197, 94, 0.9)'
+                                                }
+                                            }, '+20.1% from last month')
+                                        ])
+                                    ]),
+                                    
+                                    React.createElement('div', {
+                                        key: 'card2',
+                                        style: {
+                                            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.90) 50%, rgba(15, 23, 42, 0.95) 100%)',
+                                            backdropFilter: 'blur(20px)',
+                                            border: '1px solid rgba(59, 130, 246, 0.2)',
+                                            borderRadius: '16px',
+                                            padding: '24px',
+                                            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                                        }
+                                    }, [
+                                        React.createElement('div', {
+                                            key: 'header',
+                                            style: { paddingBottom: '16px', borderBottom: '1px solid rgba(59, 130, 246, 0.1)' }
+                                        }, [
+                                            React.createElement('h3', {
+                                                key: 'title',
+                                                style: {
+                                                    margin: 0,
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    color: 'rgba(255, 255, 255, 0.95)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }
+                                            }, ['🎯 Goals Completed']),
+                                            React.createElement('p', {
+                                                key: 'desc',
+                                                style: {
+                                                    margin: '8px 0 0 0',
+                                                    fontSize: '14px',
+                                                    color: 'rgba(255, 255, 255, 0.65)'
+                                                }
+                                            }, 'Daily and weekly objectives achieved')
+                                        ]),
+                                        React.createElement('div', {
+                                            key: 'content',
+                                            style: { padding: '20px 0 0 0' }
+                                        }, [
+                                            React.createElement('div', {
+                                                key: 'value',
+                                                style: {
+                                                    fontSize: '28px',
+                                                    fontWeight: '700',
+                                                    color: 'rgba(255, 255, 255, 0.95)',
+                                                    margin: '8px 0'
+                                                }
+                                            }, '127'),
+                                            React.createElement('p', {
+                                                key: 'change',
+                                                style: {
+                                                    fontSize: '13px',
+                                                    fontWeight: '500',
+                                                    color: 'rgba(34, 197, 94, 0.9)'
+                                                }
+                                            }, '+12.5% this week')
+                                        ])
+                                    ]),
+                                    
+                                    React.createElement('div', {
+                                        key: 'card3',
+                                        style: {
+                                            background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.90) 50%, rgba(15, 23, 42, 0.95) 100%)',
+                                            backdropFilter: 'blur(20px)',
+                                            border: '1px solid rgba(59, 130, 246, 0.2)',
+                                            borderRadius: '16px',
+                                            padding: '24px',
+                                            transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+                                        }
+                                    }, [
+                                        React.createElement('div', {
+                                            key: 'header',
+                                            style: { paddingBottom: '16px', borderBottom: '1px solid rgba(59, 130, 246, 0.1)' }
+                                        }, [
+                                            React.createElement('h3', {
+                                                key: 'title',
+                                                style: {
+                                                    margin: 0,
+                                                    fontSize: '18px',
+                                                    fontWeight: '600',
+                                                    color: 'rgba(255, 255, 255, 0.95)',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '8px'
+                                                }
+                                            }, ['⚡ Energy Level']),
+                                            React.createElement('p', {
+                                                key: 'desc',
+                                                style: {
+                                                    margin: '8px 0 0 0',
+                                                    fontSize: '14px',
+                                                    color: 'rgba(255, 255, 255, 0.65)'
+                                                }
+                                            }, 'Current cognitive capacity and well-being')
+                                        ]),
+                                        React.createElement('div', {
+                                            key: 'content',
+                                            style: { padding: '20px 0 0 0' }
+                                        }, [
+                                            React.createElement('div', {
+                                                key: 'value',
+                                                style: {
+                                                    fontSize: '28px',
+                                                    fontWeight: '700',
+                                                    color: 'rgba(255, 255, 255, 0.95)',
+                                                    margin: '8px 0'
+                                                }
+                                            }, '87%'),
+                                            React.createElement('p', {
+                                                key: 'change',
+                                                style: {
+                                                    fontSize: '13px',
+                                                    fontWeight: '500',
+                                                    color: 'rgba(34, 197, 94, 0.9)'
+                                                }
+                                            }, '+8.2% from yesterday')
+                                        ])
+                                    ])
+                                ]),
+                                
+                                activeTab === 'analytics' && React.createElement('div', {
+                                    key: 'analytics-content',
+                                    style: { textAlign: 'center', padding: '60px 20px' }
+                                }, [
+                                    React.createElement('h2', {
+                                        key: 'title',
+                                        style: { fontSize: '24px', marginBottom: '16px', color: 'rgba(255, 255, 255, 0.9)' }
+                                    }, '📊 Advanced Analytics'),
+                                    React.createElement('p', {
+                                        key: 'desc',
+                                        style: { fontSize: '16px', color: 'rgba(255, 255, 255, 0.7)' }
+                                    }, 'Comprehensive neurodivergent pattern analysis coming soon...')
+                                ]),
+                                
+                                activeTab === 'patterns' && React.createElement('div', {
+                                    key: 'patterns-content',
+                                    style: { textAlign: 'center', padding: '60px 20px' }
+                                }, [
+                                    React.createElement('h2', {
+                                        key: 'title',
+                                        style: { fontSize: '24px', marginBottom: '16px', color: 'rgba(255, 255, 255, 0.9)' }
+                                    }, '🧩 Pattern Recognition'),
+                                    React.createElement('p', {
+                                        key: 'desc',
+                                        style: { fontSize: '16px', color: 'rgba(255, 255, 255, 0.7)' }
+                                    }, 'Deep insights into your unique neurodivergent patterns in development...')
+                                ])
+                            ])
+                        ]);
+                    };
+                    
+                    // Render the dashboard
+                    const root = ReactDOM.createRoot(document.getElementById('react-dashboard'));
+                    root.render(React.createElement(Dashboard));
+                    
+                    console.log('✅ Velvet Dashboard initialized successfully!');
+                } catch (error) {
+                    console.error('❌ Dashboard loading error:', error);
+                    document.getElementById('loading-state').style.display = 'none';
+                    document.getElementById('error-state').style.display = 'flex';
+                }
+            }, 2000);
+        });
+
+        // Global error handler
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-state').style.display = 'flex';
+        });
+
+        console.log('🎭 Velvet Dashboard script loaded');
+    </script>
+</body>
+</html>

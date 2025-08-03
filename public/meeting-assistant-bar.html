@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Velvet Meeting Bar</title>
+    <style>
+        :root {
+            --primary-blue: #2563eb;
+            --secondary-blue: #1d4ed8;
+            --accent-cyan: #06b6d4;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --success-green: #10b981;
+            --warning-orange: #f59e0b;
+            --radius: 30px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 10px;
+            background: transparent;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            overflow: hidden;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Floating bar container */
+        .meeting-bar {
+            width: calc(100% - 20px);
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: linear-gradient(135deg, 
+                rgba(15, 23, 42, 0.95) 0%,
+                rgba(30, 41, 59, 0.92) 50%,
+                rgba(15, 23, 42, 0.95) 100%
+            );
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: var(--radius);
+            color: var(--text-primary);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            transition: all 0.4s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .meeting-bar:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        /* Left section */
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-green);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .status-dot.recording {
+            background: #ef4444;
+            animation: pulse 1s ease-in-out infinite;
+        }
+
+        .status-dot.processing {
+            background: var(--warning-orange);
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+        }
+
+        .status-text {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .record-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.8) 0%,
+                rgba(59, 130, 246, 0.7) 100%
+            );
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 16px;
+            padding: 8px 12px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .record-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.9) 0%,
+                rgba(59, 130, 246, 0.8) 100%
+            );
+            border-color: rgba(59, 130, 246, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(135deg, 
+                rgba(239, 68, 68, 0.8) 0%,
+                rgba(220, 38, 127, 0.7) 100%
+            );
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .record-icon {
+            font-size: 14px;
+        }
+
+        .record-timer {
+            font-family: 'SF Mono', Monaco, Consolas, monospace;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 30px;
+        }
+
+        /* Center section */
+        .center-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 20px;
+        }
+
+        .context-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 20px;
+            padding: 8px 16px;
+            max-width: 300px;
+            overflow: hidden;
+        }
+
+        .context-label {
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .context-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            animation: slide-in 0.5s var(--ease);
+        }
+
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateX(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Right section */
+        .right-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bar-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 14px;
+            padding: 6px 10px;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            white-space: nowrap;
+        }
+
+        .bar-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        .bar-btn.primary {
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.6) 0%,
+                rgba(59, 130, 246, 0.5) 100%
+            );
+            border-color: rgba(59, 130, 246, 0.4);
+            color: var(--text-primary);
+        }
+
+        .bar-btn.primary:hover {
+            background: linear-gradient(135deg, 
+                rgba(37, 99, 235, 0.8) 0%,
+                rgba(59, 130, 246, 0.7) 100%
+            );
+        }
+
+        .bar-btn.secondary {
+            padding: 8px;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            justify-content: center;
+        }
+
+        .btn-icon {
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .btn-text {
+            font-size: 10px;
+        }
+
+        .close-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: transparent;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 50%;
+            color: rgba(239, 68, 68, 0.8);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s var(--ease);
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.5);
+            color: #ef4444;
+            transform: scale(1.05);
+        }
+
+        /* Glow effect for active states */
+        .glow {
+            position: relative;
+        }
+
+        .glow::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, 
+                rgba(59, 130, 246, 0.3) 0%,
+                rgba(37, 99, 235, 0.3) 50%,
+                rgba(59, 130, 246, 0.3) 100%
+            );
+            border-radius: inherit;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s var(--ease);
+        }
+
+        .glow:hover::before {
+            opacity: 1;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .btn-text {
+                display: none;
+            }
+            
+            .context-display {
+                max-width: 200px;
+            }
+            
+            .center-section {
+                margin: 0 10px;
+            }
+        }
+
+        /* Accessibility */
+        .bar-btn:focus-visible,
+        .record-btn:focus-visible,
+        .close-btn:focus-visible {
+            outline: 2px solid rgba(59, 130, 246, 0.6);
+            outline-offset: 2px;
+        }
+
+        /* Dark mode enhancements */
+        @media (prefers-color-scheme: dark) {
+            .meeting-bar {
+                background: linear-gradient(135deg, 
+                    rgba(5, 5, 5, 0.98) 0%,
+                    rgba(15, 15, 15, 0.95) 50%,
+                    rgba(5, 5, 5, 0.98) 100%
+                );
+                border-color: rgba(59, 130, 246, 0.4);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="meeting-bar glow" id="meetingBar">
+        <!-- Left section: Status and Recording -->
+        <div class="left-section">
+            <div class="status-indicator">
+                <div class="status-dot ready" id="statusDot"></div>
+                <span class="status-text" id="statusText">Ready</span>
+            </div>
+            <button class="record-btn" id="recordBtn" title="Press to speak (Space)">
+                <span class="record-icon" id="recordIcon">🎤</span>
+                <span class="record-timer" id="recordTimer">00:00</span>
+            </button>
+        </div>
+
+        <!-- Center section: Current context -->
+        <div class="center-section">
+            <div class="context-display" id="contextDisplay">
+                <span class="context-label">💭</span>
+                <span class="context-text" id="contextText">Listening for meeting insights...</span>
+            </div>
+        </div>
+
+        <!-- Right section: Actions -->
+        <div class="right-section">
+            <button class="bar-btn primary" id="askAiBtn" title="Ask AI about meeting (⌘⇧A)">
+                <span class="btn-icon">🧠</span>
+                <span class="btn-text">Ask AI</span>
+            </button>
+            <button class="bar-btn secondary" id="transcribeBtn" title="Toggle Transcription">
+                <span class="btn-icon">📝</span>
+            </button>
+            <button class="bar-btn secondary" id="notesBtn" title="Smart Notes">
+                <span class="btn-icon">📋</span>
+            </button>
+            <button class="bar-btn secondary" id="hideBtn" title="Hide Bar (⌘⇧H)">
+                <span class="btn-icon">👁️</span>
+            </button>
+            <button class="close-btn" id="closeBtn" title="Close Meeting Assistant">×</button>
+        </div>
+    </div>
+
+    <script>
+        // Element references
+        const meetingBar = document.getElementById('meetingBar');
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const recordBtn = document.getElementById('recordBtn');
+        const recordIcon = document.getElementById('recordIcon');
+        const recordTimer = document.getElementById('recordTimer');
+        const contextText = document.getElementById('contextText');
+        const askAiBtn = document.getElementById('askAiBtn');
+        const transcribeBtn = document.getElementById('transcribeBtn');
+        const notesBtn = document.getElementById('notesBtn');
+        const hideBtn = document.getElementById('hideBtn');
+        const closeBtn = document.getElementById('closeBtn');
+
+        // State
+        let isRecording = false;
+        let isTranscribing = false;
+        let recordingStartTime = null;
+        let timerInterval = null;
+
+        // Initialize
+        function init() {
+            console.log('🎤 Meeting Bar initialized');
+            updateStatus('ready', 'Ready for meeting');
+            setupEventListeners();
+            startContextAnimation();
+        }
+
+        function setupEventListeners() {
+            // Recording button
+            recordBtn.addEventListener('click', toggleRecording);
+            
+            // Action buttons
+            askAiBtn.addEventListener('click', handleAskAI);
+            transcribeBtn.addEventListener('click', toggleTranscription);
+            notesBtn.addEventListener('click', handleNotes);
+            hideBtn.addEventListener('click', handleHide);
+            closeBtn.addEventListener('click', handleClose);
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', handleKeydown);
+            
+            // Prevent context menu
+            document.addEventListener('contextmenu', e => e.preventDefault());
+        }
+
+        function handleKeydown(e) {
+            if (e.code === 'Space' && !e.repeat) {
+                e.preventDefault();
+                toggleRecording();
+            } else if (e.metaKey && e.shiftKey) {
+                if (e.code === 'KeyA') {
+                    e.preventDefault();
+                    handleAskAI();
+                } else if (e.code === 'KeyH') {
+                    e.preventDefault();
+                    handleHide();
+                }
+            }
+        }
+
+        function toggleRecording() {
+            isRecording = !isRecording;
+            
+            if (isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
+
+        function startRecording() {
+            console.log('🎤 Starting recording');
+            recordBtn.classList.add('recording');
+            recordIcon.textContent = '⏹️';
+            statusDot.classList.add('recording');
+            updateStatus('recording', 'Recording...');
+            
+            recordingStartTime = Date.now();
+            timerInterval = setInterval(updateTimer, 100);
+            
+            // Call Electron API
+            if (window.electronAPI?.recording) {
+                window.electronAPI.recording.start();
+            }
+        }
+
+        function stopRecording() {
+            console.log('🎤 Stopping recording');
+            recordBtn.classList.remove('recording');
+            recordIcon.textContent = '🎤';
+            statusDot.classList.remove('recording');
+            statusDot.classList.add('processing');
+            updateStatus('processing', 'Processing...');
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Call Electron API
+            if (window.electronAPI?.recording) {
+                window.electronAPI.recording.stop();
+            }
+            
+            // Simulate processing delay
+            setTimeout(() => {
+                statusDot.classList.remove('processing');
+                updateStatus('ready', 'Ready');
+                updateContext('Great question about the database schema!');
+            }, 2000);
+        }
+
+        function updateTimer() {
+            if (!recordingStartTime) return;
+            
+            const elapsed = Date.now() - recordingStartTime;
+            const seconds = Math.floor(elapsed / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            
+            recordTimer.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function updateStatus(type, text) {
+            statusDot.className = `status-dot ${type}`;
+            statusText.textContent = text;
+        }
+
+        function updateContext(text) {
+            contextText.textContent = text;
+            contextText.style.animation = 'none';
+            setTimeout(() => {
+                contextText.style.animation = 'slide-in 0.5s var(--ease)';
+            }, 10);
+        }
+
+        function startContextAnimation() {
+            const contexts = [
+                'Listening for meeting insights...',
+                'Ready to help with your discussion',
+                'AI assistant standing by',
+                'Monitoring conversation flow'
+            ];
+            
+            let index = 0;
+            setInterval(() => {
+                if (!isRecording) {
+                    updateContext(contexts[index]);
+                    index = (index + 1) % contexts.length;
+                }
+            }, 4000);
+        }
+
+        function handleAskAI() {
+            console.log('🧠 Ask AI clicked');
+            updateContext('Thinking about your question...');
+            askAiBtn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                askAiBtn.style.transform = 'scale(1)';
+                updateContext('Based on the discussion, I recommend...');
+            }, 200);
+        }
+
+        function toggleTranscription() {
+            isTranscribing = !isTranscribing;
+            transcribeBtn.style.background = isTranscribing ? 
+                'linear-gradient(135deg, rgba(16, 185, 129, 0.6) 0%, rgba(5, 150, 105, 0.5) 100%)' : 
+                'transparent';
+            console.log('📝 Transcription:', isTranscribing ? 'ON' : 'OFF');
+        }
+
+        function handleNotes() {
+            console.log('📋 Smart notes requested');
+            updateContext('Generating smart notes from conversation...');
+        }
+
+        function handleHide() {
+            console.log('👁️ Hide bar');
+            meetingBar.style.transform = 'translateY(-100px)';
+            meetingBar.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (window.electronAPI?.meetingAssistant) {
+                    window.electronAPI.meetingAssistant.hide();
+                }
+            }, 300);
+        }
+
+        function handleClose() {
+            console.log('❌ Close meeting assistant');
+            meetingBar.style.transform = 'scale(0.8) translateY(-20px)';
+            meetingBar.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (window.electronAPI?.meetingAssistant) {
+                    window.electronAPI.meetingAssistant.close();
+                }
+            }, 200);
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+        // Listen for meeting data updates from main process
+        if (window.electronAPI?.onMeetingDataUpdate) {
+            window.electronAPI.onMeetingDataUpdate((data) => {
+                console.log('📊 Meeting data update:', data);
+                if (data.context) {
+                    updateContext(data.context);
+                }
+                if (data.status) {
+                    updateStatus('ready', data.status);
+                }
+            });
+        }
+
+        console.log('🎭 Velvet Meeting Bar loaded successfully');
+    </script>
+</body>
+</html>

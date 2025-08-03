@@ -16,7 +16,7 @@
 
         body {
             margin: 0;
-            padding: 0;
+            padding: 10px;  /* Minimal padding for floating bar */
             background: transparent;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
             overflow: hidden;
@@ -30,11 +30,14 @@
             justify-content: center;
         }
 
-        /* Meeting assistant with main app styling - 20% smaller */
+        /* Meeting assistant with main app styling - responsive to content */
         .meeting-assistant {
-            width: 640px;  /* Reduced by 20% (800 * 0.8) */
+            width: calc(100% - 20px);  /* Full width minus padding */
+            max-width: 880px;  /* Maximum width for wider bar */
             height: auto;
-            min-height: 96px;  /* Reduced by 20% (120 * 0.8) */
+            min-height: 130px;  /* Minimum height for bar format */
+            max-height: 380px;  /* Maximum height */
+            overflow-y: auto;   /* Scroll if content exceeds max height */
             background: 
                 linear-gradient(135deg, 
                     rgba(15, 23, 42, 0.95) 0%,
@@ -44,7 +47,7 @@
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: var(--radius);
+            border-radius: 30px;  /* More rounded for sleek bar look */
             color: var(--text-primary);
             box-shadow: 
                 0 25px 50px rgba(0, 0, 0, 0.4),
@@ -108,7 +111,7 @@
             animation: slideInUp 0.3s ease;
         }
 
-        /* Answer display area */
+        /* Answer display area - responsive to content length */
         .answer-area {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -119,6 +122,10 @@
             line-height: 1.5;
             color: var(--text-primary);
             min-height: 40px;
+            max-height: 200px;      /* Maximum height before scrolling */
+            overflow-y: auto;       /* Scroll for long responses */
+            word-wrap: break-word;  /* Break long words */
+            white-space: pre-wrap;  /* Preserve line breaks from API */
             display: none;
             animation: slideInUp 0.3s ease 0.1s both;
         }

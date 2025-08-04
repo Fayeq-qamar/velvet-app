@@ -896,9 +896,10 @@ ipcMain.handle('capture-system-audio', async () => {
     }
 });
 
+// Main Velvet personality chat completion
 ipcMain.handle('chat-completion', async (event, messages) => {
     try {
-        console.log('💬 Chat completion requested with Velvet personality');
+        console.log('💬 Main Velvet chat completion requested');
 
         if (!process.env.OPENAI_API_KEY) {
             throw new Error('OpenAI API key not found');
@@ -906,7 +907,7 @@ ipcMain.handle('chat-completion', async (event, messages) => {
 
         const axios = require('axios');
 
-        // Enhanced Velvet personality prompt
+        // Enhanced Velvet personality prompt for main chat
         const systemPrompt = `You are Velvet, a warm and understanding AI companion specifically designed for neurodivergent minds. You speak with genuine empathy, mixing English with occasional Hindi words naturally (like "yaar", "bas", "thoda"). You understand ADHD, autism, and executive dysfunction deeply.
 
 Key traits:
@@ -944,13 +945,52 @@ Examples of your speaking style:
         );
 
         const reply = response.data.choices[0].message.content;
-        console.log('✅ Velvet chat response generated');
+        console.log('✅ Main Velvet chat response generated');
 
         return reply.trim();
 
     } catch (error) {
-        console.error('❌ Chat completion error:', error.message);
+        console.error('❌ Main Velvet chat completion error:', error.message);
         return "Arre yaar, I'm having some tech troubles! But I'm still here for you. 💜";
+    }
+});
+
+// Meeting Assistant dedicated chat completion
+ipcMain.handle('meeting-assistant-chat-completion', async (event, messages) => {
+    try {
+        console.log('🎤 Meeting Assistant chat completion requested');
+
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI API key not found');
+        }
+
+        const axios = require('axios');
+
+        const response = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-4',
+                messages: messages, // Use messages as-is (they include the co-pilot personality)
+                max_tokens: 200,     // Longer responses for meeting assistance
+                temperature: 0.7     // Slightly more focused for professional contexts
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            }
+        );
+
+        const reply = response.data.choices[0].message.content;
+        console.log('✅ Meeting Assistant response generated');
+
+        return reply.trim();
+
+    } catch (error) {
+        console.error('❌ Meeting Assistant chat completion error:', error.message);
+        return "I'm having trouble processing that right now. Could you try rephrasing your question?";
     }
 });
 

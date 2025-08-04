@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('electronAPI', {
   transcribeAudio: (base64Audio) => ipcRenderer.invoke('transcribe-audio', base64Audio),
   chatCompletion: (messages) => ipcRenderer.invoke('chat-completion', messages),
+  meetingAssistantChatCompletion: (messages) => ipcRenderer.invoke('meeting-assistant-chat-completion', messages),
   setClickThrough: (ignore) => ipcRenderer.invoke('set-click-through', ignore),
   elevenLabsTTS: (text) => ipcRenderer.invoke('elevenlabs-tts', text),
   checkAudioPlaying: () => ipcRenderer.invoke('check-audio-playing'),

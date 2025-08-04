@@ -404,6 +404,9 @@
         </div>
     </div>
 
+    <!-- Load Meeting Assistant AI System -->
+    <script src="../src/renderer/meeting-assistant-ai.js"></script>
+    
     <script>
         const meetingAssistant = document.getElementById('meetingAssistant');
         const questionArea = document.getElementById('questionArea');
@@ -628,19 +631,43 @@
                 // Auto-resize for question
                 await autoResizeWindow();
                 
-                // Get AI response
-                if (window.electronAPI?.chatCompletion) {
-                    console.log('🤖 Requesting AI response for:', question);
+                // Get AI response using dedicated Meeting Assistant AI
+                if (window.meetingAssistantAI) {
+                    console.log('🎤 Using Meeting Assistant AI for:', question);
+                    
+                    // Gather meeting context
+                    const meetingContext = {
+                        meetingType: 'General Meeting',
+                        timestamp: Date.now(),
+                        // Add any available context here
+                    };
+                    
+                    const answer = await window.meetingAssistantAI.processQuestion(question, meetingContext);
+                    console.log('🎤 Meeting Assistant AI response received:', answer);
+                    
+                    // Show answer with animation delay
+                    setTimeout(async () => {
+                        answerArea.textContent = answer;
+                        answerArea.style.display = 'block';
+                        statusText.textContent = 'Ready';
+                        
+                        // Auto-resize for answer
+                        await autoResizeWindow();
+                    }, 300);
+                    
+                } else if (window.electronAPI?.chatCompletion) {
+                    console.log('⚠️ Meeting Assistant AI not available, using fallback');
+                    // Fallback to basic AI
                     const messages = [
                         { 
                             role: "system", 
-                            content: "You are a helpful meeting assistant. Provide clear, concise answers to questions. Keep responses under 100 words." 
+                            content: "You are Velvet, a live-meeting co-pilot developed by Fayeq. Provide clear, direct answers to help the user in their current meeting conversation." 
                         },
                         { role: "user", content: question }
                     ];
                     
                     const answer = await window.electronAPI.chatCompletion(messages);
-                    console.log('🤖 AI response received:', answer);
+                    console.log('🤖 Fallback AI response received:', answer);
                     
                     // Show answer with animation delay
                     setTimeout(async () => {
@@ -653,10 +680,10 @@
                     }, 300);
                     
                 } else {
-                    console.log('⚠️ No chatCompletion API available, using demo answer');
-                    // Fallback to demo answer
+                    console.log('⚠️ No AI systems available, using demo answer');
+                    // Final fallback to demo answer
                     setTimeout(async () => {
-                        answerArea.textContent = "I understand your question. Here's a helpful response based on best practices and common approaches in the industry.";
+                        answerArea.textContent = "I understand your question. As your meeting co-pilot, I'd recommend focusing on the key points discussed and following up with specific action items.";
                         answerArea.style.display = 'block';
                         statusText.textContent = 'Ready';
                         

@@ -40,16 +40,42 @@ class VelvetDatabaseService {
     try {
       console.log('🔐 Initializing encrypted database...');
       
-      // Get or create master encryption key
-      await this.initializeMasterKey();
+      // SAFE INITIALIZATION: Add error boundaries for each step
       
-      // Create backup directory
-      if (!fs.existsSync(this.backupPath)) {
-        fs.mkdirSync(this.backupPath, { recursive: true });
+      // Step 1: Safe master key initialization
+      try {
+        await this.initializeMasterKey();
+        console.log('✅ Master key initialized');
+      } catch (keyError) {
+        console.error('❌ Master key initialization failed:', keyError);
+        throw new Error('Failed to initialize encryption key');
       }
       
-      // Initialize SQLite database
-      this.db = new sqlite3.Database(this.dbPath);
+      // Step 2: Safe backup directory creation
+      try {
+        if (!fs.existsSync(this.backupPath)) {
+          fs.mkdirSync(this.backupPath, { recursive: true });
+        }
+        console.log('✅ Backup directory ready');
+      } catch (dirError) {
+        console.error('❌ Backup directory creation failed:', dirError);
+        // Continue without backups
+        console.log('⚠️ Continuing without backup functionality');
+      }
+      
+      // Step 3: Safe SQLite database initialization 
+      try {
+        this.db = new sqlite3.Database(this.dbPath, (err) => {
+          if (err) {
+            console.error('❌ SQLite database connection failed:', err);
+            throw err;
+          }
+          console.log('✅ SQLite database connected');
+        });
+      } catch (dbError) {
+        console.error('❌ Database initialization failed:', dbError);
+        throw new Error('Failed to initialize SQLite database');
+      }
       
       // Configure SQLite for performance and security
       await this.runQuery('PRAGMA journal_mode = WAL');
@@ -113,7 +139,7 @@ class VelvetDatabaseService {
     
     try {
       const iv = crypto.randomBytes(16);
-      const cipher = crypto.createCipher('aes-256-gcm', this.masterKey);
+      const cipher = crypto.createCipheriv('aes-256-gcm', this.masterKey, iv);
       cipher.setAAD(Buffer.from('velvet-ai-data'));
       
       let encrypted = cipher.update(data, 'utf8', 'hex');
@@ -139,7 +165,8 @@ class VelvetDatabaseService {
     if (!encryptedData || typeof encryptedData !== 'object') return encryptedData;
     
     try {
-      const decipher = crypto.createDecipher('aes-256-gcm', this.masterKey);
+      const iv = Buffer.from(encryptedData.iv, 'hex');
+      const decipher = crypto.createDecipheriv('aes-256-gcm', this.masterKey, iv);
       decipher.setAAD(Buffer.from('velvet-ai-data'));
       decipher.setAuthTag(Buffer.from(encryptedData.authTag, 'hex'));
       

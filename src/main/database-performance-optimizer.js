@@ -55,9 +55,9 @@ class VelvetDatabasePerformanceOptimizer {
     if (!this.dataLayer.db) return;
 
     // Intercept database queries to monitor performance
-    const originalExecuteQuery = this.dataLayer.executeQuery.bind(this.dataLayer);
+    const originalExecuteQuery = this.dataLayer.db.executeQuery.bind(this.dataLayer.db);
     
-    this.dataLayer.executeQuery = (query, params = []) => {
+    this.dataLayer.db.executeQuery = (query, params = []) => {
       const queryStart = performance.now();
       const queryId = this.generateQueryId(query);
       

@@ -573,8 +573,9 @@ class ContextAwarenessSystem {
             hour: hour,
             dayOfWeek: dayOfWeek,
             isWeekend: isWeekend,
-            category: timeCategory,
-            environmentProbabilities: this.getTimeBasedEnvironmentProbabilities()
+            category: timeCategory
+            // Removed environmentProbabilities to break circular dependency
+            // environmentProbabilities should be calculated separately when needed
         };
     }
     
@@ -722,19 +723,21 @@ class ContextAwarenessSystem {
         });
         
         // Add app signal
-        if (appSignal.environment !== 'unknown') {
+        if (appSignal && appSignal.environment !== 'unknown') {
             combinedScores[appSignal.environment] += appSignal.confidence * appWeight;
         }
         
         // Add content signal
-        if (contentSignal.environment !== 'unknown') {
+        if (contentSignal && contentSignal.environment !== 'unknown') {
             combinedScores[contentSignal.environment] += contentSignal.confidence * contentWeight;
         }
         
         // Add time-based probabilities
-        Object.keys(timeSignal.environmentProbabilities).forEach(env => {
-            combinedScores[env] += timeSignal.environmentProbabilities[env] * timeWeight;
-        });
+        if (timeSignal && timeSignal.environmentProbabilities) {
+            Object.keys(timeSignal.environmentProbabilities).forEach(env => {
+                combinedScores[env] += timeSignal.environmentProbabilities[env] * timeWeight;
+            });
+        }
         
         // Find best match
         let bestEnvironment = 'unknown';

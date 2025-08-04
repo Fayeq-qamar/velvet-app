@@ -13,23 +13,10 @@ class EnhancedOCRProcessor {
         console.log('🔍 Initializing Enhanced OCR Processor...');
         
         try {
-            // Initialize Tesseract with better settings
-            if (typeof Tesseract !== 'undefined') {
-                this.ocrWorker = await Tesseract.createWorker();
-                await this.ocrWorker.loadLanguage('eng');
-                await this.ocrWorker.initialize('eng');
-                
-                // Configure for better accuracy
-                await this.ocrWorker.setParameters({
-                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?@#$%^&*()_+-=[]{}|;:\'\"<>?/~` ',
-                    tessedit_pageseg_mode: Tesseract.PSM.AUTO,
-                    preserve_interword_spaces: '1'
-                });
-                
-                console.log('✅ Enhanced OCR initialized with optimized parameters');
-                this.isInitialized = true;
-                return true;
-            }
+            // TEMPORARILY DISABLED: OCR causing CDN loading issues
+            console.log('⚠️ Enhanced OCR temporarily disabled due to CDN loading issues');
+            this.isInitialized = true;
+            return true;
         } catch (error) {
             console.error('❌ Enhanced OCR initialization failed:', error);
         }

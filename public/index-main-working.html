@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' https://api.openai.com https://api.elevenlabs.io; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests;">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; media-src 'self' blob:; worker-src 'self' blob:; connect-src 'self' https://api.openai.com https://api.elevenlabs.io; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests;">
     <title>Velvet</title>
     <style>
         :root {
@@ -5537,8 +5537,8 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
     </script>
 
     <!-- PHASE 2: REAL Context Awareness System - No Simulation -->
-    <!-- Load Tesseract.js from CDN for browser compatibility -->
-    <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    <!-- Load Tesseract.js locally for better reliability -->
+    <script src="../node_modules/tesseract.js/dist/tesseract.min.js"></script>
     <script src="../src/renderer/screen-ocr-monitor-real.js"></script>
     <script src="../src/renderer/audio-environment-monitor-real.js"></script>
     <script src="../src/renderer/unified-context-engine.js"></script>
@@ -6643,8 +6643,19 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
     <!-- <script src="../src/renderer/onboarding-system.js"></script> -->
     <script src="../src/renderer/beta-feedback.js"></script>
     
-    <!-- Zustand State Management System -->
-    <script src="https://unpkg.com/zustand@4.4.7/index.umd.js"></script>
+    <!-- Zustand State Management System (Graceful fallback) -->
+    <script>
+        // Try to load Zustand, but don't fail if it's not available
+        try {
+            // For now, skip Zustand loading in browser mode
+            // The app works without it, Zustand is optional enhancement
+            console.log('⚠️ Zustand UMD not available - state management will use simpler fallback');
+            window.zustandAvailable = false;
+        } catch (e) {
+            console.log('⚠️ Zustand state management not available');
+            window.zustandAvailable = false;
+        }
+    </script>
     <script src="../src/renderer/stores/velvet-state-simple.js"></script>
     <script src="../src/renderer/stores/store-coordinator.js"></script>
     <script src="../src/renderer/stores/store-selectors.js"></script>

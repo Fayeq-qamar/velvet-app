@@ -239,8 +239,12 @@ class ExecutiveDysfunctionEmergencyMode {
             // Start monitoring intervals
             this.startMonitoring();
             
-            // Initialize UI components
-            this.initializeEmergencyUI();
+            // Initialize UI components (only in renderer process)
+            if (typeof document !== 'undefined') {
+                this.initializeEmergencyUI();
+            } else {
+                console.log('⚠️ Skipping UI initialization in main process');
+            }
             
             this.isActive = true;
             console.log('✅ Executive Dysfunction Emergency Mode active');

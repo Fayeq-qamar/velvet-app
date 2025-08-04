@@ -1,7 +1,7 @@
 // Store Coordinator - Manages state synchronization and cross-feature coordination
 // Ensures all viral features work together seamlessly with optimized performance
 
-import { useVelvetStore } from './velvet-state-simple.js';
+// Note: useVelvetStore is available from velvet-state-simple.js (loaded via script tag)
 
 /**
  * StoreCoordinator
@@ -778,12 +778,18 @@ class StoreCoordinator {
     updatePerformanceMetrics() {
         const store = useVelvetStore.getState();
         
-        this.performanceMetrics.averageUpdateTime = 
-            store.system.performanceMetrics.averageUpdateTime;
+        // Safely access performance metrics with fallback
+        if (store.system.performanceMetrics && typeof store.system.performanceMetrics.averageUpdateTime === 'number') {
+            this.performanceMetrics.averageUpdateTime = store.system.performanceMetrics.averageUpdateTime;
+        } else {
+            // Calculate simple average if store metrics not available
+            this.performanceMetrics.averageUpdateTime = this.performanceMetrics.totalUpdates > 0 ? 
+                (Date.now() - (store.system.lastUpdate || Date.now())) / this.performanceMetrics.totalUpdates : 0;
+        }
         
         console.log('📊 Store Coordinator Performance:', {
             totalUpdates: this.performanceMetrics.totalUpdates,
-            averageUpdateTime: this.performanceMetrics.averageUpdateTime.toFixed(2) + 'ms',
+            averageUpdateTime: (this.performanceMetrics.averageUpdateTime || 0).toFixed(2) + 'ms',
             crossFeatureInteractions: this.performanceMetrics.crossFeatureInteractions,
             optimizationsApplied: this.performanceMetrics.optimizationsApplied
         });
@@ -896,6 +902,16 @@ const storeCoordinator = new StoreCoordinator();
 // Make available globally
 window.storeCoordinator = storeCoordinator;
 
-export default storeCoordinator;
+// Initialize immediately after creation
+setTimeout(async () => {
+    try {
+        await storeCoordinator.initialize();
+        console.log('🎯 Store Coordinator auto-initialized successfully');
+    } catch (error) {
+        console.error('❌ Store Coordinator auto-initialization failed:', error);
+    }
+}, 100); // Small delay to ensure dependencies are loaded
+
+// export default storeCoordinator; // Commented out for script tag loading
 
 console.log('🎯 Store Coordinator loaded - ready for unified state management');

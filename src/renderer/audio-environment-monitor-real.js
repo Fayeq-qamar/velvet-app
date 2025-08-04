@@ -190,7 +190,7 @@ class RealAudioEnvironmentMonitor {
             // Get active audio applications
             const audioSources = await window.electronAPI.audioEnvironment.captureSystemAudio();
             
-            if (audioSources && !audioSources.error && audioSources.audioSources.length > 0) {
+            if (audioSources && !audioSources.error && audioSources.audioSources && audioSources.audioSources.length > 0) {
                 // Process active audio applications
                 await this.processAudioSources(audioSources);
             }
@@ -262,7 +262,7 @@ class RealAudioEnvironmentMonitor {
         try {
             const sources = audioSources.audioSources;
             
-            if (sources.length === 0) {
+            if (!sources || sources.length === 0) {
                 return;
             }
             
@@ -412,7 +412,8 @@ class RealAudioEnvironmentMonitor {
         analysis.spectralCentroid = totalMagnitude > 0 ? weightedFrequencySum / totalMagnitude : 0;
         
         // Normalize values
-        const maxValue = Math.max(...Object.values(analysis.frequencyRanges));
+        const frequencyValues = Object.values(analysis.frequencyRanges);
+        const maxValue = frequencyValues.length > 0 ? Math.max(...frequencyValues) : 0;
         if (maxValue > 0) {
             Object.keys(analysis.frequencyRanges).forEach(key => {
                 analysis.frequencyRanges[key] = analysis.frequencyRanges[key] / maxValue;

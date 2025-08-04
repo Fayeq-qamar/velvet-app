@@ -18,9 +18,19 @@ console.log('🔧 Basic initialization complete');
 // PROGRESSIVE MODULE LOADING: Load only what we need to start
 let velvetStreamClient = null;
 let databaseService = null;
+let databaseIPCHandlers = null;
 let securityManager = null;
 let screenIntelligence = null;
 let executiveDysfunctionMode = null;
+
+// EXECUTIVE FUNCTION FEATURE FLAG - Start enabled for gentle rollout
+let EXECUTIVE_FUNCTION_ENABLED = true;  // Gradually enabled for Phase 2
+
+// DATABASE FEATURE FLAG - Start disabled, enable after successful load
+let DATABASE_ENABLED = true; // Re-enabled with crash-safe initialization
+
+// SCREEN INTELLIGENCE FEATURE FLAG - Phase 3 integration
+let SCREEN_INTELLIGENCE_ENABLED = true;  // Enable for Phase 3 screen monitoring
 
 // Global brain context - simple fallback
 global.velvetBrainContext = {
@@ -201,16 +211,15 @@ ipcMain.handle('transcribe-audio', async (event, audioBase64) => {
         console.log('✅ Transcription successful:', response.data.text);
         return {
             success: true,
-            transcript: response.data.text,
-            confidence: 0.9
+            transcript: response.data.text
         };
 
     } catch (error) {
         console.error('❌ Transcription error:', error.message);
         return {
             success: false,
-            error: error.message,
-            transcript: ""
+            transcript: "",
+            error: "Voice recognition had trouble. Try typing instead!"
         };
     }
 });
@@ -446,6 +455,41 @@ ipcMain.handle('control-panel-close', async () => {
 });
 
 // Close Meeting Assistant
+ipcMain.handle('meeting-assistant-auto-resize', async (event, contentData) => {
+    try {
+        if (meetingAssistantWindow && !meetingAssistantWindow.isDestroyed()) {
+            const baseWidth = 800;
+            const baseHeight = 120; // Minimum height for controls
+            
+            // Calculate height based on content
+            let calculatedHeight = baseHeight;
+            
+            if (contentData.questionLength) {
+                // Add height for question (roughly 20px per line, assuming 60 chars per line)
+                const questionLines = Math.ceil(contentData.questionLength / 60);
+                calculatedHeight += questionLines * 25 + 20; // +20 for padding
+            }
+            
+            if (contentData.answerLength) {
+                // Add height for answer (roughly 18px per line, assuming 70 chars per line)
+                const answerLines = Math.ceil(contentData.answerLength / 70);
+                calculatedHeight += answerLines * 22 + 20; // +20 for padding
+            }
+            
+            // Cap the maximum height
+            const maxHeight = 600;
+            const finalHeight = Math.min(calculatedHeight, maxHeight);
+            
+            console.log(`📐 Auto-resizing meeting assistant: ${baseWidth}x${finalHeight}`);
+            meetingAssistantWindow.setSize(baseWidth, finalHeight);
+        }
+        return { success: true };
+    } catch (error) {
+        console.error('Error auto-resizing meeting assistant:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 ipcMain.handle('meeting-assistant-close', async () => {
     if (meetingAssistantWindow) {
         meetingAssistantWindow.close();
@@ -728,6 +772,14 @@ ipcMain.handle('get-brain-context', async () => {
     }
 });
 
+// IPC handler to get stream status
+ipcMain.handle('get-stream-status', () => {
+  if (velvetStreamClient) {
+    return velvetStreamClient.getStreamStatus();
+  }
+  return { connected: false, activeStreams: [], reconnectAttempts: 0 };
+});
+
 ipcMain.handle('emergency-mode-status', async () => {
     try {
         // Return emergency mode status
@@ -739,6 +791,108 @@ ipcMain.handle('emergency-mode-status', async () => {
     } catch (error) {
         console.error('❌ Emergency mode status error:', error.message);
         return { success: false, isActive: false };
+    }
+});
+
+// Missing IPC handlers for audio and screen features
+ipcMain.handle('get-system-audio-devices', async () => {
+    try {
+        // Return empty array for now - can be enhanced later
+        return { success: true, devices: [] };
+    } catch (error) {
+        console.error('❌ Get system audio devices error:', error.message);
+        return { success: false, devices: [] };
+    }
+});
+
+ipcMain.handle('get-desktop-sources', async (event, options = {}) => {
+    try {
+        console.log('📺 Getting desktop sources for OCR...');
+        
+        const { desktopCapturer } = require('electron');
+        
+        const sources = await desktopCapturer.getSources({
+            types: ['screen'],  // Only screens, not individual windows
+            thumbnailSize: options.thumbnailSize || { width: 1920, height: 1080 },
+            fetchWindowIcons: false
+        });
+        
+        console.log(`✅ Found ${sources.length} screen sources`);
+        return { success: true, sources: sources };
+    } catch (error) {
+        console.error('❌ Get desktop sources error:', error.message);
+        return { success: false, sources: [], error: error.message };
+    }
+});
+
+ipcMain.handle('capture-screen-for-ocr', async (event, sourceId) => {
+    try {
+        console.log('📸 Capturing screen for OCR using desktopCapturer...');
+        
+        const { desktopCapturer } = require('electron');
+        
+        // Get the specific source
+        const sources = await desktopCapturer.getSources({
+            types: ['screen'],
+            thumbnailSize: { width: 1920, height: 1080 }
+        });
+        
+        const source = sources.find(s => s.id === sourceId) || sources[0];
+        if (!source) {
+            throw new Error('No screen source found');
+        }
+        
+        console.log(`✅ Captured screen: ${source.name}`);
+        
+        // Convert to PNG data URL for better Tesseract compatibility
+        const imageDataUrl = source.thumbnail.toDataURL('image/png');
+        console.log('📷 Image data URL length:', imageDataUrl.length);
+        console.log('📷 Image data URL prefix:', imageDataUrl.substring(0, 50));
+        
+        return {
+            imageDataUrl: imageDataUrl,
+            sourceName: source.name,
+            timestamp: Date.now()
+        };
+        
+    } catch (error) {
+        console.error('❌ Screen capture for OCR failed:', error);
+        return {
+            error: error.message,
+            timestamp: Date.now()
+        };
+    }
+});
+
+ipcMain.handle('get-current-audio-context', async () => {
+    try {
+        // Return basic audio context for now - can be enhanced later
+        return { 
+            success: true, 
+            context: {
+                hasAudio: false,
+                volume: 0.5,
+                isRecording: false
+            }
+        };
+    } catch (error) {
+        console.error('❌ Get current audio context error:', error.message);
+        return { success: false, context: null };
+    }
+});
+
+ipcMain.handle('capture-system-audio', async () => {
+    try {
+        // Return basic audio capture response for now - can be enhanced later
+        return { 
+            success: true, 
+            audioData: null,
+            format: 'none',
+            message: 'Audio capture placeholder'
+        };
+    } catch (error) {
+        console.error('❌ Capture system audio error:', error.message);
+        return { success: false, audioData: null };
     }
 });
 
@@ -792,18 +946,11 @@ Examples of your speaking style:
         const reply = response.data.choices[0].message.content;
         console.log('✅ Velvet chat response generated');
 
-        return {
-            success: true,
-            message: reply
-        };
+        return reply.trim();
 
     } catch (error) {
         console.error('❌ Chat completion error:', error.message);
-        return {
-            success: false,
-            error: error.message,
-            message: "Arre yaar, I'm having some tech troubles! But I'm still here for you. 💜"
-        };
+        return "Arre yaar, I'm having some tech troubles! But I'm still here for you. 💜";
     }
 });
 
@@ -812,14 +959,24 @@ function loadAdvancedFeatures() {
     console.log('🔄 Loading advanced features...');
 
     setTimeout(() => {
-        try {
-            // Try to load advanced modules one by one
-            console.log('📊 Attempting to load database features...');
-            // Database features would go here
-        } catch (error) {
-            console.log('⚠️ Database features not available:', error.message);
+        if (DATABASE_ENABLED) {
+            initializeDatabaseService();
+        } else {
+            console.log('📊 Database service disabled - skipping initialization');
         }
     }, 10000);
+
+    // Load executive function features immediately - they work without database
+    setTimeout(() => {
+        initializeExecutiveFunctionFeatures();
+    }, 3000);
+
+    // Load screen intelligence features for pattern detection
+    setTimeout(() => {
+        if (SCREEN_INTELLIGENCE_ENABLED) {
+            initializeScreenIntelligenceService();
+        }
+    }, 18000);
 
     setTimeout(() => {
         try {
@@ -828,7 +985,463 @@ function loadAdvancedFeatures() {
         } catch (error) {
             console.log('⚠️ Social decoder not available:', error.message);
         }
-    }, 15000);
+    }, 20000);
+}
+
+// SAFE DATABASE INITIALIZATION - CRASH-PROOF VERSION
+async function initializeDatabaseService() {
+    try {
+        console.log('📊 Initializing Velvet Database Service...');
+        
+        // Add safety timeout to prevent hanging
+        const initTimeout = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database initialization timeout')), 30000);
+        });
+        
+        const initDatabase = async () => {
+            // Import database modules only when needed
+            const VelvetDatabaseIPCHandlers = require('./database-ipc-handlers');
+            
+            // Initialize database service with error boundaries
+            databaseIPCHandlers = new VelvetDatabaseIPCHandlers();
+            
+            // Wrap in additional try-catch for native module crashes
+            try {
+                const result = await databaseIPCHandlers.initialize();
+                return result;
+            } catch (nativeError) {
+                console.error('❌ Native module error during database init:', nativeError);
+                throw new Error('Native module failure - likely sqlite3/keytar issue');
+            }
+        };
+        
+        // Race between initialization and timeout
+        const result = await Promise.race([initDatabase(), initTimeout]);
+        
+        if (result.success) {
+            DATABASE_ENABLED = true;
+            console.log('✅ Database service initialized successfully');
+            console.log('🎯 Database features are now available');
+        } else {
+            console.log('⚠️ Database initialization failed:', result.error);
+            console.log('📱 Velvet will continue without database features');
+        }
+        
+    } catch (error) {
+        console.log('⚠️ Database features not available:', error.message);
+        console.log('📱 Velvet will continue without database features');
+        
+        // Ensure we don't break the app
+        DATABASE_ENABLED = false;
+        databaseIPCHandlers = null;
+    }
+}
+
+// SAFE EXECUTIVE FUNCTION INITIALIZATION
+async function initializeExecutiveFunctionFeatures() {
+    try {
+        console.log('🧠 Initializing Executive Function Support...');
+        
+        // Import executive function modules only when needed
+        const ExecutiveDysfunctionEmergencyMode = require('./executive-dysfunction-emergency');
+        
+        // Initialize executive function emergency mode
+        executiveDysfunctionMode = new ExecutiveDysfunctionEmergencyMode();
+        
+        // Initialize with screen intelligence integration
+        const result = await executiveDysfunctionMode.initialize(screenIntelligence);
+        
+        if (result) {
+            EXECUTIVE_FUNCTION_ENABLED = true;
+            console.log('✅ Executive Function Support initialized successfully');
+            console.log('🎯 Gentle nudging and pattern detection active');
+            
+            // Connect to database for pattern storage if available
+            if (DATABASE_ENABLED && databaseIPCHandlers) {
+                await connectExecutiveFunctionToDatabase();
+            }
+            
+            // Set up IPC handlers for executive function features
+            setupExecutiveFunctionIPC();
+            
+        } else {
+            console.log('⚠️ Executive Function initialization failed');
+            console.log('📱 Velvet will continue without executive function features');
+        }
+        
+    } catch (error) {
+        console.log('⚠️ Executive Function features not available:', error.message);
+        console.log('📱 Velvet will continue without executive function features');
+        
+        // Ensure we don't break the app
+        EXECUTIVE_FUNCTION_ENABLED = false;
+        executiveDysfunctionMode = null;
+    }
+}
+
+// Connect executive function to database for pattern learning
+async function connectExecutiveFunctionToDatabase() {
+    try {
+        console.log('🔗 Connecting Executive Function to database...');
+        
+        if (!executiveDysfunctionMode || !databaseIPCHandlers) {
+            throw new Error('Executive function or database not available');
+        }
+        
+        // Set up pattern storage callbacks
+        executiveDysfunctionMode.onEmergency(async (emergencyData) => {
+            try {
+                // Store pattern data for learning
+                const patternRecord = {
+                    timestamp: Date.now(),
+                    pattern_type: emergencyData.pattern || emergencyData.type,
+                    intervention_level: emergencyData.intervention?.level || 'gentle',
+                    user_response: emergencyData.userResponse || null,
+                    context: {
+                        type: emergencyData.type,
+                        data: emergencyData.data
+                    }
+                };
+                
+                // Store in database for pattern learning
+                if (databaseIPCHandlers.dataLayer) {
+                    await databaseIPCHandlers.dataLayer.storeExecutivePattern(patternRecord);
+                    console.log('📊 Executive function pattern stored for learning');
+                }
+            } catch (error) {
+                console.error('❌ Error storing executive function pattern:', error);
+            }
+        });
+        
+        console.log('✅ Executive Function connected to database successfully');
+        
+    } catch (error) {
+        console.error('❌ Failed to connect Executive Function to database:', error);
+        // Continue without database connection
+    }
+}
+
+// Set up IPC handlers for executive function features
+function setupExecutiveFunctionIPC() {
+    console.log('🔌 Setting up Executive Function IPC handlers...');
+    
+    // Get executive function status
+    ipcMain.handle('executive-function-status', async () => {
+        try {
+            if (!EXECUTIVE_FUNCTION_ENABLED || !executiveDysfunctionMode) {
+                return {
+                    success: true,
+                    enabled: false,
+                    status: 'disabled',
+                    message: 'Executive function features are disabled'
+                };
+            }
+            
+            const status = executiveDysfunctionMode.getEmergencyStatus();
+            return {
+                success: true,
+                enabled: true,
+                status: 'active',
+                emergency: status,
+                message: 'Executive function support is active'
+            };
+            
+        } catch (error) {
+            console.error('❌ Executive function status error:', error);
+            return {
+                success: false,
+                enabled: false,
+                status: 'error',
+                error: error.message
+            };
+        }
+    });
+    
+    // Activate safe space manually
+    ipcMain.handle('executive-function-safe-space', async () => {
+        try {
+            if (!EXECUTIVE_FUNCTION_ENABLED || !executiveDysfunctionMode) {
+                return {
+                    success: false,
+                    error: 'Executive function features not available'
+                };
+            }
+            
+            executiveDysfunctionMode.activateSafeSpace();
+            return {
+                success: true,
+                message: 'Safe space activated'
+            };
+            
+        } catch (error) {
+            console.error('❌ Safe space activation error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    });
+    
+    // Get executive function testing functions
+    ipcMain.handle('executive-function-test', async (event, testType) => {
+        try {
+            if (!EXECUTIVE_FUNCTION_ENABLED || !executiveDysfunctionMode) {
+                return {
+                    success: false,
+                    error: 'Executive function features not available'
+                };
+            }
+            
+            const testFunctions = executiveDysfunctionMode.getTestingFunctions();
+            
+            if (testFunctions[testType]) {
+                testFunctions[testType]();
+                return {
+                    success: true,
+                    message: `${testType} test executed`
+                };
+            } else {
+                return {
+                    success: false,
+                    error: `Unknown test type: ${testType}`
+                };
+            }
+            
+        } catch (error) {
+            console.error('❌ Executive function test error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    });
+    
+    // Get available test functions list
+    ipcMain.handle('executive-function-test-list', async () => {
+        try {
+            if (!EXECUTIVE_FUNCTION_ENABLED || !executiveDysfunctionMode) {
+                return {
+                    success: false,
+                    tests: [],
+                    error: 'Executive function features not available'
+                };
+            }
+            
+            const testFunctions = executiveDysfunctionMode.getTestingFunctions();
+            const availableTests = Object.keys(testFunctions);
+            
+            return {
+                success: true,
+                tests: availableTests,
+                message: 'Test functions available'
+            };
+            
+        } catch (error) {
+            console.error('❌ Executive function test list error:', error);
+            return {
+                success: false,
+                tests: [],
+                error: error.message
+            };
+        }
+    });
+    
+    console.log('✅ Executive Function IPC handlers set up');
+}
+
+// SCREEN INTELLIGENCE SERVICE INITIALIZATION
+async function initializeScreenIntelligenceService() {
+    try {
+        console.log('🔍 Initializing Screen Intelligence Service...');
+        
+        // Import screen intelligence module only when needed
+        const ScreenIntelligence = require('./screen-intelligence');
+        
+        // Initialize screen intelligence
+        screenIntelligence = new ScreenIntelligence();
+        
+        // Set up pattern detection event handlers
+        screenIntelligence.on('patternDetected', (pattern) => {
+            console.log(`🧠 Screen pattern detected: ${pattern.type}`, pattern);
+            
+            // Forward pattern to executive dysfunction system if available
+            if (EXECUTIVE_FUNCTION_ENABLED && executiveDysfunctionMode) {
+                executiveDysfunctionMode.handleScreenPattern(pattern);
+            }
+            
+            // Send pattern to renderer for UI updates
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('screen-pattern-detected', pattern);
+            }
+        });
+        
+        screenIntelligence.on('windowChange', (windowInfo) => {
+            console.log(`📱 Window changed: ${windowInfo.name} - ${windowInfo.title}`);
+            
+            // Send window change to renderer for context awareness
+            if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.webContents.send('screen-window-changed', windowInfo);
+            }
+        });
+        
+        // Start monitoring with privacy-first approach
+        await screenIntelligence.startMonitoring();
+        
+        // Set up IPC handlers for screen intelligence
+        setupScreenIntelligenceIPC();
+        
+        console.log('✅ Screen Intelligence Service initialized successfully');
+        console.log('🎯 Screen pattern detection and window monitoring are now active');
+        
+        return true;
+        
+    } catch (error) {
+        console.log('⚠️ Screen Intelligence features not available:', error.message);
+        console.log('📱 Velvet will continue without screen monitoring features');
+        return false;
+    }
+}
+
+// Screen Intelligence IPC Handlers
+function setupScreenIntelligenceIPC() {
+    // Get current screen intelligence stats
+    ipcMain.handle('screen-intelligence-get-stats', async () => {
+        try {
+            if (!screenIntelligence || !SCREEN_INTELLIGENCE_ENABLED) {
+                return {
+                    success: false,
+                    error: 'Screen Intelligence not available'
+                };
+            }
+            
+            const stats = screenIntelligence.getStats();
+            return {
+                success: true,
+                stats: stats,
+                isActive: screenIntelligence.isMonitoring
+            };
+            
+        } catch (error) {
+            console.error('❌ Screen intelligence stats error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    });
+    
+    // Toggle screen monitoring
+    ipcMain.handle('screen-intelligence-toggle', async (event, enabled) => {
+        try {
+            if (!screenIntelligence) {
+                return {
+                    success: false,
+                    error: 'Screen Intelligence not initialized'
+                };
+            }
+            
+            if (enabled && !screenIntelligence.isMonitoring) {
+                await screenIntelligence.startMonitoring();
+            } else if (!enabled && screenIntelligence.isMonitoring) {
+                screenIntelligence.stopMonitoring();
+            }
+            
+            return {
+                success: true,
+                isActive: screenIntelligence.isMonitoring,
+                message: enabled ? 'Screen monitoring started' : 'Screen monitoring stopped'
+            };
+            
+        } catch (error) {
+            console.error('❌ Screen intelligence toggle error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    });
+    
+    // Get pattern detection settings
+    ipcMain.handle('screen-intelligence-get-patterns', async () => {
+        try {
+            if (!screenIntelligence) {
+                return {
+                    success: false,
+                    error: 'Screen Intelligence not available'
+                };
+            }
+            
+            return {
+                success: true,
+                patterns: screenIntelligence.patterns,
+                isActive: screenIntelligence.isMonitoring
+            };
+            
+        } catch (error) {
+            console.error('❌ Screen intelligence patterns error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    });
+    
+    // Test screen intelligence features (development)
+    ipcMain.handle('screen-intelligence-test', async (event, testType) => {
+        try {
+            if (!screenIntelligence) {
+                return {
+                    success: false,
+                    error: 'Screen Intelligence not available'
+                };
+            }
+            
+            // Available test functions
+            const availableTests = {
+                'hyperfocus': () => screenIntelligence.emit('patternDetected', {
+                    type: 'hyperfocus',
+                    app: 'Test App',
+                    duration: 45 * 60 * 1000,
+                    message: 'Test hyperfocus pattern detected'
+                }),
+                'distraction': () => screenIntelligence.emit('patternDetected', {
+                    type: 'distractionSpiral',
+                    count: 12,
+                    window: 2 * 60 * 1000,
+                    message: 'Test distraction spiral detected'
+                }),
+                'task-avoidance': () => screenIntelligence.emit('patternDetected', {
+                    type: 'taskAvoidance',
+                    app: 'Document Editor',
+                    count: 6,
+                    message: 'Test task avoidance pattern detected'
+                })
+            };
+            
+            if (availableTests[testType]) {
+                availableTests[testType]();
+                return {
+                    success: true,
+                    message: `Test ${testType} pattern triggered`
+                };
+            }
+            
+            return {
+                success: true,
+                tests: Object.keys(availableTests),
+                message: 'Available test functions'
+            };
+            
+        } catch (error) {
+            console.error('❌ Screen intelligence test error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    });
+    
+    console.log('✅ Screen Intelligence IPC handlers set up');
 }
 
 // APP LIFECYCLE
@@ -852,8 +1465,86 @@ app.on('window-all-closed', () => {
     }
 });
 
-app.on('before-quit', () => {
+app.on('before-quit', async () => {
     console.log('🛑 Velvet shutting down gracefully');
+    
+    // Clean up executive function features
+    if (EXECUTIVE_FUNCTION_ENABLED && executiveDysfunctionMode) {
+        try {
+            console.log('🧠 Stopping Executive Function features...');
+            executiveDysfunctionMode.stop();
+            console.log('✅ Executive Function features stopped successfully');
+        } catch (error) {
+            console.log('⚠️ Executive Function cleanup error:', error.message);
+        }
+    }
+    
+    // Clean up database connection
+    if (DATABASE_ENABLED && databaseIPCHandlers) {
+        try {
+            console.log('🔒 Closing database connection...');
+            await databaseIPCHandlers.close();
+            console.log('✅ Database closed successfully');
+        } catch (error) {
+            console.log('⚠️ Database cleanup error:', error.message);
+        }
+    }
+});
+
+// DATABASE IPC HANDLERS (Safe and Isolated)
+ipcMain.handle('db-health-check', async () => {
+    try {
+        if (!DATABASE_ENABLED || !databaseIPCHandlers) {
+            return {
+                success: true,
+                status: 'disabled',
+                message: 'Database features are disabled',
+                enabled: false
+            };
+        }
+        
+        // Get health status from database service
+        const healthResult = await databaseIPCHandlers.handleRequest('health', async () => {
+            return databaseIPCHandlers.dataLayer.getSystemHealth();
+        });
+        
+        return {
+            success: true,
+            status: 'enabled',
+            enabled: true,
+            health: healthResult.data || {},
+            message: 'Database is operational'
+        };
+        
+    } catch (error) {
+        console.error('❌ Database health check error:', error);
+        return {
+            success: false,
+            status: 'error',
+            enabled: DATABASE_ENABLED,
+            error: error.message,
+            message: 'Database health check failed'
+        };
+    }
+});
+
+// DATABASE STATUS IPC HANDLER
+ipcMain.handle('db-status', async () => {
+    try {
+        return {
+            success: true,
+            enabled: DATABASE_ENABLED,
+            ready: !!(DATABASE_ENABLED && databaseIPCHandlers && databaseIPCHandlers.isReady),
+            message: DATABASE_ENABLED ? 'Database service is active' : 'Database service is disabled'
+        };
+    } catch (error) {
+        return {
+            success: false,
+            enabled: false,
+            ready: false,
+            error: error.message
+        };
+    }
 });
 
 console.log('✅ Velvet initialization complete - your glass orb should appear!');

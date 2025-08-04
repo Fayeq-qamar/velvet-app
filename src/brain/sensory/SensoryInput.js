@@ -108,7 +108,17 @@ class SensoryInput {
             
             if (this.visualCortex && this.sensorStatus.visual) {
                 inputPromises.push(
-                    this.visualCortex.getCurrentInput()
+                    Promise.resolve().then(() => {
+                        // Use the correct method from screen OCR monitor
+                        const context = this.visualCortex.getCurrentContext?.() || null;
+                        return {
+                            text: this.visualCortex.currentScreenText || '',
+                            context: context,
+                            confidence: 0.8,
+                            timestamp: Date.now(),
+                            source: 'screen_ocr'
+                        };
+                    })
                         .then(data => ({ type: 'visual', data }))
                         .catch(error => ({ type: 'visual', data: null, error }))
                 );
@@ -116,7 +126,18 @@ class SensoryInput {
             
             if (this.auditoryCortex && this.sensorStatus.auditory) {
                 inputPromises.push(
-                    this.auditoryCortex.getCurrentInput()
+                    Promise.resolve().then(() => {
+                        // Use the correct method from audio environment monitor
+                        const context = this.auditoryCortex.getCurrentAudioContext?.() || null;
+                        return {
+                            type: context?.current?.primaryType || 'unknown',
+                            source: context?.current?.source || 'unknown',
+                            confidence: context?.current?.confidence || 0.5,
+                            details: context?.current?.details || {},
+                            timestamp: Date.now(),
+                            audioSource: 'audio_monitor'
+                        };
+                    })
                         .then(data => ({ type: 'auditory', data }))
                         .catch(error => ({ type: 'auditory', data: null, error }))
                 );
@@ -124,7 +145,16 @@ class SensoryInput {
             
             if (this.behavioralCortex && this.sensorStatus.behavioral) {
                 inputPromises.push(
-                    this.behavioralCortex.getCurrentInput()
+                    Promise.resolve().then(() => {
+                        // Placeholder behavioral data - to be connected to real behavior tracking
+                        return {
+                            activity: 'unknown',
+                            pattern: 'baseline',
+                            confidence: 0.3,
+                            timestamp: Date.now(),
+                            source: 'behavioral_placeholder'
+                        };
+                    })
                         .then(data => ({ type: 'behavioral', data }))
                         .catch(error => ({ type: 'behavioral', data: null, error }))
                 );

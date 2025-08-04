@@ -582,18 +582,27 @@
                 
                 // Send to backend for transcription
                 if (window.electronAPI?.transcribeAudio) {
-                    const transcription = await window.electronAPI.transcribeAudio(base64Audio);
+                    console.log('🎤 Sending audio for transcription...');
+                    const transcriptionResponse = await window.electronAPI.transcribeAudio(base64Audio);
+                    console.log('🎤 Transcription result:', transcriptionResponse);
+                    
+                    // Extract transcript from response object
+                    const transcription = transcriptionResponse && transcriptionResponse.transcript ? 
+                        transcriptionResponse.transcript : transcriptionResponse;
                     
                     if (transcription && transcription.trim()) {
                         currentQuestion = transcription.trim();
+                        console.log('✅ Processing question:', currentQuestion);
                         await processQuestion(currentQuestion);
                     } else {
+                        console.log('⚠️ No speech detected in transcription');
                         statusText.textContent = 'No speech detected';
                         setTimeout(() => {
                             statusText.textContent = 'Ready';
                         }, 2000);
                     }
                 } else {
+                    console.log('⚠️ No transcribeAudio API available, using demo');
                     // Fallback to demo
                     showDemo();
                     statusText.textContent = 'Ready';
@@ -621,6 +630,7 @@
                 
                 // Get AI response
                 if (window.electronAPI?.chatCompletion) {
+                    console.log('🤖 Requesting AI response for:', question);
                     const messages = [
                         { 
                             role: "system", 
@@ -630,6 +640,7 @@
                     ];
                     
                     const answer = await window.electronAPI.chatCompletion(messages);
+                    console.log('🤖 AI response received:', answer);
                     
                     // Show answer with animation delay
                     setTimeout(async () => {
@@ -642,6 +653,7 @@
                     }, 300);
                     
                 } else {
+                    console.log('⚠️ No chatCompletion API available, using demo answer');
                     // Fallback to demo answer
                     setTimeout(async () => {
                         answerArea.textContent = "I understand your question. Here's a helpful response based on best practices and common approaches in the industry.";

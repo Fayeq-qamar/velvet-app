@@ -527,6 +527,66 @@ class MaskingAIIntegration {
     }
     
     /**
+     * Process context updates from Context Awareness System
+     */
+    processContextUpdate(context) {
+        try {
+            if (!context) return;
+            
+            console.log('🔄 Processing context update for masking integration:', context.type);
+            
+            // Update environmental context for masking analysis
+            if (context.environment) {
+                this.personalityState.currentEnvironment = context.environment;
+                this.personalityState.environmentConfidence = context.environmentConfidence || 0.5;
+            }
+            
+            // Assess masking implications of context change
+            if (context.type === 'environment_change') {
+                this.assessMaskingImplications(context);
+            }
+            
+            // Update AI personality with new context
+            this.updatePersonalityState();
+            
+        } catch (error) {
+            console.error('❌ Error processing context update:', error);
+        }
+    }
+    
+    /**
+     * Assess masking implications of context changes
+     */
+    assessMaskingImplications(context) {
+        try {
+            const previousEnv = this.personalityState.previousEnvironment;
+            const currentEnv = context.environment;
+            
+            // Detect masking-relevant transitions
+            if (previousEnv === 'home' && currentEnv === 'work') {
+                this.generateMaskingAwareness({
+                    type: 'masking_transition',
+                    message: 'I notice you might be shifting to work mode - remember you can be authentic here too',
+                    context: context,
+                    timestamp: Date.now()
+                });
+            } else if (previousEnv === 'work' && currentEnv === 'home') {
+                this.generateMaskingAwareness({
+                    type: 'unmasking_opportunity',
+                    message: 'Welcome to your safe space - you can drop the professional mask here',
+                    context: context,
+                    timestamp: Date.now()
+                });
+            }
+            
+            this.personalityState.previousEnvironment = currentEnv;
+            
+        } catch (error) {
+            console.error('❌ Error assessing masking implications:', error);
+        }
+    }
+    
+    /**
      * Process safe space entry events
      */
     processSafeSpaceEntry(event) {

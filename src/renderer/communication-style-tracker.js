@@ -78,7 +78,7 @@ class CommunicationStyleTracker {
                 authentic: [
                     'honestly', 'tbh', 'for real', 'seriously', 'literally',
                     'I mean', 'you know', 'like seriously', 'I swear',
-                    'no joke', 'real talk', 'I'm not gonna lie'
+                    'no joke', 'real talk', 'I\'m not gonna lie'
                 ],
                 performative: [
                     'as I mentioned', 'to clarify', 'in my opinion', 'from my perspective',

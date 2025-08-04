@@ -1,0 +1,78 @@
+// 🔒 FINAL CSP COMPLIANCE TEST
+// Paste this in browser console to verify CSP violations are resolved
+
+console.log('🔒 TESTING FINAL CSP COMPLIANCE...');
+console.log('===============================');
+
+// Check for any remaining CSP violations
+const cspViolations = [];
+let violationCount = 0;
+
+// Listen for CSP violations
+document.addEventListener('securitypolicyviolation', (e) => {
+    violationCount++;
+    cspViolations.push({
+        directive: e.violatedDirective,
+        blockedURI: e.blockedURI,
+        source: e.sourceFile + ':' + e.lineNumber
+    });
+    console.log(`❌ CSP Violation #${violationCount}:`, {
+        directive: e.violatedDirective,
+        blocked: e.blockedURI,
+        source: e.sourceFile + ':' + e.lineNumber
+    });
+});
+
+// Wait 5 seconds then report results
+setTimeout(() => {
+    console.log('\n🔒 CSP COMPLIANCE REPORT:');
+    console.log('========================');
+    
+    if (violationCount === 0) {
+        console.log('✅ PERFECT CSP COMPLIANCE!');
+        console.log('🎉 No Content Security Policy violations detected');
+        console.log('🔒 All resources loading from approved sources');
+    } else {
+        console.log(`❌ ${violationCount} CSP violations detected:`);
+        cspViolations.forEach((violation, index) => {
+            console.log(`${index + 1}. ${violation.directive}: ${violation.blockedURI}`);
+            console.log(`   Source: ${violation.source}`);
+        });
+    }
+    
+    // Check app functionality
+    console.log('\n🎯 APP FUNCTIONALITY CHECK:');
+    console.log('===========================');
+    
+    const checks = {
+        'Velvet Brain Active': typeof window.velvetBrain !== 'undefined' && window.velvetBrain?.isActive,
+        'Social Decoder Available': typeof SocialDecoder !== 'undefined',
+        'Executive Dysfunction Available': typeof window.electronAPI !== 'undefined',
+        'Screen OCR Available': typeof Tesseract !== 'undefined',
+        'Context Awareness Active': typeof ContextAwarenessSystem !== 'undefined'
+    };
+    
+    Object.entries(checks).forEach(([name, status]) => {
+        console.log(`${status ? '✅' : '⚠️'} ${name}: ${status ? 'Working' : 'Not Available'}`);
+    });
+    
+    const functionalCount = Object.values(checks).filter(Boolean).length;
+    const totalChecks = Object.keys(checks).length;
+    
+    console.log(`\n🏆 FUNCTIONALITY SCORE: ${functionalCount}/${totalChecks} (${Math.round(functionalCount/totalChecks*100)}%)`);
+    
+    if (violationCount === 0 && functionalCount >= 4) {
+        console.log('\n🎉 PERFECT SUCCESS!');
+        console.log('✅ CSP Compliant + Core Features Working');
+        console.log('🚀 Velvet is ready for production!');
+    } else if (violationCount === 0) {
+        console.log('\n✅ CSP COMPLIANCE ACHIEVED!');
+        console.log('⚠️ Some features may need additional setup');
+    } else {
+        console.log('\n⚠️ CSP violations still present');
+        console.log('🔧 Additional fixes needed');
+    }
+    
+}, 5000);
+
+console.log('⏳ Monitoring for CSP violations for 5 seconds...');

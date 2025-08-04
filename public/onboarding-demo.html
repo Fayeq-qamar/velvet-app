@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velvet Onboarding Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #1e1b4b 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .demo-container {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-title {
+            font-size: 32px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #a855f7, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .demo-subtitle {
+            font-size: 18px;
+            margin-bottom: 32px;
+            opacity: 0.8;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .demo-note {
+            margin-top: 24px;
+            font-size: 14px;
+            opacity: 0.6;
+        }
+
+        /* Mock localStorage for demo */
+        .reset-button {
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .reset-button:hover {
+            background: rgba(239, 68, 68, 1);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-title">🎭 Velvet Onboarding</div>
+        <div class="demo-subtitle">Experience the neurodivergent-friendly welcome flow</div>
+        <button class="demo-button" onclick="startOnboarding()">
+            ✨ Start Onboarding Demo
+        </button>
+        <button class="reset-button" onclick="resetOnboarding()">
+            🔄 Reset
+        </button>
+        <div class="demo-note">
+            This demo shows the complete onboarding experience new users see when first launching Velvet
+        </div>
+    </div>
+
+    <!-- Load the onboarding system -->
+    <script src="../src/renderer/onboarding-system.js"></script>
+
+    <script>
+        // Mock Electron API for demo
+        window.electronAPI = {
+            requestPermissions: async () => {
+                // Simulate permission request
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return Math.random() > 0.3; // 70% chance of success
+            },
+            checkPermissions: async () => {
+                return {
+                    screen: Math.random() > 0.5,
+                    microphone: Math.random() > 0.5
+                };
+            }
+        };
+
+        function startOnboarding() {
+            // Clear any existing onboarding state
+            localStorage.removeItem('velvet-has-launched');
+            
+            // Hide demo UI
+            document.querySelector('.demo-container').style.display = 'none';
+            
+            // Force start onboarding
+            if (window.VelvetOnboarding) {
+                new VelvetOnboarding();
+            } else if (window.velvetOnboarding) {
+                // Reset existing instance
+                window.velvetOnboarding.isFirstLaunch = true;
+                window.velvetOnboarding.currentStep = 0;
+                window.velvetOnboarding.startOnboarding();
+            } else {
+                // Try to initialize
+                setTimeout(startOnboarding, 100);
+            }
+        }
+
+        function resetOnboarding() {
+            // Clear localStorage
+            localStorage.removeItem('velvet-has-launched');
+            
+            // Remove any existing onboarding UI
+            const existingOnboarding = document.getElementById('velvet-onboarding');
+            if (existingOnboarding) {
+                existingOnboarding.remove();
+            }
+            
+            // Show demo UI again
+            document.querySelector('.demo-container').style.display = 'block';
+            
+            console.log('Onboarding reset - ready for demo');
+        }
+
+        // Ensure we don't auto-start onboarding on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Prevent auto-initialization
+            localStorage.setItem('velvet-has-launched', 'true');
+            console.log('Onboarding demo ready - click button to start');
+        });
+
+        // Listen for onboarding completion
+        document.addEventListener('velvet-onboarding-complete', () => {
+            setTimeout(() => {
+                document.querySelector('.demo-container').style.display = 'block';
+                alert('🎉 Onboarding completed! In the real app, this would show your glass orb.');
+            }, 500);
+        });
+
+        console.log('🎭 Velvet Onboarding Demo loaded');
+    </script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 // Store Selectors - Performance-optimized hooks for viral feature components
 // Provides efficient, selective subscriptions to prevent unnecessary re-renders
 
-import { useVelvetStore } from './velvet-state.js';
-import { useMemo } from 'react';
+// Note: useVelvetStore is available from velvet-state-simple.js (loaded via script tag)
+// Note: React hooks not available in script tag context
 
 // ===========================================
 // PERFORMANCE-OPTIMIZED SELECTORS
@@ -13,7 +13,10 @@ import { useMemo } from 'react';
  * These provide overview information with minimal re-render triggers
  */
 
-export const useSystemHealth = () => useVelvetStore(
+// Note: All exports commented out for script tag loading
+// Script tag context - functions will be available via window object if needed
+
+const useSystemHealth = () => useVelvetStore(
   state => ({
     isHealthy: state.system.activeFeatures.length >= 2 && 
                state.system.performanceMetrics.averageUpdateTime < 100,
@@ -24,7 +27,7 @@ export const useSystemHealth = () => useVelvetStore(
   (a, b) => a.isHealthy === b.isHealthy && a.activeFeatureCount === b.activeFeatureCount
 );
 
-export const useFeatureStatus = () => useVelvetStore(
+const useFeatureStatus = () => useVelvetStore(
   state => ({
     socialDecoder: state.system.activeFeatures.includes('socialDecoder'),
     executiveDysfunction: state.system.activeFeatures.includes('executiveDysfunction'),
@@ -38,7 +41,7 @@ export const useFeatureStatus = () => useVelvetStore(
 // SOCIAL DECODER SELECTORS
 // ===========================================
 
-export const useActiveMeeting = () => useVelvetStore(
+const useActiveMeeting = () => useVelvetStore(
   state => state.socialDecoder.isMeetingMode ? {
     isActive: true,
     platform: state.socialDecoder.currentMeeting?.platform,
@@ -48,7 +51,7 @@ export const useActiveMeeting = () => useVelvetStore(
   (a, b) => a.isActive === b.isActive && a.platform === b.platform
 );
 
-export const useCurrentSocialAnalysis = () => useVelvetStore(
+const useCurrentSocialAnalysis = () => useVelvetStore(
   state => state.socialDecoder.currentAnalysis ? {
     hasAnalysis: true,
     type: state.socialDecoder.currentAnalysis.detectionType,
@@ -58,7 +61,7 @@ export const useCurrentSocialAnalysis = () => useVelvetStore(
   (a, b) => a.hasAnalysis === b.hasAnalysis && a.timestamp === b.timestamp
 );
 
-export const useSocialIntervention = () => useVelvetStore(
+const useSocialIntervention = () => useVelvetStore(
   state => state.socialDecoder.activeIntervention ? {
     hasIntervention: true,
     type: state.socialDecoder.activeIntervention.type,
@@ -68,7 +71,7 @@ export const useSocialIntervention = () => useVelvetStore(
   (a, b) => a.hasIntervention === b.hasIntervention && a.uiVisible === b.uiVisible
 );
 
-export const useSocialDecoderMetrics = () => useVelvetStore(
+const useSocialDecoderMetrics = () => useVelvetStore(
   state => ({
     totalDetections: state.socialDecoder.metrics.totalDetections,
     sarcasmDetections: state.socialDecoder.metrics.sarcasmDetections,
@@ -82,7 +85,7 @@ export const useSocialDecoderMetrics = () => useVelvetStore(
 // EXECUTIVE DYSFUNCTION SELECTORS
 // ===========================================
 
-export const useCrisisStatus = () => useVelvetStore(
+const useCrisisStatus = () => useVelvetStore(
   state => ({
     level: state.executiveDysfunction.currentCrisisLevel,
     isCrisis: state.executiveDysfunction.currentCrisisLevel !== 'none',
@@ -92,7 +95,7 @@ export const useCrisisStatus = () => useVelvetStore(
   (a, b) => a.level === b.level && a.safeSpaceActive === b.safeSpaceActive
 );
 
-export const useEnergyStatus = () => useVelvetStore(
+const useEnergyStatus = () => useVelvetStore(
   state => ({
     level: state.executiveDysfunction.energyLevel,
     uiLevel: state.executiveDysfunction.uiState.currentEnergyLevel,
@@ -102,7 +105,7 @@ export const useEnergyStatus = () => useVelvetStore(
   (a, b) => Math.abs(a.level - b.level) < 0.1 && a.uiLevel === b.uiLevel
 );
 
-export const useExecutiveUI = () => useVelvetStore(
+const useExecutiveUI = () => useVelvetStore(
   state => ({
     interventionVisible: state.executiveDysfunction.uiState.interventionOverlayVisible,
     safeSpaceVisible: state.executiveDysfunction.uiState.safeSpaceIndicatorVisible,
@@ -112,7 +115,7 @@ export const useExecutiveUI = () => useVelvetStore(
   (a, b) => JSON.stringify(a) === JSON.stringify(b)
 );
 
-export const useDetectedPatterns = () => useVelvetStore(
+const useDetectedPatterns = () => useVelvetStore(
   state => ({
     count: state.executiveDysfunction.detectedPatterns.length,
     latest: state.executiveDysfunction.detectedPatterns.length > 0 ? 
@@ -126,7 +129,7 @@ export const useDetectedPatterns = () => useVelvetStore(
 // MASKING FATIGUE SELECTORS
 // ===========================================
 
-export const useMaskingStatus = () => useVelvetStore(
+const useMaskingStatus = () => useVelvetStore(
   state => ({
     level: state.maskingFatigue.currentMaskingLevel,
     isHighMasking: state.maskingFatigue.currentMaskingLevel > 0.7,
@@ -136,7 +139,7 @@ export const useMaskingStatus = () => useVelvetStore(
   (a, b) => Math.abs(a.level - b.level) < 0.1 && Math.abs(a.safetyLevel - b.safetyLevel) < 0.1
 );
 
-export const useEnergyTracking = () => useVelvetStore(
+const useEnergyTracking = () => useVelvetStore(
   state => ({
     currentEnergy: state.maskingFatigue.energyLevel,
     dailySpent: state.maskingFatigue.energyTracking.dailyEnergySpent,
@@ -147,7 +150,7 @@ export const useEnergyTracking = () => useVelvetStore(
   (a, b) => Math.abs(a.currentEnergy - b.currentEnergy) < 0.1 && Math.abs(a.dailySpent - b.dailySpent) < 0.1
 );
 
-export const useEnvironmentContext = () => useVelvetStore(
+const useEnvironmentContext = () => useVelvetStore(
   state => ({
     environment: state.maskingFatigue.contextAwareness.currentEnvironment,
     confidence: state.maskingFatigue.contextAwareness.environmentConfidence,
@@ -157,7 +160,7 @@ export const useEnvironmentContext = () => useVelvetStore(
   (a, b) => a.environment === b.environment && a.timeContext === b.timeContext
 );
 
-export const useCommunicationPatterns = () => useVelvetStore(
+const useCommunicationPatterns = () => useVelvetStore(
   state => ({
     formalityLevel: state.maskingFatigue.communicationPatterns.formalLanguage.currentLevel,
     emotionalLevel: state.maskingFatigue.communicationPatterns.emotionalExpression.currentLevel,
@@ -167,7 +170,7 @@ export const useCommunicationPatterns = () => useVelvetStore(
   (a, b) => Math.abs(a.formalityLevel - b.formalityLevel) < 0.1 && Math.abs(a.emotionalLevel - b.emotionalLevel) < 0.1
 );
 
-export const useUnmaskingOpportunity = () => useVelvetStore(
+const useUnmaskingOpportunity = () => useVelvetStore(
   state => ({
     hasOpportunity: state.maskingFatigue.safeSpaceDetection.recoveryOpportunities.length > 0,
     latest: state.maskingFatigue.safeSpaceDetection.lastUnmaskingPrompt,
@@ -180,7 +183,7 @@ export const useUnmaskingOpportunity = () => useVelvetStore(
 // VELVET BRAIN SELECTORS
 // ===========================================
 
-export const useConsciousnessStatus = () => useVelvetStore(
+const useConsciousnessStatus = () => useVelvetStore(
   state => ({
     level: state.velvetBrain.consciousnessLevel,
     isConscious: state.velvetBrain.consciousnessLevel > 0.7,
@@ -190,7 +193,7 @@ export const useConsciousnessStatus = () => useVelvetStore(
   (a, b) => Math.abs(a.level - b.level) < 0.1 && a.currentStage === b.currentStage
 );
 
-export const useThoughtCycleStatus = () => useVelvetStore(
+const useThoughtCycleStatus = () => useVelvetStore(
   state => ({
     cycleNumber: state.velvetBrain.currentThoughtCycle.cycleNumber,
     stage: state.velvetBrain.currentThoughtCycle.stage,
@@ -200,7 +203,7 @@ export const useThoughtCycleStatus = () => useVelvetStore(
   (a, b) => a.cycleNumber === b.cycleNumber && a.stage === b.stage
 );
 
-export const useBrainSubsystems = () => useVelvetStore(
+const useBrainSubsystems = () => useVelvetStore(
   state => ({
     sensoryInput: state.velvetBrain.subsystems.sensoryInput.connected,
     memory: state.velvetBrain.subsystems.memory.connected,
@@ -211,7 +214,7 @@ export const useBrainSubsystems = () => useVelvetStore(
   (a, b) => a.allConnected === b.allConnected
 );
 
-export const useBrainPerformance = () => useVelvetStore(
+const useBrainPerformance = () => useVelvetStore(
   state => ({
     thoughtCycles: state.velvetBrain.metrics.thoughtCycles,
     learningAccuracy: state.velvetBrain.metrics.learningAccuracy,
@@ -225,7 +228,7 @@ export const useBrainPerformance = () => useVelvetStore(
 // USER CONTEXT SELECTORS
 // ===========================================
 
-export const useCurrentEnvironment = () => useVelvetStore(
+const useCurrentEnvironment = () => useVelvetStore(
   state => ({
     type: state.userContext.environment.type,
     confidence: state.userContext.environment.confidence,
@@ -234,7 +237,7 @@ export const useCurrentEnvironment = () => useVelvetStore(
   (a, b) => a.type === b.type && Math.abs(a.confidence - b.confidence) < 0.1
 );
 
-export const useCurrentApplication = () => useVelvetStore(
+const useCurrentApplication = () => useVelvetStore(
   state => ({
     name: state.userContext.application.name,
     category: state.userContext.application.category,
@@ -243,7 +246,7 @@ export const useCurrentApplication = () => useVelvetStore(
   (a, b) => a.name === b.name && a.category === b.category
 );
 
-export const useScreenContext = () => useVelvetStore(
+const useScreenContext = () => useVelvetStore(
   state => ({
     hasText: state.userContext.screen.currentText.length > 0,
     textLength: state.userContext.screen.currentText.length,
@@ -254,7 +257,7 @@ export const useScreenContext = () => useVelvetStore(
   (a, b) => Math.abs(a.textLength - b.textLength) < 100 && a.activeWindow === b.activeWindow
 );
 
-export const useAudioContext = () => useVelvetStore(
+const useAudioContext = () => useVelvetStore(
   state => ({
     type: state.userContext.audio.primaryType,
     source: state.userContext.audio.source,
@@ -264,7 +267,7 @@ export const useAudioContext = () => useVelvetStore(
   (a, b) => a.type === b.type && a.source === b.source
 );
 
-export const useBehaviorContext = () => useVelvetStore(
+const useBehaviorContext = () => useVelvetStore(
   state => ({
     activity: state.userContext.behavior.currentActivity,
     focusState: state.userContext.behavior.focusState,
@@ -278,7 +281,7 @@ export const useBehaviorContext = () => useVelvetStore(
 // CROSS-FEATURE COORDINATION SELECTORS
 // ===========================================
 
-export const useCoordinationStatus = () => useVelvetStore(
+const useCoordinationStatus = () => useVelvetStore(
   state => ({
     activePriorities: state.coordination.activePriorities,
     activeInteractions: Object.keys(state.coordination.interactions).filter(
@@ -291,7 +294,7 @@ export const useCoordinationStatus = () => useVelvetStore(
             a.activeInterventions === b.activeInterventions
 );
 
-export const useActiveInterventions = () => useVelvetStore(
+const useActiveInterventions = () => useVelvetStore(
   state => ({
     all: state.coordination.unifiedInterventions.active,
     count: state.coordination.unifiedInterventions.active.length,
@@ -302,7 +305,7 @@ export const useActiveInterventions = () => useVelvetStore(
   (a, b) => a.count === b.count && a.latest?.timestamp === b.latest?.timestamp
 );
 
-export const useCrossFeatureInsights = () => useVelvetStore(
+const useCrossFeatureInsights = () => useVelvetStore(
   state => ({
     patterns: state.coordination.insights.patterns,
     correlations: state.coordination.insights.correlations,
@@ -323,7 +326,7 @@ export const useCrossFeatureInsights = () => useVelvetStore(
  * These are useful for complex UI components that need data from multiple sources
  */
 
-export const useOverallWellbeingStatus = () => useVelvetStore(
+const useOverallWellbeingStatus = () => useVelvetStore(
   state => {
     const crisisLevel = state.executiveDysfunction.currentCrisisLevel;
     const energyLevel = state.executiveDysfunction.energyLevel;
@@ -361,7 +364,7 @@ export const useOverallWellbeingStatus = () => useVelvetStore(
   (a, b) => a.status === b.status && a.concerns.length === b.concerns.length
 );
 
-export const useCurrentUserNeed = () => useVelvetStore(
+const useCurrentUserNeed = () => useVelvetStore(
   state => {
     const crisisLevel = state.executiveDysfunction.currentCrisisLevel;
     const maskingLevel = state.maskingFatigue.currentMaskingLevel;
@@ -434,7 +437,7 @@ export const useCurrentUserNeed = () => useVelvetStore(
   (a, b) => a.primary === b.primary && a.priority === b.priority
 );
 
-export const useOptimalIntervention = () => useVelvetStore(
+const useOptimalIntervention = () => useVelvetStore(
   state => {
     const activeInterventions = [
       state.socialDecoder.activeIntervention && { source: 'social', intervention: state.socialDecoder.activeIntervention },
@@ -483,7 +486,7 @@ export const useOptimalIntervention = () => useVelvetStore(
 /**
  * Custom hook for memoized complex computations
  */
-export const useFeatureCoordinationMatrix = () => {
+const useFeatureCoordinationMatrix = () => {
   const socialState = useSocialDecoderState();
   const executiveState = useExecutiveDysfunctionState();
   const maskingState = useMaskingFatigueState();

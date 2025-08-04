@@ -189,8 +189,13 @@ class VelvetAISecure {
       console.log('🧠 DEBUG: getBrainContext() called (ENHANCED STREAMING VERSION)');
       
       // Get real-time brain context from main process via IPC
+      console.log('🧠 DEBUG: About to call get-brain-context...');
       const streamingContext = await window.electronAPI.invoke('get-brain-context');
+      console.log('🧠 DEBUG: get-brain-context returned:', streamingContext);
+      
+      console.log('🧠 DEBUG: About to call get-stream-status...');
       const streamStatus = await window.electronAPI.invoke('get-stream-status');
+      console.log('🧠 DEBUG: get-stream-status returned:', streamStatus);
       
       console.log('🧠 DEBUG: Stream status:', streamStatus);
       console.log('🧠 DEBUG: Streaming context length:', streamingContext?.length);
@@ -302,8 +307,11 @@ class VelvetAISecure {
       let emergencyContextPrompt = "\n\n--- EXECUTIVE DYSFUNCTION EMERGENCY CONTEXT ---\n";
       
       // Check if emergency mode is active
+      console.log('🚨 DEBUG: Checking window.electronAPI?.emergencyMode:', !!window.electronAPI?.emergencyMode);
       if (window.electronAPI?.emergencyMode) {
+        console.log('🚨 DEBUG: About to call emergencyMode.getStatus()...');
         const emergencyStatus = await window.electronAPI.emergencyMode.getStatus();
+        console.log('🚨 DEBUG: emergencyMode.getStatus() returned:', emergencyStatus);
         
         if (emergencyStatus.isActive) {
           emergencyContextPrompt += "🚨 EMERGENCY MODE ACTIVE: Executive dysfunction monitoring enabled\n\n";
@@ -414,7 +422,10 @@ class VelvetAISecure {
       ];
 
       // Call GPT-4 via secure IPC to main process
+      console.log('🤖 AI-SECURE: About to call chatCompletion with', messages.length, 'messages');
+      console.log('🤖 AI-SECURE: System message length:', messages[0].content.length);
       const response = await window.electronAPI.chatCompletion(messages);
+      console.log('🤖 AI-SECURE: chatCompletion returned:', response?.substring(0, 100) + '...');
       
       // Update conversation history
       this.conversationHistory.push(
@@ -432,7 +443,9 @@ class VelvetAISecure {
       return response;
 
     } catch (error) {
-      console.error('Processing error:', error);
+      console.error('🚨 AI-SECURE: Processing error details:', error);
+      console.error('🚨 AI-SECURE: Error message:', error.message);
+      console.error('🚨 AI-SECURE: Error stack:', error.stack);
       return "My brain glitched, but I'm here. What's up?";
     }
   }

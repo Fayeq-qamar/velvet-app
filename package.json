@@ -2,7 +2,7 @@
   "name": "velvet-app",
   "version": "1.0.0",
   "description": "Velvet - Soft support for sharp minds",
-  "main": "src/main/index.js",
+  "main": "src/main/index-main-working.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",

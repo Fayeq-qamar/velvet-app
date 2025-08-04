@@ -9,17 +9,25 @@ if (typeof window === 'undefined') {
 } else if (!window.React || !window.ReactDOM) {
   console.error('❌ CONSCIOUSNESS LOADER: React not available. Loading React first...');
   
-  // Load React if not available
+  // Load React from local installation if not available
   const reactScript = document.createElement('script');
-  reactScript.src = 'https://unpkg.com/react@18/umd/react.development.js';
+  reactScript.src = '../node_modules/react/umd/react.development.js';
   reactScript.onload = () => {
     const reactDOMScript = document.createElement('script');
-    reactDOMScript.src = 'https://unpkg.com/react-dom@18/umd/react-dom.development.js';
+    reactDOMScript.src = '../node_modules/react-dom/umd/react-dom.development.js';
     reactDOMScript.onload = () => {
-      console.log('✅ React loaded, initializing consciousness...');
+      console.log('✅ React loaded from local, initializing consciousness...');
+      initializeConsciousness();
+    };
+    reactDOMScript.onerror = () => {
+      console.warn('⚠️ Local React-DOM failed, consciousness will run without React');
       initializeConsciousness();
     };
     document.head.appendChild(reactDOMScript);
+  };
+  reactScript.onerror = () => {
+    console.warn('⚠️ Local React failed, consciousness will run without React');
+    initializeConsciousness();
   };
   document.head.appendChild(reactScript);
 } else {
@@ -31,13 +39,11 @@ function initializeConsciousness() {
   console.log('🧠 CONSCIOUSNESS LOADER: Initializing unified consciousness system...');
   
   try {
-    // Load Zustand
+    // Load Zustand from local (skip for now as it's not essential)
     if (!window.zustand) {
-      console.log('📦 Loading Zustand...');
-      importScript('https://unpkg.com/zustand@5.0.7/esm/index.js', () => {
-        console.log('✅ Zustand loaded');
-        setupConsciousnessStore();
-      });
+      console.log('📦 Zustand not available - using fallback consciousness store...');
+      // Skip Zustand loading and use fallback directly
+      setupConsciousnessStore();
     } else {
       setupConsciousnessStore();
     }

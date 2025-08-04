@@ -51,6 +51,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
     }
   },
 
+  // NEW: Enhanced Executive Function APIs
+  executiveFunction: {
+    getStatus: () => ipcRenderer.invoke('executive-function-status'),
+    activateSafeSpace: () => ipcRenderer.invoke('executive-function-safe-space'),
+    test: (testType) => ipcRenderer.invoke('executive-function-test', testType),
+    getTestList: () => ipcRenderer.invoke('executive-function-test-list'),
+    
+    // Event listeners for enhanced executive function events
+    onPatternDetected: (callback) => {
+      ipcRenderer.on('executive-pattern-detected', (event, data) => callback(data));
+    },
+    onInterventionTriggered: (callback) => {
+      ipcRenderer.on('executive-intervention-triggered', (event, data) => callback(data));
+    },
+    onSafeSpaceActivated: (callback) => {
+      ipcRenderer.on('executive-safe-space-activated', (event, data) => callback(data));
+    }
+  },
+
   // Checklist window controls
   checklist: {
     show: (taskData) => ipcRenderer.invoke('checklist-show', taskData),
@@ -186,6 +205,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     getHealth: () => ipcRenderer.invoke('db:health'),
     getAnalytics: (timeRange) => ipcRenderer.invoke('db:analytics', timeRange),
     getLearningInsights: () => ipcRenderer.invoke('db:learning-insights'),
+    // NEW: Simple health check for control panel
+    healthCheck: () => ipcRenderer.invoke('db-health-check'),
+    getStatus: () => ipcRenderer.invoke('db-status'),
     
     // Social Decoder operations
     social: {

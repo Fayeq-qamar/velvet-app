@@ -1,0 +1,77 @@
+PASTE THIS IN VELVET CONSOLE TO TEST SCREEN OCR WITH LOCAL TESSERACT.JS:
+================================================================
+
+// 🔍 TEST LOCAL TESSERACT.JS SCREEN OCR
+(async function testLocalTesseract() {
+    console.log('🔍 TESTING LOCAL TESSERACT.JS SCREEN OCR');
+    console.log('======================================');
+    
+    // Test 1: Check if Tesseract is loaded
+    console.log('\n📚 Step 1: Checking Tesseract.js availability...');
+    if (typeof Tesseract !== 'undefined') {
+        console.log('✅ Tesseract.js loaded successfully from local installation!');
+        console.log('📦 Tesseract version:', Tesseract.version || 'Available');
+    } else {
+        console.log('❌ Tesseract.js not available');
+        console.log('💡 Local installation may have failed to load');
+        return;
+    }
+    
+    // Test 2: Check Screen OCR Monitor
+    console.log('\n👁️ Step 2: Checking Screen OCR Monitor...');
+    if (typeof window.screenOCRMonitor !== 'undefined') {
+        console.log('✅ Screen OCR Monitor found');
+        console.log('📊 Active status:', window.screenOCRMonitor.isActive);
+        
+        // Try to initialize if not active
+        if (!window.screenOCRMonitor.isActive) {
+            console.log('🔧 Attempting to initialize Screen OCR Monitor...');
+            try {
+                const result = await window.screenOCRMonitor.initialize();
+                if (result) {
+                    console.log('✅ Screen OCR Monitor initialized successfully!');
+                    console.log('🎯 Screen text extraction should now work');
+                } else {
+                    console.log('❌ Screen OCR Monitor failed to initialize');
+                }
+            } catch (error) {
+                console.log('❌ Screen OCR initialization error:', error.message);
+            }
+        } else {
+            console.log('✅ Screen OCR Monitor already active!');
+        }
+    } else {
+        console.log('❌ Screen OCR Monitor not found');
+    }
+    
+    // Test 3: Check Real Screen OCR Monitor (backup)
+    console.log('\n📱 Step 3: Checking Real Screen OCR Monitor...');
+    if (typeof RealScreenOCRMonitor !== 'undefined') {
+        console.log('✅ RealScreenOCRMonitor class available');
+        try {
+            const realOCR = new RealScreenOCRMonitor();
+            const initResult = await realOCR.initialize();
+            console.log('✅ Real Screen OCR Monitor test result:', initResult);
+        } catch (error) {
+            console.log('❌ Real Screen OCR Monitor test failed:', error.message);
+        }
+    } else {
+        console.log('❌ RealScreenOCRMonitor class not found');
+    }
+    
+    console.log('\n🏁 LOCAL TESSERACT.JS TEST COMPLETED');
+    console.log('====================================');
+    
+    // Summary
+    if (typeof Tesseract !== 'undefined') {
+        console.log('🎉 SUCCESS: Local Tesseract.js is working!');
+        console.log('📋 No more CDN dependency issues');
+        console.log('⚡ Screen OCR should be faster and more reliable now');
+    } else {
+        console.log('❌ ISSUE: Local Tesseract.js not loading properly');
+        console.log('💡 Check HTML script path and installation');
+    }
+    
+})();
+
+================================================================

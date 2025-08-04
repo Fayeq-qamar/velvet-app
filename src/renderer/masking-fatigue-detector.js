@@ -567,6 +567,162 @@ class MaskingFatigueDetector {
     }
     
     /**
+     * Analyze current masking level based on context
+     */
+    analyzeMaskingLevel(context) {
+        try {
+            let maskingScore = 0.0; // 0 = authentic, 1 = heavily masked
+            let indicators = [];
+            
+            // Environment-based masking assessment
+            if (context.environment === 'work') {
+                maskingScore += 0.4;
+                indicators.push('work_environment');
+            } else if (context.environment === 'school') {
+                maskingScore += 0.3;
+                indicators.push('academic_environment');
+            } else if (context.environment === 'home') {
+                maskingScore += 0.1;
+                indicators.push('home_environment');
+            }
+            
+            // Time context influence
+            if (context.timeContext === 'morning_work' || context.timeContext === 'afternoon_work') {
+                maskingScore += 0.2;
+                indicators.push('work_hours');
+            }
+            
+            // Social load factor
+            if (context.socialLoad > 0.7) {
+                maskingScore += 0.3;
+                indicators.push('high_social_load');
+            } else if (context.socialLoad < 0.3) {
+                maskingScore -= 0.1;
+                indicators.push('low_social_load');
+            }
+            
+            // Safety level inverse relationship
+            if (context.safetyLevel < 0.4) {
+                maskingScore += 0.2;
+                indicators.push('unsafe_environment');
+            } else if (context.safetyLevel > 0.8) {
+                maskingScore -= 0.2;
+                indicators.push('safe_environment');
+            }
+            
+            // Confidence weighting
+            const confidenceMultiplier = context.environmentConfidence || 0.5;
+            maskingScore = maskingScore * confidenceMultiplier;
+            
+            // Clamp to valid range
+            maskingScore = Math.max(0, Math.min(1, maskingScore));
+            
+            this.currentMaskingLevel = maskingScore;
+            
+            return {
+                level: maskingScore,
+                indicators: indicators,
+                context: context,
+                timestamp: Date.now(),
+                confidence: confidenceMultiplier
+            };
+            
+        } catch (error) {
+            console.error('❌ Masking level analysis failed:', error);
+            return {
+                level: 0.5,
+                indicators: ['analysis_error'],
+                context: context,
+                timestamp: Date.now(),
+                confidence: 0.1
+            };
+        }
+    }
+    
+    /**
+     * Update masking history with new analysis
+     */
+    updateMaskingHistory(maskingAnalysis) {
+        try {
+            // Add to masking history
+            this.maskingHistory.push(maskingAnalysis);
+            
+            // Maintain history size limit
+            const maxHistoryEntries = this.config?.maxHistoryEntries || 50;
+            if (this.maskingHistory.length > maxHistoryEntries) {
+                this.maskingHistory.shift();
+            }
+            
+            // Update current masking level
+            this.currentMaskingLevel = maskingAnalysis.level;
+            
+            console.log(`🎭 Masking history updated: ${this.maskingHistory.length} entries, current level: ${maskingAnalysis.level.toFixed(2)}`);
+            
+        } catch (error) {
+            console.error('❌ Failed to update masking history:', error);
+        }
+    }
+
+    /**
+     * Detect masking fatigue patterns from history
+     */
+    detectMaskingFatigue() {
+        try {
+            const fatigueIndicators = [];
+            
+            // Check if we have enough history
+            if (this.maskingHistory.length < 3) {
+                return fatigueIndicators;
+            }
+            
+            // Recent trend analysis
+            const recentEntries = this.maskingHistory.slice(-5);
+            const avgRecentLevel = recentEntries.reduce((sum, entry) => sum + entry.level, 0) / recentEntries.length;
+            
+            // High sustained masking
+            if (avgRecentLevel > 0.7) {
+                fatigueIndicators.push({
+                    type: 'high_sustained_masking',
+                    severity: avgRecentLevel,
+                    description: 'High masking levels detected over time',
+                    recommendation: 'safe_space_transition'
+                });
+            }
+            
+            // Increasing masking trend
+            const firstHalf = recentEntries.slice(0, Math.floor(recentEntries.length / 2));
+            const secondHalf = recentEntries.slice(Math.floor(recentEntries.length / 2));
+            const firstAvg = firstHalf.reduce((sum, entry) => sum + entry.level, 0) / firstHalf.length;
+            const secondAvg = secondHalf.reduce((sum, entry) => sum + entry.level, 0) / secondHalf.length;
+            
+            if (secondAvg > firstAvg + 0.2) {
+                fatigueIndicators.push({
+                    type: 'increasing_masking_trend',
+                    severity: secondAvg - firstAvg,
+                    description: 'Masking levels are increasing',
+                    recommendation: 'energy_check'
+                });
+            }
+            
+            // Energy depletion pattern
+            if (this.energyLevel < 0.3 && avgRecentLevel > 0.5) {
+                fatigueIndicators.push({
+                    type: 'energy_masking_conflict',
+                    severity: avgRecentLevel - this.energyLevel,
+                    description: 'High masking despite low energy',
+                    recommendation: 'urgent_rest'
+                });
+            }
+            
+            return fatigueIndicators;
+            
+        } catch (error) {
+            console.error('❌ Error detecting masking fatigue:', error);
+            return [];
+        }
+    }
+    
+    /**
      * Analyze communication for masking indicators
      */
     analyzeCommunicationForMasking(socialAnalysis) {

@@ -80,10 +80,10 @@ function createWindow() {
             }
         });
 
-        // 🥷 CRITICAL: Enable stealth mode - hide from screen capture/recording
+        // 🥷 STEALTH MODE RE-ENABLED AFTER DEMO
         mainWindow.setContentProtection(true);
         mainWindow.setVisibleOnAllWorkspaces(false);
-        console.log('🥷 Main window stealth mode enabled');
+        console.log('🥷 Stealth mode RE-ENABLED - main window protected');
 
         // Error handlers
         mainWindow.on('unresponsive', () => {
@@ -320,10 +320,10 @@ ipcMain.handle('open-control-panel', async () => {
         }
     });
 
-    // 🥷 Enable stealth mode for control panel
+    // 🥷 STEALTH MODE RE-ENABLED AFTER DEMO
     controlPanelWindow.setContentProtection(true);
     controlPanelWindow.setVisibleOnAllWorkspaces(false);
-    console.log('🥷 Control panel stealth mode enabled');
+    console.log('🥷 Control panel stealth mode RE-ENABLED');
 
     controlPanelWindow.loadFile(path.join(__dirname, '../../public/control-panel.html'));
     
@@ -377,10 +377,10 @@ ipcMain.handle('open-meeting-assistant', async () => {
         }
     });
 
-    // 🥷 Enable stealth mode for meeting assistant
+    // 🥷 STEALTH MODE RE-ENABLED AFTER DEMO
     meetingAssistantWindow.setContentProtection(true);
     meetingAssistantWindow.setVisibleOnAllWorkspaces(false);
-    console.log('🥷 Meeting assistant stealth mode enabled');
+    console.log('🥷 Meeting assistant stealth mode RE-ENABLED');
 
     meetingAssistantWindow.loadFile(path.join(__dirname, '../../public/meeting-assistant.html'));
     
@@ -419,10 +419,10 @@ ipcMain.handle('open-checklist', async () => {
         }
     });
 
-    // 🥷 Enable stealth mode for checklist
+    // 🥷 STEALTH MODE RE-ENABLED AFTER DEMO (checklist)
     checklistWindow.setContentProtection(true);
     checklistWindow.setVisibleOnAllWorkspaces(false);
-    console.log('🥷 Checklist stealth mode enabled');
+    console.log('🥷 Checklist stealth mode RE-ENABLED');
 
     checklistWindow.loadFile(path.join(__dirname, '../../public/checklist.html'));
     
@@ -545,10 +545,10 @@ ipcMain.handle('meeting-assistant-show', async (event, meetingData) => {
                     }
                 });
                 
-                // 🥷 Enable stealth mode for meeting assistant (show handler)
+                // 🥷 STEALTH MODE RE-ENABLED AFTER DEMO (show handler)
                 meetingAssistantWindow.setContentProtection(true);
                 meetingAssistantWindow.setVisibleOnAllWorkspaces(false);
-                console.log('🥷 Meeting assistant stealth mode enabled (show)');
+                console.log('🥷 Meeting assistant stealth mode RE-ENABLED (show)');
 
                 meetingAssistantWindow.loadFile(path.join(__dirname, '../../public/meeting-assistant.html'));
                 
@@ -616,10 +616,10 @@ ipcMain.handle('open-dashboard', async () => {
         }
     });
 
-    // 🥷 Enable stealth mode for dashboard
+    // 🥷 STEALTH MODE RE-ENABLED AFTER DEMO (dashboard)
     dashboardWindow.setContentProtection(true);
     dashboardWindow.setVisibleOnAllWorkspaces(false);
-    console.log('🥷 Dashboard stealth mode enabled');
+    console.log('🥷 Dashboard stealth mode RE-ENABLED');
 
     dashboardWindow.loadFile(path.join(__dirname, '../../public/dashboard.html'));
     

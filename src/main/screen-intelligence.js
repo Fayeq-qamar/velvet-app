@@ -2,10 +2,12 @@
 const { screen, powerMonitor, BrowserWindow } = require('electron');
 const { exec } = require('child_process');
 const { promisify } = require('util');
+const { EventEmitter } = require('events');
 const execAsync = promisify(exec);
 
-class ScreenIntelligence {
+class ScreenIntelligence extends EventEmitter {
   constructor() {
+    super();
     this.isMonitoring = false;
     this.currentWindow = null;
     this.windowHistory = [];

@@ -1,0 +1,78 @@
+/* Velvet Tailwind CSS Global Styles */
+/* "Soft support for sharp minds" - Neurodivergent-friendly styling foundation */
+
+@import "tailwindcss";
+
+/* Base layer customizations for neurodivergent-friendly experience */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    background: transparent;
+    color: white;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  
+  /* Ensure consistent button and input styling */
+  button, input {
+    font-family: inherit;
+  }
+  
+  /* Remove default focus styles that can be jarring */
+  *:focus {
+    outline: none;
+  }
+  
+  /* Custom smooth focus states for accessibility */
+  *:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* Custom base styles for better scrollbars and accessibility */
+@layer base {
+  /* Webkit scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 2px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    border-radius: 2px;
+  }
+}
+
+/* Component layer for tooltips */
+@layer components {
+  /* Simple tooltip implementation */
+  [data-tooltip] {
+    @apply relative;
+  }
+  
+  [data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    @apply absolute bottom-full left-1/2 transform -translate-x-1/2 -translate-y-2;
+    @apply bg-black/80 text-white px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap;
+    @apply opacity-100 z-[10000];
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(-8px); }
+  }
+}

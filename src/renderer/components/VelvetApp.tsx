@@ -286,7 +286,7 @@ const VelvetApp: React.FC<VelvetAppProps> = ({ className = '' }) => {
   }, []);
 
   return (
-    <div className={`velvet-app ${className}`}>
+    <div className={`w-full h-full relative ${className}`}>
       {/* Main glassmorphism orb */}
       <VelvetOrbComponent
         state={uiState.orbState}

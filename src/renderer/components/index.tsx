@@ -4,6 +4,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import VelvetApp from './VelvetApp';
+import '../styles/globals.css';
 
 // Initialize React app when DOM is ready
 const initializeVelvetReact = () => {

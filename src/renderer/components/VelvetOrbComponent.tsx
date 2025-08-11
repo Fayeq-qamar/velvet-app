@@ -1,56 +1,45 @@
-// 🔮 Velvet Orb Component - Tailwind Edition
-// "Gentle companion that understands your brain" - Main glassmorphism orb with states
+// 🔮 Velvet Orb Component - Framer Motion Edition
+// "Gentle companion that understands your brain" - Main glassmorphism orb with smooth animations
 
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { VelvetOrbProps } from '../../types/global';
+import { useMotion } from '../hooks/useMotion';
 
 const VelvetOrbComponent: React.FC<VelvetOrbProps> = ({
   state = 'normal',
   onClick,
   className = ''
 }) => {
+  const motionConfig = useMotion();
 
   const getStateClasses = () => {
-    const baseClasses = [
-      // Base orb styling with Tailwind
+    return [
+      // Base orb styling with Tailwind (removed CSS animations for Framer Motion)
       'w-[70px] h-[70px]',
       'fixed bottom-6 right-6 z-[1000]',
       'border-0 rounded-full cursor-pointer',
-      'transition-all duration-500 ease-out',
       'flex items-center justify-center',
       'text-[32px] font-semibold',
       'text-white/95 pointer-events-auto',
       'relative',
       
       // Glassmorphism effect - using inline styles for complex gradients
-      'backdrop-blur-[20px] border border-blue-500/30',
-      
-      // Hover states
-      'hover:scale-105 active:scale-95'
+      'backdrop-blur-[20px] border border-blue-500/30'
     ];
+  };
 
-    // State-specific classes
+  // Get text color based on state for Framer Motion
+  const getStateTextColor = () => {
     switch (state) {
       case 'listening':
-        return [
-          ...baseClasses,
-          'text-[#ff453a]',
-          'animate-pulse'
-        ];
+        return '#ff453a';
       case 'speaking':
-        return [
-          ...baseClasses,
-          'text-cyan-500',
-          'animate-bounce'
-        ];
+        return '#06b6d4';
       case 'thinking':
-        return [
-          ...baseClasses,
-          'text-purple-500',
-          'animate-pulse'
-        ];
+        return '#8b5cf6';
       default:
-        return baseClasses;
+        return '#ffffff';
     }
   };
 
@@ -95,16 +84,130 @@ const VelvetOrbComponent: React.FC<VelvetOrbProps> = ({
     }
   };
 
+  // Animation variants based on state
+  const getStateAnimations = () => {
+    const baseAnimation = {
+      ...getBackgroundStyle(),
+      color: getStateTextColor()
+    };
+
+    switch (state) {
+      case 'listening':
+        return {
+          ...baseAnimation,
+          ...(!motionConfig.reducedMotion && {
+            scale: [1, 1.05, 1],
+            rotate: [0, 1, -1, 0]
+          })
+        };
+      case 'speaking':
+        return {
+          ...baseAnimation,
+          ...(!motionConfig.reducedMotion && {
+            scale: [1, 1.02, 1.04, 1],
+            y: [0, -2, 0, -1, 0]
+          })
+        };
+      case 'thinking':
+        return {
+          ...baseAnimation,
+          ...(!motionConfig.reducedMotion && {
+            opacity: [0.8, 1, 0.9, 1],
+            scale: [1, 1.01, 1]
+          })
+        };
+      default:
+        return {
+          ...baseAnimation,
+          ...motionConfig.breathe.animate
+        };
+    }
+  };
+
+  // Transition configuration based on state
+  const getStateTransition = () => {
+    if (motionConfig.reducedMotion) {
+      return { duration: 0 };
+    }
+
+    switch (state) {
+      case 'listening':
+        return {
+          duration: 1.5,
+          repeat: Infinity,
+          ease: "easeInOut"
+        };
+      case 'speaking':
+        return {
+          duration: 0.8,
+          repeat: Infinity,
+          ease: "easeInOut"
+        };
+      case 'thinking':
+        return {
+          duration: 2.5,
+          repeat: Infinity,
+          ease: "easeInOut"
+        };
+      default:
+        return motionConfig.breathe.transition;
+    }
+  };
+
   return (
-    <button 
-      className={`${getStateClasses().join(' ')} ${className}`}
-      style={getBackgroundStyle()}
-      onClick={onClick}
-      data-tooltip="Click to open Velvet"
-      aria-label={`Velvet assistant - ${state} state`}
-    >
-      {getStateContent()}
-    </button>
+    <AnimatePresence mode="wait">
+      <motion.button 
+        key={state} // Re-mount on state change for smooth transitions
+        className={`${getStateClasses().join(' ')} ${className}`}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={getStateAnimations()}
+        exit={{ scale: 0.8, opacity: 0 }}
+        whileHover={motionConfig.reducedMotion ? {} : { 
+          scale: 1.08,
+          boxShadow: "0 0 30px rgba(59, 130, 246, 0.4)"
+        }}
+        whileTap={motionConfig.reducedMotion ? {} : { 
+          scale: 0.95 
+        }}
+        whileFocus={motionConfig.reducedMotion ? {} : {
+          ...motionConfig.focusRing.animate
+        }}
+        transition={{
+          ...getStateTransition(),
+          // Override for interaction states
+          whileHover: { duration: 0.2, ease: "easeOut" },
+          whileTap: { duration: 0.1 },
+          whileFocus: motionConfig.focusRing.transition
+        }}
+        onClick={onClick}
+        data-tooltip="Click to open Velvet"
+        aria-label={`Velvet assistant - ${state} state`}
+        // Accessibility improvements
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick?.();
+          }
+        }}
+      >
+        <motion.span
+          animate={motionConfig.reducedMotion ? {} : {
+            ...(state === 'thinking' && {
+              opacity: [1, 0.5, 1],
+            })
+          }}
+          transition={motionConfig.reducedMotion ? {} : {
+            duration: 1.8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          {getStateContent()}
+        </motion.span>
+      </motion.button>
+    </AnimatePresence>
   );
 };
 

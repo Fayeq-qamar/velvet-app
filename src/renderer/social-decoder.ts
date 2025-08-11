@@ -32,20 +32,7 @@ interface DetectionCallback {
     (detection: any): void;
 }
 
-// Define window extensions for global objects
-declare global {
-    interface Window {
-        realAudioEnvironmentMonitor?: {
-            onContextUpdate: (callback: (audioContext: AudioContext) => void) => void;
-            onMicrophoneData: (callback: (audioData: AudioData) => void) => void;
-        };
-        realScreenOCRMonitor?: {
-            onTextDetected: (callback: (text: string) => void) => void;
-        };
-        velvetAI?: any;
-        socialDecoder?: SocialDecoder;
-    }
-}
+// Window extensions are defined in global.d.ts to avoid conflicts
 
 class SocialDecoder {
     private isActive: boolean;

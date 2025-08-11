@@ -50,7 +50,7 @@ const TaskBreakdownComponent: React.FC<TaskBreakdownComponentProps> = ({
       await markStepCompleted(activeTask.id, stepId, false);
       
       if (completed) {
-        const step = activeTask.steps.find(s => s.id === stepId);
+        const step = activeTask.steps.find((s: TaskStep) => s.id === stepId);
         if (step) {
           setCelebrationMessage(`✅ Great job on "${step.title}"!`);
           setCelebrationVisible(true);
@@ -82,7 +82,7 @@ const TaskBreakdownComponent: React.FC<TaskBreakdownComponentProps> = ({
     return null;
   }
 
-  const completedSteps = activeTask.steps.filter(step => step.isCompleted).length;
+  const completedSteps = activeTask.steps.filter(step => step.completed).length;
   const progressPercentage = Math.round(activeTask.progress * 100);
   const isCompleted = progressPercentage >= 100;
 
@@ -166,7 +166,7 @@ const TaskBreakdownComponent: React.FC<TaskBreakdownComponentProps> = ({
               <div className="task-steps">
                 <h4 className="steps-title">Steps to Complete</h4>
                 
-                {activeTask.steps.map((step, index) => (
+                {activeTask.steps.map((step: TaskStep, index: number) => (
                   <TaskStepItem
                     key={step.id}
                     step={step}
@@ -221,12 +221,12 @@ interface TaskStepItemProps {
   onToggleComplete: (completed: boolean) => void;
 }
 
-const TaskStepItem: React.FC<TaskStepItemProps> = ({ step, index, onToggleComplete }) => {
+const TaskStepItem: React.FC<TaskStepItemProps> = ({ step, index, onToggleComplete }: TaskStepItemProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div 
-      className={`task-step ${step.isCompleted ? 'completed' : ''} ${step.autoCompleted ? 'auto-completed' : ''}`}
+      className={`task-step ${step.completed ? 'completed' : ''} ${(step as any).autoCompleted ? 'auto-completed' : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -234,7 +234,7 @@ const TaskStepItem: React.FC<TaskStepItemProps> = ({ step, index, onToggleComple
         <label className="step-checkbox-container">
           <input
             type="checkbox"
-            checked={step.isCompleted}
+            checked={step.completed}
             onChange={(e) => onToggleComplete(e.target.checked)}
             className="step-checkbox"
           />
@@ -246,8 +246,8 @@ const TaskStepItem: React.FC<TaskStepItemProps> = ({ step, index, onToggleComple
             <span className="step-number">{index + 1}.</span>
             <h5 className="step-title">{step.title}</h5>
             <div className="step-meta">
-              <span className="step-duration">{step.expectedDuration}m</span>
-              {step.autoCompleted && (
+              <span className="step-duration">{step.estimatedMinutes}m</span>
+              {(step as any).autoCompleted && (
                 <span className="step-auto-badge" title="Automatically detected">🤖</span>
               )}
             </div>

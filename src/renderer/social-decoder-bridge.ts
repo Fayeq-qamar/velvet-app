@@ -185,15 +185,8 @@ if (typeof window !== 'undefined') {
 }
 
 // Make it globally available for JavaScript code
-declare global {
-    interface Window {
-        socialDecoderBridge: SocialDecoderBridge;
-        screenOCRMonitorReal?: any;
-        audioEnvironmentMonitorReal?: any;
-        getVelvetResponse?: (message: string, options?: any) => Promise<string>;
-    }
+if (typeof window !== 'undefined') {
+    (window as any).socialDecoderBridge = socialDecoderBridge;
 }
-
-window.socialDecoderBridge = socialDecoderBridge;
 
 export default socialDecoderBridge;

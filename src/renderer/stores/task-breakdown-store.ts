@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
-import { Task, TaskStep, taskBreakdownEngine } from '../engines/TaskBreakdownEngine';
+import { Task, TaskStep, TaskBreakdownEngine, taskBreakdownEngine } from '../engines/TaskBreakdownEngine';
 
 /**
  * Task Breakdown Store: Centralized state management for task system
@@ -86,7 +86,7 @@ export interface TaskAnalytics {
   preferredTaskTypes: string[];
   completionRate: number; // percentage of started tasks that get completed
   averageStepsPerTask: number;
-  topAppsUsed: string[];
+  topAppsUsed: Record<string, number>;
 }
 
 // Create the Zustand store with middleware for subscriptions
@@ -119,7 +119,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     setActiveTask: (task: Task | null) => {
       console.log('📋 Setting active task:', task?.title || 'none');
       
-      set((state) => {
+      set((state: TaskBreakdownState) => {
         const newState = { 
           ...state, 
           activeTask: task,
@@ -147,18 +147,21 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
         await taskBreakdownEngine.updateTaskProgress(taskId, stepId, completed, autoCompleted);
         
         // Update local state
-        set((state) => {
+        set((state: TaskBreakdownState) => {
           if (state.activeTask?.id === taskId) {
             const updatedTask = { ...state.activeTask };
             const step = updatedTask.steps.find(s => s.id === stepId);
             
             if (step) {
-              step.isCompleted = completed;
-              step.autoCompleted = autoCompleted;
-              if (completed) step.completedAt = Date.now();
+              step.completed = completed;
+              if (autoCompleted) {
+                // Add autoCompleted flag to step metadata if needed
+                (step as any).autoCompleted = autoCompleted;
+              }
+              if (completed) step.completedAt = new Date();
               
               // Recalculate progress
-              const completedSteps = updatedTask.steps.filter(s => s.isCompleted).length;
+              const completedSteps = updatedTask.steps.filter(s => s.completed).length;
               updatedTask.progress = completedSteps / updatedTask.steps.length;
             }
             
@@ -196,7 +199,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     completeTask: async (taskId: string) => {
       console.log('🎉 Completing task:', taskId);
       
-      set((state) => {
+      set((state: TaskBreakdownState) => {
         if (state.activeTask?.id === taskId) {
           const completedTask = {
             ...state.activeTask,
@@ -255,7 +258,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     // UI Actions
     showTaskUI: () => {
       console.log('👁️ Showing task UI');
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         isTaskUIVisible: true,
         isTaskUIMinimized: false,
@@ -265,7 +268,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
 
     hideTaskUI: () => {
       console.log('🫥 Hiding task UI');
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         isTaskUIVisible: false,
         lastInteractionTime: Date.now()
@@ -273,7 +276,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     },
 
     expandTaskUI: () => {
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         isTaskUIExpanded: true,
         isTaskUIMinimized: false,
@@ -282,7 +285,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     },
 
     minimizeTaskUI: () => {
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         isTaskUIExpanded: false,
         isTaskUIMinimized: true,
@@ -291,7 +294,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     },
 
     toggleTaskUI: () => {
-      set((state) => {
+      set((state: TaskBreakdownState) => {
         const shouldShow = !state.isTaskUIVisible;
         return {
           ...state,
@@ -311,7 +314,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     celebrateProgress: (message: string) => {
       console.log('🎉 Celebrating:', message);
       
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         celebrationQueue: [...state.celebrationQueue, message],
         lastInteractionTime: Date.now()
@@ -347,7 +350,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
       });
       
       // Clear queue
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         celebrationQueue: []
       }));
@@ -357,7 +360,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
     updateUserPreferences: (preferences: Partial<TaskBreakdownState>) => {
       console.log('📈 Updating user preferences:', Object.keys(preferences));
       
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         ...preferences,
         lastInteractionTime: Date.now()
@@ -390,8 +393,8 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
           ? completedTasks.reduce((sum, task) => sum + task.steps.length, 0) / completedTasks.length
           : 0,
         topAppsUsed: state.activeTask?.steps
-          .flatMap(step => step.expectedApps)
-          .reduce((acc: any, app) => {
+          .flatMap((step: TaskStep) => step.expectedApps)
+          .reduce((acc: Record<string, number>, app: string) => {
             acc[app] = (acc[app] || 0) + 1;
             return acc;
           }, {}) || {}
@@ -400,7 +403,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
 
     resetDailyProgress: () => {
       console.log('🌅 Resetting daily progress');
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         completedTasksToday: 0,
         celebrationQueue: [],
@@ -415,7 +418,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
       try {
         const initialized = await taskBreakdownEngine.initialize();
         
-        set((state) => ({
+        set((state: TaskBreakdownState) => ({
           ...state,
           isEngineInitialized: initialized,
           engineMetrics: initialized ? taskBreakdownEngine.getMetrics() : null
@@ -431,7 +434,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
         
       } catch (error) {
         console.error('❌ Engine initialization failed:', error);
-        set((state) => ({
+        set((state: TaskBreakdownState) => ({
           ...state,
           isEngineInitialized: false,
           engineMetrics: null
@@ -442,7 +445,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
 
     refreshEngineMetrics: () => {
       if (get().isEngineInitialized) {
-        set((state) => ({
+        set((state: TaskBreakdownState) => ({
           ...state,
           engineMetrics: taskBreakdownEngine.getMetrics()
         }));
@@ -455,7 +458,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
       await get().saveToStorage();
       await taskBreakdownEngine.shutdown();
       
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         isEngineInitialized: false,
         engineMetrics: null
@@ -470,7 +473,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
       
       // Check if user completed tasks yesterday to maintain streak
       // This would be more complex in a real implementation
-      set((state) => ({
+      set((state: TaskBreakdownState) => ({
         ...state,
         currentStreak: state.completedTasksToday > 0 ? state.currentStreak + 1 : 0
       }));
@@ -504,7 +507,7 @@ export const useTaskBreakdownStore = create<TaskBreakdownState>()(
           const saved = await window.electronAPI.storage.get('task_breakdown_state');
           
           if (saved) {
-            set((state) => ({
+            set((state: TaskBreakdownState) => ({
               ...state,
               ...saved,
               lastInteractionTime: Date.now()

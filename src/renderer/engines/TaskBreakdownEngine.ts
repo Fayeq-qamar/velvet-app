@@ -29,6 +29,34 @@ export interface TaskStep {
     completionConfidence?: number; // How confident we are this step is done (0-1)
 }
 
+export interface Task {
+    id: string;
+    title: string;
+    originalInput: string;
+    description: string;
+    estimatedDuration: number;
+    steps: TaskStep[];
+    priority: 'low' | 'medium' | 'high' | 'urgent';
+    type: string;
+    category: string;
+    createdAt: number;
+    completedAt?: number;
+    progress: number;
+    isActive: boolean;
+    complexity: 'simple' | 'moderate' | 'complex' | 'overwhelming';
+    aiAnalysis?: {
+        detectedIntention?: string;
+        difficultyAssessment?: string;
+    };
+    executiveDysfunction?: {
+        overwhelmRisk: number;
+        procrastinationLikely: boolean;
+        focusRequirement: 'low' | 'medium' | 'high';
+        energyRequirement: 'low' | 'medium' | 'high';
+        dopamineReward: 'immediate' | 'delayed' | 'cumulative';
+    };
+}
+
 export interface TaskBreakdown {
     id: string;
     title: string;
@@ -64,7 +92,7 @@ export interface TaskAnalysis {
 class TaskBreakdownEngine {
     private aiEndpoint: string = '/api/openai'; // Will use main process IPC
     private isInitialized: boolean = false;
-    private taskHistory: TaskBreakdown[] = [];
+    private taskHistory: Task[] = [];
     
     // Executive dysfunction-aware prompts
     private readonly ANALYSIS_PROMPT = `
@@ -199,7 +227,7 @@ Create a JSON response:
             }
             
             // Fallback to direct fetch if electronAPI not available
-            if (typeof window !== 'undefined' && window.fetch) {
+            if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
                 const response = await fetch('/api/test-openai', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -275,7 +303,7 @@ Create a JSON response:
     /**
      * Analyze AND breakdown task in one operation (most common use case)
      */
-    async analyzeAndBreakdownTask(input: string, context?: any): Promise<TaskBreakdown | null> {
+    async analyzeAndBreakdownTask(input: string, context?: any): Promise<Task | null> {
         try {
             console.log('🧠 Analyzing and breaking down task...');
             
@@ -305,7 +333,7 @@ Create a JSON response:
         taskInput: string, 
         analysis?: TaskAnalysis, 
         context?: any
-    ): Promise<TaskBreakdown> {
+    ): Promise<Task> {
         if (!this.isInitialized) {
             throw new Error('Task Breakdown Engine not initialized');
         }
@@ -346,19 +374,26 @@ Create a JSON response:
                 return this.createFallbackBreakdown(taskInput, analysis);
             }
             
-            // Create the full TaskBreakdown object
-            const taskBreakdown: TaskBreakdown = {
+            // Create the full Task object
+            const taskBreakdown: Task = {
                 id: this.generateTaskId(),
                 title: breakdown.title || taskInput,
                 originalInput: taskInput,
                 description: breakdown.description || "Let's break this down into manageable steps!",
-                totalEstimatedMinutes: breakdown.totalEstimatedMinutes || 15,
+                estimatedDuration: breakdown.totalEstimatedMinutes || 15,
                 steps: this.processSteps(breakdown.steps || []),
                 priority: breakdown.priority || 'medium',
+                type: analysis?.taskType || 'work',
                 category: breakdown.category || 'General',
-                createdAt: new Date(),
-                completedSteps: 0,
-                isCompleted: false,
+                createdAt: Date.now(),
+                completedAt: undefined,
+                progress: 0,
+                isActive: true,
+                complexity: analysis?.complexity || 'moderate',
+                aiAnalysis: {
+                    detectedIntention: analysis?.keywords?.join(', '),
+                    difficultyAssessment: analysis?.emotionalTone || 'neutral'
+                },
                 executiveDysfunction: breakdown.executiveDysfunction || {
                     overwhelmRisk: 0.3,
                     procrastinationLikely: false,
@@ -375,7 +410,7 @@ Create a JSON response:
             console.log('✅ Task breakdown created:', {
                 title: taskBreakdown.title,
                 steps: taskBreakdown.steps.length,
-                totalMinutes: taskBreakdown.totalEstimatedMinutes
+                totalMinutes: taskBreakdown.estimatedDuration
             });
             
             return taskBreakdown;
@@ -441,12 +476,15 @@ Create a JSON response:
         if (!step.completed) {
             step.completed = true;
             step.completedAt = new Date();
-            task.completedSteps++;
+            
+            // Update progress
+            const completedSteps = task.steps.filter(s => s.completed).length;
+            task.progress = completedSteps / task.steps.length;
             
             // Check if task is fully completed
-            if (task.completedSteps >= task.steps.length) {
-                task.isCompleted = true;
-                task.completedAt = new Date();
+            if (task.progress >= 1.0) {
+                task.completedAt = Date.now();
+                task.isActive = false;
                 console.log('🎉 Task completed:', task.title);
             }
             
@@ -461,16 +499,16 @@ Create a JSON response:
     /**
      * Get active (incomplete) tasks
      */
-    getActiveTasks(): TaskBreakdown[] {
-        return this.taskHistory.filter(task => !task.isCompleted);
+    getActiveTasks(): Task[] {
+        return this.taskHistory.filter(task => !task.completedAt);
     }
 
     /**
      * Get recent task history
      */
-    getTaskHistory(limit: number = 10): TaskBreakdown[] {
+    getTaskHistory(limit: number = 10): Task[] {
         return this.taskHistory
-            .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+            .sort((a, b) => b.createdAt - a.createdAt)
             .slice(0, limit);
     }
 
@@ -538,7 +576,7 @@ Create a JSON response:
     /**
      * Create a simple fallback breakdown when AI fails
      */
-    private createFallbackBreakdown(taskInput: string, analysis?: TaskAnalysis): TaskBreakdown {
+    private createFallbackBreakdown(taskInput: string, analysis?: TaskAnalysis): Task {
         console.log('🧠 Creating fallback task breakdown...');
         
         return {
@@ -546,7 +584,7 @@ Create a JSON response:
             title: taskInput,
             originalInput: taskInput,
             description: "Let's break this down into smaller, manageable steps.",
-            totalEstimatedMinutes: 15,
+            estimatedDuration: 15,
             steps: [
                 {
                     id: `step_${Date.now()}_1`,
@@ -577,10 +615,17 @@ Create a JSON response:
                 }
             ],
             priority: 'medium',
+            type: analysis?.taskType || 'work',
             category: 'General',
-            createdAt: new Date(),
-            completedSteps: 0,
-            isCompleted: false,
+            createdAt: Date.now(),
+            completedAt: undefined,
+            progress: 0,
+            isActive: true,
+            complexity: analysis?.complexity || 'moderate',
+            aiAnalysis: {
+                detectedIntention: taskInput,
+                difficultyAssessment: 'Created as fallback task'
+            },
             executiveDysfunction: {
                 overwhelmRisk: 0.4,
                 procrastinationLikely: true,
@@ -610,8 +655,8 @@ Create a JSON response:
                     // Convert date strings back to Date objects
                     this.taskHistory = parsed.map((task: any) => ({
                         ...task,
-                        createdAt: new Date(task.createdAt),
-                        completedAt: task.completedAt ? new Date(task.completedAt) : undefined,
+                        createdAt: typeof task.createdAt === 'number' ? task.createdAt : new Date(task.createdAt).getTime(),
+                        completedAt: task.completedAt,
                         steps: task.steps.map((step: any) => ({
                             ...step,
                             completedAt: step.completedAt ? new Date(step.completedAt) : undefined
@@ -653,7 +698,50 @@ Create a JSON response:
             initialized: this.isInitialized,
             totalTasks: this.taskHistory.length,
             activeTasks: this.getActiveTasks().length,
-            completedTasks: this.taskHistory.filter(t => t.isCompleted).length
+            completedTasks: this.taskHistory.filter(t => t.completedAt).length
+        };
+    }
+
+    /**
+     * Update task progress
+     */
+    async updateTaskProgress(taskId: string, stepId: string, completed: boolean, autoCompleted?: boolean): Promise<void> {
+        const task = this.taskHistory.find(t => t.id === taskId);
+        if (!task) {
+            throw new Error(`Task not found: ${taskId}`);
+        }
+        
+        const step = task.steps.find(s => s.id === stepId);
+        if (!step) {
+            throw new Error(`Step not found: ${stepId}`);
+        }
+        
+        step.completed = completed;
+        if (completed) {
+            step.completedAt = new Date();
+        }
+        
+        // Update task progress
+        const completedSteps = task.steps.filter(s => s.completed).length;
+        task.progress = completedSteps / task.steps.length;
+        
+        if (task.progress >= 1.0) {
+            task.completedAt = Date.now();
+            task.isActive = false;
+        }
+        
+        await this.saveTaskHistory();
+    }
+
+    /**
+     * Get engine metrics
+     */
+    getMetrics(): any {
+        return {
+            initialized: this.isInitialized,
+            totalTasks: this.taskHistory.length,
+            activeTasks: this.getActiveTasks().length,
+            completedTasks: this.taskHistory.filter(t => t.completedAt).length
         };
     }
 
@@ -675,7 +763,7 @@ Create a JSON response:
 const taskBreakdownEngine = new TaskBreakdownEngine();
 
 export default taskBreakdownEngine;
-export { TaskBreakdownEngine };
+export { TaskBreakdownEngine, taskBreakdownEngine };
 
 // Make available globally in browser
 if (typeof window !== 'undefined') {

@@ -26,6 +26,17 @@ declare global {
     
     // Social Decoder System
     socialDecoderBridge?: any;
+    screenOCRMonitorReal?: any;
+    audioEnvironmentMonitorReal?: any;
+    realScreenOCRMonitor?: {
+      onTextDetected: (callback: (text: string) => void) => void;
+    };
+    realAudioEnvironmentMonitor?: {
+      onContextUpdate: (callback: (audioContext: any) => void) => void;
+      onMicrophoneData: (callback: (audioData: any) => void) => void;
+    };
+    socialDecoder?: any;
+    velvetAI?: any;
     
     // UI Integration
     addMessage: (message: string, sender: string) => void;

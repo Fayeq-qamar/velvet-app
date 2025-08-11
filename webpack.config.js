@@ -8,6 +8,7 @@ module.exports = (env, argv) => {
     devtool: isProduction ? false : 'inline-source-map',
     entry: {
       renderer: './public/renderer.js',
+      socialDecoder: './src/renderer/social-decoder-bridge.ts',
       preload: './src/main/preload.js'
     },
     output: {

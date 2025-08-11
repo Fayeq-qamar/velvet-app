@@ -1,0 +1,276 @@
+/* Social Decoder Component Styles */
+
+.social-decoder-component {
+  background-color: rgba(30, 30, 40, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  color: #f0f0f0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  margin: 16px 0;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(80, 80, 100, 0.3);
+}
+
+.social-decoder-component.active {
+  border-color: rgba(120, 90, 255, 0.5);
+  box-shadow: 0 4px 20px rgba(120, 90, 255, 0.2);
+}
+
+.social-decoder-component.loading,
+.social-decoder-component.error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(120, 90, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: rgba(120, 90, 255, 1);
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+/* Controls */
+.decoder-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.decoder-controls button {
+  background-color: rgba(60, 60, 80, 0.8);
+  border: 1px solid rgba(100, 100, 140, 0.3);
+  border-radius: 6px;
+  color: #f0f0f0;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.decoder-controls button:hover:not(:disabled) {
+  background-color: rgba(80, 80, 100, 0.8);
+  border-color: rgba(120, 120, 160, 0.5);
+}
+
+.decoder-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.toggle-button.active {
+  background-color: rgba(120, 90, 255, 0.3);
+  border-color: rgba(120, 90, 255, 0.5);
+}
+
+.listen-button.listening {
+  background-color: rgba(255, 90, 90, 0.3);
+  border-color: rgba(255, 90, 90, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(255, 90, 90, 0.4); }
+  70% { box-shadow: 0 0 0 6px rgba(255, 90, 90, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 90, 90, 0); }
+}
+
+.whisper-button.enabled {
+  background-color: rgba(90, 200, 120, 0.3);
+  border-color: rgba(90, 200, 120, 0.5);
+}
+
+/* Analysis Section */
+.decoder-analysis {
+  background-color: rgba(40, 40, 50, 0.5);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.indicator-light {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background-color: #666;
+}
+
+.indicator-light.listening {
+  background-color: #ff5a5a;
+  box-shadow: 0 0 8px rgba(255, 90, 90, 0.6);
+  animation: pulse-light 2s infinite;
+}
+
+.indicator-light.idle {
+  background-color: #5ac878;
+}
+
+@keyframes pulse-light {
+  0% { opacity: 1; }
+  50% { opacity: 0.6; }
+  100% { opacity: 1; }
+}
+
+/* Current Analysis */
+.current-analysis {
+  background-color: rgba(50, 50, 70, 0.5);
+  border-radius: 6px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.current-analysis h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: rgba(120, 90, 255, 0.9);
+}
+
+.analysis-text {
+  font-size: 15px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+
+.emotion-detection,
+.sarcasm-detection {
+  background-color: rgba(60, 60, 80, 0.5);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sarcasm-detection {
+  background-color: rgba(255, 90, 90, 0.2);
+  border-left: 3px solid rgba(255, 90, 90, 0.6);
+}
+
+.label {
+  color: #aaa;
+  margin-right: 4px;
+}
+
+.value {
+  font-weight: 500;
+}
+
+.confidence {
+  background-color: rgba(120, 90, 255, 0.2);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.subtext {
+  font-style: italic;
+  margin: 8px 0 0;
+  color: #ddd;
+  width: 100%;
+}
+
+/* Recent Analyses */
+.recent-analyses {
+  margin-top: 20px;
+}
+
+.recent-analyses h4 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: rgba(120, 90, 255, 0.9);
+}
+
+.recent-analyses ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.analysis-item {
+  background-color: rgba(50, 50, 70, 0.5);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
+}
+
+.emotion-tag,
+.sarcasm-tag {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: auto;
+}
+
+.emotion-tag {
+  background-color: rgba(120, 90, 255, 0.2);
+  color: rgba(180, 160, 255, 0.9);
+}
+
+.sarcasm-tag {
+  background-color: rgba(255, 90, 90, 0.2);
+  color: rgba(255, 150, 150, 0.9);
+}
+
+/* Metrics Summary */
+.metrics-summary {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  background-color: rgba(40, 40, 50, 0.5);
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+.metrics-summary p {
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .decoder-controls {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .metrics-summary {
+    flex-direction: column;
+    gap: 4px;
+  }
+}

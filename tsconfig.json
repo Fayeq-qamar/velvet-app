@@ -13,11 +13,13 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "noEmit": false,
     "jsx": "react-jsx"
   },
   "include": [
-    "src/**/*"
+    "src/renderer/social-decoder.ts",
+    "src/renderer/social-decoder-bridge.ts",
+    "src/renderer/stores/social-decoder-store.ts"
   ],
   "exclude": [
     "node_modules",

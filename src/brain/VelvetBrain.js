@@ -529,30 +529,335 @@ class VelvetBrain {
         }
     }
 
-    // Action execution methods (to be implemented)
+    // Action execution methods - REAL IMPLEMENTATIONS
     async executeVoiceResponse(action) {
-        console.log('🗣️ Voice response placeholder');
-        return { executed: true, success: true };
+        try {
+            console.log(`🗣️ Executing voice response: ${action.intervention?.message || 'Generic response'}`);
+            
+            const message = action.intervention?.message || "I'm here with you 💙";
+            const tone = action.intervention?.tone || 'warm';
+            
+            // Use existing AI system for voice response
+            if (typeof window !== 'undefined' && window.getVelvetResponse) {
+                // Get AI response if needed
+                let responseText = message;
+                
+                if (action.context && action.context.type !== 'simple_message') {
+                    try {
+                        const aiResponse = await window.getVelvetResponse(
+                            `Based on current context (${action.context.type}), provide a ${tone} response: ${message}`,
+                            { maxLength: 100, personality: 'supportive_companion' }
+                        );
+                        responseText = aiResponse || message;
+                    } catch (aiError) {
+                        console.warn('⚠️ AI response failed, using default message:', aiError);
+                        responseText = message;
+                    }
+                }
+                
+                // Add response to UI if available
+                if (window.addMessage) {
+                    window.addMessage(responseText, 'velvet');
+                }
+                
+                // Trigger TTS if available
+                if (window.electronAPI && window.electronAPI.tts) {
+                    try {
+                        await window.electronAPI.tts.speak(responseText, {
+                            voice: 'gentle',
+                            speed: 0.9,
+                            pitch: 1.0
+                        });
+                    } catch (ttsError) {
+                        console.warn('⚠️ TTS failed:', ttsError);
+                    }
+                }
+                
+                console.log('✅ Voice response executed successfully');
+                return { executed: true, success: true, message: responseText };
+                
+            } else {
+                // Fallback: just log the message
+                console.log(`🗣️ Voice response (no AI system): ${message}`);
+                return { executed: true, success: true, message: message, fallback: true };
+            }
+            
+        } catch (error) {
+            console.error('❌ Voice response execution failed:', error);
+            return { executed: false, success: false, error: error.message };
+        }
     }
 
     async executeVisualNudge(action) {
-        console.log('👁️ Visual nudge placeholder');
-        return { executed: true, success: true };
+        try {
+            console.log(`👁️ Executing visual nudge: ${action.intervention?.type || 'general'}`);
+            
+            const nudgeType = action.intervention?.type || 'gentle_highlight';
+            const message = action.intervention?.message || 'Gentle nudge from Velvet';
+            
+            // Create visual nudge in UI
+            const nudgeElement = this.createVisualNudge(nudgeType, message);
+            
+            if (typeof document !== 'undefined') {
+                document.body.appendChild(nudgeElement);
+                
+                // Auto-remove after duration
+                const duration = action.intervention?.duration === 'brief' ? 3000 : 5000;
+                setTimeout(() => {
+                    if (nudgeElement.parentNode) {
+                        nudgeElement.parentNode.removeChild(nudgeElement);
+                    }
+                }, duration);
+            }
+            
+            // Update orb visual state if available
+            if (typeof window !== 'undefined' && window.updateVelvetOrbState) {
+                window.updateVelvetOrbState('nudging', action.intervention?.tone || 'gentle');
+                setTimeout(() => {
+                    window.updateVelvetOrbState('normal');
+                }, 2000);
+            }
+            
+            console.log('✅ Visual nudge executed successfully');
+            return { executed: true, success: true, nudgeType: nudgeType };
+            
+        } catch (error) {
+            console.error('❌ Visual nudge execution failed:', error);
+            return { executed: false, success: false, error: error.message };
+        }
     }
 
     async executeTaskIntervention(action) {
-        console.log('📋 Task intervention placeholder');
-        return { executed: true, success: true };
+        try {
+            console.log(`📋 Executing task intervention: ${action.intervention?.type || 'general_help'}`);
+            
+            const interventionType = action.intervention?.type || 'task_assistance';
+            const message = action.intervention?.message || 'Let me help break this down...';
+            
+            // Different types of task interventions
+            switch (interventionType) {
+                case 'task_breakdown':
+                    return await this.executeTaskBreakdown(action, message);
+                
+                case 'focus_protection':
+                    return await this.executeFocusProtection(action, message);
+                
+                case 'progress_celebration':
+                    return await this.executeProgressCelebration(action, message);
+                
+                case 'gentle_redirect':
+                    return await this.executeGentleRedirect(action, message);
+                
+                default:
+                    // Generic task assistance
+                    if (window.addMessage) {
+                        window.addMessage(message, 'velvet');
+                    }
+                    
+                    console.log('✅ Generic task intervention executed');
+                    return { executed: true, success: true, type: 'generic' };
+            }
+            
+        } catch (error) {
+            console.error('❌ Task intervention execution failed:', error);
+            return { executed: false, success: false, error: error.message };
+        }
     }
 
     async executeMeetingAssistance(action) {
-        console.log('🎤 Meeting assistance placeholder');
-        return { executed: true, success: true };
+        try {
+            console.log(`🎤 Executing meeting assistance: ${action.intervention?.type || 'general_support'}`);
+            
+            const assistanceType = action.intervention?.type || 'meeting_support';
+            
+            // Activate meeting assistant features
+            if (typeof window !== 'undefined' && window.meetingAssistantAI) {
+                // Enable real-time meeting assistance
+                const meetingSupport = await window.meetingAssistantAI.activateSupport({
+                    type: assistanceType,
+                    context: action.context,
+                    intervention: action.intervention
+                });
+                
+                if (meetingSupport.success) {
+                    console.log('✅ Meeting assistance activated');
+                    return { executed: true, success: true, features: meetingSupport.features };
+                }
+            }
+            
+            // Fallback: Basic meeting awareness
+            if (window.addMessage) {
+                const message = action.intervention?.message || "Meeting detected - I'm here to help with social cues! 🎤";
+                window.addMessage(message, 'velvet');
+            }
+            
+            // Activate social decoder if available
+            if (window.socialDecoderBridge) {
+                window.socialDecoderBridge.onDetection((analysis) => {
+                    if (analysis.isSarcasm || analysis.detectedEmotion) {
+                        console.log('🧠 Meeting social cue detected:', analysis);
+                    }
+                });
+            }
+            
+            console.log('✅ Basic meeting assistance executed');
+            return { executed: true, success: true, type: 'basic_assistance' };
+            
+        } catch (error) {
+            console.error('❌ Meeting assistance execution failed:', error);
+            return { executed: false, success: false, error: error.message };
+        }
     }
 
     async executeSocialDecoding(action) {
-        console.log('🧠 Social decoding placeholder');
-        return { executed: true, success: true };
+        try {
+            console.log(`🧠 Executing social decoding: ${action.intervention?.type || 'social_assistance'}`);
+            
+            const decodingType = action.intervention?.type || 'social_assistance';
+            const message = action.intervention?.message || "I'm analyzing social context to help you...";
+            
+            // Use existing social decoder bridge
+            if (typeof window !== 'undefined' && window.socialDecoderBridge) {
+                // Enable enhanced social decoding
+                window.socialDecoderBridge.onDetection((analysis) => {
+                    if (analysis.confidence > 0.7) {
+                        this.handleSocialInsight(analysis, action);
+                    }
+                });
+                
+                // Provide immediate feedback
+                if (window.addMessage) {
+                    window.addMessage(message, 'velvet');
+                }
+                
+                console.log('✅ Social decoding activated with existing bridge');
+                return { executed: true, success: true, system: 'social_decoder_bridge' };
+            }
+            
+            // Fallback: Basic social awareness message
+            if (window.addMessage) {
+                window.addMessage("I'm here to help decode social situations! 💙", 'velvet');
+            }
+            
+            console.log('✅ Basic social decoding executed');
+            return { executed: true, success: true, type: 'basic_social_support' };
+            
+        } catch (error) {
+            console.error('❌ Social decoding execution failed:', error);
+            return { executed: false, success: false, error: error.message };
+        }
+    }
+
+    // Helper methods for specific task interventions
+    async executeTaskBreakdown(action, message) {
+        if (window.addMessage) {
+            window.addMessage(message, 'velvet');
+            
+            // Provide breakdown suggestions
+            setTimeout(() => {
+                window.addMessage("Let's break this into smaller steps:\n1. Start with the easiest part\n2. Focus on just 5 minutes\n3. Take a breath between steps", 'velvet');
+            }, 1000);
+        }
+        
+        return { executed: true, success: true, type: 'task_breakdown' };
+    }
+
+    async executeFocusProtection(action, message) {
+        if (window.addMessage) {
+            window.addMessage("You're in the zone! I'll keep things quiet. 🎯", 'velvet');
+        }
+        
+        // Could implement notification blocking, etc.
+        return { executed: true, success: true, type: 'focus_protection' };
+    }
+
+    async executeProgressCelebration(action, message) {
+        if (window.addMessage) {
+            window.addMessage("Amazing progress! You should be proud! 🎉✨", 'velvet');
+        }
+        
+        // Visual celebration effect
+        this.triggerCelebrationEffect();
+        
+        return { executed: true, success: true, type: 'celebration' };
+    }
+
+    async executeGentleRedirect(action, message) {
+        if (window.addMessage) {
+            window.addMessage(message, 'velvet');
+            
+            setTimeout(() => {
+                window.addMessage("What feels like the next smallest step? 💙", 'velvet');
+            }, 1500);
+        }
+        
+        return { executed: true, success: true, type: 'gentle_redirect' };
+    }
+
+    // Helper method to create visual nudges
+    createVisualNudge(type, message) {
+        if (typeof document === 'undefined') return null;
+        
+        const nudge = document.createElement('div');
+        nudge.className = 'velvet-visual-nudge';
+        nudge.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.93) 100%);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+            max-width: 300px;
+            box-shadow: 0 8px 32px rgba(37, 99, 235, 0.3);
+            z-index: 10000;
+            animation: velvetSlideIn 0.3s ease-out;
+            pointer-events: auto;
+        `;
+        
+        nudge.textContent = message;
+        
+        // Add animation styles if not exists
+        if (!document.querySelector('#velvet-nudge-styles')) {
+            const style = document.createElement('style');
+            style.id = 'velvet-nudge-styles';
+            style.textContent = `
+                @keyframes velvetSlideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        return nudge;
+    }
+
+    // Helper method to handle social insights
+    handleSocialInsight(analysis, action) {
+        if (analysis.isSarcasm && window.addMessage) {
+            const insight = analysis.subtext || 'Possible sarcasm detected';
+            window.addMessage(`💙 Social insight: ${insight}`, 'velvet');
+        }
+        
+        if (analysis.detectedEmotion && window.addMessage) {
+            const emotion = analysis.detectedEmotion;
+            window.addMessage(`💙 Emotional tone detected: ${emotion}`, 'velvet');
+        }
+    }
+
+    // Helper method for celebration effects
+    triggerCelebrationEffect() {
+        if (typeof window !== 'undefined' && window.updateVelvetOrbState) {
+            window.updateVelvetOrbState('celebrating');
+            setTimeout(() => {
+                window.updateVelvetOrbState('normal');
+            }, 3000);
+        }
     }
 
     // Callback system for external listeners

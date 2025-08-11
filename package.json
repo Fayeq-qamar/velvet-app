@@ -5,7 +5,8 @@
   "main": "src/main/index-main-working.js",
   "scripts": {
     "start": "electron .",
-    "dev": "electron . --dev",
+    "dev": "npm run build:ts && electron . --dev",
+    "build:ts": "webpack --mode=development",
     "dev-safe": "electron src/main/index-safe.js --dev",
     "dev-working": "electron src/main/index-working.js --dev",
     "dev-minimal": "electron src/main/index-minimal.js",
@@ -105,16 +106,20 @@
     "afterSign": "scripts/notarize.js"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.0",
+    "@babel/preset-env": "^7.28.0",
     "@types/electron": "^1.4.38",
     "@types/node": "^24.1.0",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "autoprefixer": "^10.4.21",
+    "babel-loader": "^10.0.0",
     "electron": "^27.3.11",
     "electron-builder": "^24.13.3",
     "electron-notarize": "^1.2.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.11",
+    "ts-loader": "^9.5.2",
     "typescript": "^5.9.2",
     "webpack": "^5.101.0",
     "webpack-cli": "^5.1.4"

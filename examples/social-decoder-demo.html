@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Decoder Demo</title>
+  <style>
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #1a1a2e;
+      color: #f0f0f0;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: rgba(30, 30, 40, 0.95);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1, h2, h3 {
+      color: #e2e2f0;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 20px;
+    }
+    
+    .status-panel {
+      background-color: rgba(40, 40, 50, 0.5);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    
+    .status-row:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .status-label {
+      font-weight: bold;
+      color: #a0a0c0;
+    }
+    
+    .status-value {
+      color: #f0f0f0;
+    }
+    
+    .status-value.positive {
+      color: #4caf50;
+    }
+    
+    .status-value.negative {
+      color: #f44336;
+    }
+    
+    .status-value.neutral {
+      color: #ff9800;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      background-color: rgba(120, 90, 255, 0.2);
+      border: 1px solid rgba(120, 90, 255, 0.5);
+      color: rgba(180, 160, 255, 0.9);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    button:hover {
+      background-color: rgba(120, 90, 255, 0.3);
+    }
+    
+    .test-area {
+      margin-top: 30px;
+    }
+    
+    textarea {
+      width: 100%;
+      background-color: rgba(40, 40, 50, 0.5);
+      border: 1px solid rgba(80, 80, 100, 0.3);
+      border-radius: 6px;
+      color: #f0f0f0;
+      padding: 10px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 80px;
+      margin-bottom: 10px;
+    }
+    
+    .results {
+      background-color: rgba(40, 40, 50, 0.5);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+    
+    .tag.emotion {
+      background-color: rgba(120, 90, 255, 0.2);
+      color: rgba(180, 160, 255, 0.9);
+    }
+    
+    .tag.sarcasm {
+      background-color: rgba(255, 90, 90, 0.2);
+      color: rgba(255, 150, 150, 0.9);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Social Decoder Demo</h1>
+      <p>Test the Social Decoder feature to analyze text for emotional tones, sarcasm, and subtext</p>
+    </div>
+    
+    <div class="status-panel">
+      <h2>System Status</h2>
+      <div class="status-row">
+        <span class="status-label">Social Decoder Available:</span>
+        <span id="decoder-available" class="status-value">Checking...</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Integration Status:</span>
+        <span id="integration-status" class="status-value">Checking...</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Active:</span>
+        <span id="active-status" class="status-value">Checking...</span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Listening:</span>
+        <span id="listening-status" class="status-value">Checking...</span>
+      </div>
+    </div>
+    
+    <div class="controls">
+      <button id="check-status">Check Status</button>
+      <button id="initialize">Initialize</button>
+      <button id="toggle-active">Toggle Active</button>
+      <button id="run-tests">Run Built-in Tests</button>
+    </div>
+    
+    <div class="test-area">
+      <h2>Test Analysis</h2>
+      <textarea id="test-text" placeholder="Enter text to analyze for social cues...">Oh sure, that's absolutely perfect. I'm so excited to work late tonight.</textarea>
+      <button id="analyze">Analyze Text</button>
+      
+      <div id="results" class="results">
+        Results will appear here...
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM elements
+    const decoderAvailable = document.getElementById('decoder-available');
+    const integrationStatus = document.getElementById('integration-status');
+    const activeStatus = document.getElementById('active-status');
+    const listeningStatus = document.getElementById('listening-status');
+    const resultsArea = document.getElementById('results');
+    const testTextArea = document.getElementById('test-text');
+    
+    // Buttons
+    const checkStatusBtn = document.getElementById('check-status');
+    const initializeBtn = document.getElementById('initialize');
+    const toggleActiveBtn = document.getElementById('toggle-active');
+    const runTestsBtn = document.getElementById('run-tests');
+    const analyzeBtn = document.getElementById('analyze');
+    
+    // Variables to store instances
+    let decoder = null;
+    let store = null;
+    
+    // Check if Social Decoder is available
+    function checkAvailability() {
+      decoderAvailable.textContent = typeof SocialDecoder !== 'undefined' ? 'Available ✅' : 'Not Available ❌';
+      decoderAvailable.className = `status-value ${typeof SocialDecoder !== 'undefined' ? 'positive' : 'negative'}`;
+      
+      integrationStatus.textContent = typeof socialDecoderIntegration !== 'undefined' ? 'Available ✅' : 'Not Available ❌';
+      integrationStatus.className = `status-value ${typeof socialDecoderIntegration !== 'undefined' ? 'positive' : 'negative'}`;
+      
+      if (typeof useSocialDecoderStore !== 'undefined') {
+        store = useSocialDecoderStore.getState();
+        activeStatus.textContent = store.isActive ? 'Active ✅' : 'Inactive ❌';
+        activeStatus.className = `status-value ${store.isActive ? 'positive' : 'neutral'}`;
+        
+        listeningStatus.textContent = store.isListening ? 'Listening ✅' : 'Not Listening ❌';
+        listeningStatus.className = `status-value ${store.isListening ? 'positive' : 'neutral'}`;
+      } else {
+        activeStatus.textContent = 'Store Not Available ❌';
+        activeStatus.className = 'status-value negative';
+        listeningStatus.textContent = 'Store Not Available ❌';
+        listeningStatus.className = 'status-value negative';
+      }
+    }
+    
+    // Initialize the Social Decoder
+    async function initializeDecoder() {
+      if (typeof SocialDecoder === 'undefined') {
+        resultsArea.textContent = '❌ SocialDecoder class not available';
+        return;
+      }
+      
+      resultsArea.textContent = '🔄 Initializing Social Decoder...';
+      
+      try {
+        decoder = new SocialDecoder();
+        await decoder.initialize();
+        resultsArea.textContent = '✅ Social Decoder initialized successfully';
+        
+        // Check integration if available
+        if (typeof socialDecoderIntegration !== 'undefined') {
+          try {
+            await socialDecoderIntegration.initialize({
+              enableConsciousnessIntegration: true,
+              enableNotifications: true,
+              enableWhisperMode: true,
+              sensitivityLevel: 75,
+              debugMode: true
+            });
+            
+            const status = socialDecoderIntegration.getStatus();
+            resultsArea.textContent += `\n\n🔌 Integration Status:\n- Connected: ${status.isConnected}\n- Active Integrations: ${status.activeIntegrations.join(', ')}\n- Last Sync: ${status.lastSyncTime ? new Date(status.lastSyncTime).toLocaleString() : 'Never'}`;
+          } catch (error) {
+            resultsArea.textContent += `\n\n⚠️ Integration initialization failed: ${error}`;
+          }
+        }
+        
+        checkAvailability();
+      } catch (error) {
+        resultsArea.textContent = `❌ Failed to initialize Social Decoder: ${error}`;
+      }
+    }
+    
+    // Toggle active state
+    function toggleActive() {
+      if (typeof useSocialDecoderStore === 'undefined') {
+        resultsArea.textContent = '❌ Social Decoder Store not available';
+        return;
+      }
+      
+      const toggleActiveAction = useSocialDecoderStore.getState().toggleActive;
+      toggleActiveAction();
+      
+      // Update status
+      checkAvailability();
+      
+      const isActive = useSocialDecoderStore.getState().isActive;
+      resultsArea.textContent = `Social Decoder is now ${isActive ? 'active ✅' : 'inactive ❌'}`;
+    }
+    
+    // Run built-in tests
+    function runTests() {
+      if (typeof window.testSocial === 'undefined') {
+        resultsArea.textContent = '❌ Built-in tests not available';
+        return;
+      }
+      
+      resultsArea.textContent = '🧪 Running built-in tests...';
+      
+      // Capture console.log output
+      const originalLog = console.log;
+      let logs = [];
+      
+      console.log = function(...args) {
+        logs.push(args.join(' '));
+        originalLog.apply(console, args);
+      };
+      
+      // Run tests
+      try {
+        window.testSocial.detectSarcasm();
+        window.testSocial.analyzeTone();
+        
+        // Restore console.log
+        console.log = originalLog;
+        
+        // Display results
+        resultsArea.textContent = '✅ Tests completed\n\n' + logs.join('\n');
+      } catch (error) {
+        console.log = originalLog;
+        resultsArea.textContent = `❌ Tests failed: ${error}`;
+      }
+    }
+    
+    // Analyze text
+    function analyzeText() {
+      if (!decoder) {
+        resultsArea.textContent = '❌ Social Decoder not initialized. Click "Initialize" first.';
+        return;
+      }
+      
+      const text = testTextArea.value.trim();
+      if (!text) {
+        resultsArea.textContent = '⚠️ Please enter some text to analyze';
+        return;
+      }
+      
+      try {
+        const startTime = performance.now();
+        const result = decoder.analyzeConversation(text, null);
+        const endTime = performance.now();
+        
+        let output = `✅ Analysis completed in ${(endTime - startTime).toFixed(2)}ms\n\n`;
+        output += `Text: "${text}"\n\n`;
+        
+        if (result.translation) {
+          output += `🔍 Analysis Results:\n`;
+          output += `- Direct Meaning: ${result.translation.directMeaning || 'N/A'}\n`;
+          output += `- Hidden Meaning: ${result.translation.hiddenMeaning || 'N/A'}\n`;
+          output += `- Emotional Subtext: ${result.translation.emotionalSubtext || 'N/A'}\n`;
+          output += `- Action Needed: ${result.translation.actionNeeded || 'None'}\n`;
+          output += `- Sarcasm: ${result.translation.isSarcasm ? 'Detected ✅' : 'Not Detected'}\n`;
+          output += `- Confidence: ${(result.confidence * 100).toFixed(1)}%\n`;
+        }
+        
+        if (result.suggestions && result.suggestions.length > 0) {
+          output += `\n💡 Response Suggestions:\n`;
+          result.suggestions.forEach((suggestion, index) => {
+            output += `${index + 1}. ${suggestion.text}\n`;
+            if (suggestion.explanation) {
+              output += `   (${suggestion.explanation})\n`;
+            }
+          });
+        }
+        
+        resultsArea.textContent = output;
+      } catch (error) {
+        resultsArea.textContent = `❌ Analysis failed: ${error}`;
+      }
+    }
+    
+    // Event listeners
+    checkStatusBtn.addEventListener('click', checkAvailability);
+    initializeBtn.addEventListener('click', initializeDecoder);
+    toggleActiveBtn.addEventListener('click', toggleActive);
+    runTestsBtn.addEventListener('click', runTests);
+    analyzeBtn.addEventListener('click', analyzeText);
+    
+    // Initial check
+    checkAvailability();
+  </script>
+</body>
+</html>

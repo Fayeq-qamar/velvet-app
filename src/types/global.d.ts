@@ -56,7 +56,68 @@ declare global {
     onTaskCreated?: (data: any) => void;
     onTaskCompleted?: (data: any) => void;
     onStepCompleted?: (data: any) => void;
+    
+    // Voice Input System
+    velvetVoiceInput?: {
+      startListening: () => Promise<boolean>;
+      stopListening: () => void;
+      isListening: boolean;
+    };
+    
+    // Voice Output System  
+    velvetVoice?: {
+      speak: (text: string) => Promise<void>;
+    };
+    
+    // Legacy globals for compatibility
+    isInterfaceOpen?: boolean;
+    voiceOutputEnabled?: boolean;
+    getVelvetResponse?: (message: string) => Promise<string>;
+    initializeVoiceInput?: () => void;
   }
+}
+
+// Velvet UI Types for React Components
+export interface VelvetOrbState {
+  state: 'normal' | 'listening' | 'speaking' | 'thinking';
+  isInterfaceOpen: boolean;
+}
+
+export interface VelvetChatMessage {
+  id: string;
+  text: string;
+  sender: 'user' | 'velvet';
+  timestamp: Date;
+}
+
+export interface VelvetUIState {
+  isInterfaceOpen: boolean;
+  orbState: 'normal' | 'listening' | 'speaking' | 'thinking';
+  messages: VelvetChatMessage[];
+  isVoiceInputActive: boolean;
+  voiceOutputEnabled: boolean;
+}
+
+export interface VelvetOrbProps {
+  state: 'normal' | 'listening' | 'speaking' | 'thinking';
+  onClick: () => void;
+  className?: string;
+}
+
+export interface VelvetChatInterfaceProps {
+  isOpen: boolean;
+  messages: VelvetChatMessage[];
+  onClose: () => void;
+  onSendMessage: (message: string) => Promise<void>;
+  onVoiceToggle: () => Promise<void>;
+  isVoiceInputActive: boolean;
+  voiceOutputEnabled: boolean;
+  onVoiceOutputToggle: () => void;
+  onControlPanelOpen: () => void;
+}
+
+export interface VelvetAppProps {
+  className?: string;
 }
 
 export {};

@@ -12,6 +12,7 @@ module.exports = (env, argv) => {
       taskBreakdownEngine: './src/renderer/engines/TaskBreakdownEngine.ts',
       taskBreakdownStore: './src/renderer/stores/task-breakdown-store.ts', 
       taskBreakdownComponent: './src/renderer/components/TaskBreakdownComponent.tsx',
+      velvetReactApp: './src/renderer/components/index.tsx',
       preload: './src/main/preload.js'
     },
     output: {

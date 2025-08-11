@@ -1754,7 +1754,12 @@
     </style>
 </head>
 <body>
-    <!-- Glass Chat Interface -->
+    <!-- PHASE 1 MIGRATION: Vanilla JS interface replaced with React components -->
+    <!-- The React-based VelvetApp component now handles the glassmorphism orb and chat interface -->
+    <!-- Original vanilla JS interface preserved in comments for reference -->
+    
+    <!--
+    Glass Chat Interface (MIGRATED TO REACT)
     <div class="velvet-interface" id="velvetInterface">
         <div class="velvet-header">
             <div class="velvet-avatar"></div>
@@ -1794,8 +1799,9 @@
         </div>
     </div>
     
-    <!-- Glass Orb Button -->
+    Glass Orb Button (MIGRATED TO REACT)
     <button class="velvet-orb tooltip" id="velvetOrb" data-tooltip="Click to open Velvet">V</button>
+    -->
     
     <!-- Masking Fatigue Detection UI -->
     <div class="masking-fatigue-indicator" id="maskingFatigueIndicator">
@@ -1909,12 +1915,13 @@
     <script src="../src/renderer/consciousness-loader.js"></script>
     
     <script>
-        const velvetOrb = document.getElementById('velvetOrb');
-        const velvetInterface = document.getElementById('velvetInterface');
-        const chatMessages = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const voiceButton = document.getElementById('voiceButton');
-        const voiceOutputToggle = document.getElementById('voiceOutputToggle');
+        // PHASE 1 MIGRATION: DOM element references commented out - React handles these now
+        // const velvetOrb = document.getElementById('velvetOrb'); // MIGRATED TO REACT
+        // const velvetInterface = document.getElementById('velvetInterface'); // MIGRATED TO REACT  
+        // const chatMessages = document.getElementById('chatMessages'); // MIGRATED TO REACT
+        // const chatInput = document.getElementById('chatInput'); // MIGRATED TO REACT
+        // const voiceButton = document.getElementById('voiceButton'); // MIGRATED TO REACT
+        // const voiceOutputToggle = document.getElementById('voiceOutputToggle'); // MIGRATED TO REACT
         const breathingGuide = document.getElementById('breathingGuide');
         const cornerWidget = document.getElementById('cornerWidget');
         const taskChecklist = document.getElementById('taskChecklist');
@@ -2047,7 +2054,9 @@
             dragOffset: { x: 0, y: 0 }
         };
         
-        // SMART CONTAINER SYSTEM: Toggle interface when orb is clicked
+        // PHASE 1 MIGRATION: Vanilla JS UI event listeners disabled - React handles UI now
+        /*
+        // SMART CONTAINER SYSTEM: Toggle interface when orb is clicked (MIGRATED TO REACT)
         velvetOrb.addEventListener('click', () => {
             console.log('🔮 Orb clicked!');
             isInterfaceOpen = !isInterfaceOpen;
@@ -2063,7 +2072,7 @@
             }
         });
         
-        // SMART CONTAINER: Close interface when clicking outside - restores click-through
+        // SMART CONTAINER: Close interface when clicking outside - restores click-through (MIGRATED TO REACT)
         document.addEventListener('click', (e) => {
             if (!velvetInterface.contains(e.target) && 
                 !velvetOrb.contains(e.target) && 
@@ -2074,6 +2083,7 @@
                 console.log('🔒 Clicked outside - container closed, click-through restored');
             }
         });
+        */
         
         // Initialize voice input system
         function initializeVoiceInput() {
@@ -2127,7 +2137,9 @@
             }
         }
 
-        // Voice input button functionality
+        // PHASE 1 MIGRATION: Vanilla JS UI event listeners disabled - React handles these interactions
+        /*
+        // Voice input button functionality (MIGRATED TO REACT)
         voiceButton.addEventListener('click', async () => {
             initializeVoiceInput();
             
@@ -2151,7 +2163,7 @@
             }
         });
 
-        // Toggle voice output
+        // Toggle voice output (MIGRATED TO REACT)
         voiceOutputToggle.addEventListener('click', () => {
             voiceOutputEnabled = !voiceOutputEnabled;
             
@@ -2175,7 +2187,7 @@
             }
         });
 
-        // Control Panel Button
+        // Control Panel Button (MIGRATED TO REACT)
         const controlPanelButton = document.getElementById('controlPanelButton');
         controlPanelButton.addEventListener('click', async () => {
             try {
@@ -2186,7 +2198,7 @@
             }
         });
 
-        // Send message on Enter
+        // Send message on Enter (MIGRATED TO REACT)
         chatInput.addEventListener('keypress', async (e) => {
             if (e.key === 'Enter' && chatInput.value.trim()) {
                 const userMessage = chatInput.value.trim();
@@ -2227,6 +2239,7 @@
                 velvetOrb.classList.remove('thinking');
             }
         });
+        */
         
         // Velvet AI Response Function - ORIGINAL VERSION RESTORED
         async function getVelvetResponse(userMessage) {
@@ -6671,5 +6684,8 @@ IMPORTANT: Return ONLY valid JSON, no explanations or extra text.`;
     
     <!-- Social Decoder Integration -->
     <script src="../src/renderer/social-decoder-bridge.js"></script>
+    
+    <!-- PHASE 1 REACT MIGRATION: Load React-based Velvet UI -->
+    <script src="../build/velvetReactApp.bundle.js"></script>
 </body>
 </html>

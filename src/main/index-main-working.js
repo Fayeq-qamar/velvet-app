@@ -276,6 +276,156 @@ ipcMain.handle('speak-text', async (event, text, options = {}) => {
     }
 });
 
+// AI Task Analysis (NEW: AI-powered task breakdown)
+ipcMain.handle('ai-task-analysis', async (event, prompt, options = {}) => {
+    try {
+        console.log('🧠 AI task analysis requested');
+        
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI API key not found');
+        }
+
+        const axios = require('axios');
+
+        const response = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: 'gpt-4',
+                messages: [
+                    {
+                        role: 'system',
+                        content: 'You are Velvet, a neurodivergent-friendly AI assistant. You help break down overwhelming tasks into manageable micro-steps. You are warm, encouraging, and understand executive dysfunction. Always respond with valid JSON when requested.'
+                    },
+                    {
+                        role: 'user',
+                        content: prompt
+                    }
+                ],
+                max_tokens: options.maxTokens || 400,
+                temperature: options.temperature || 0.4
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            }
+        );
+
+        const content = response.data.choices[0]?.message?.content || '';
+        console.log('✅ AI task analysis completed');
+
+        return {
+            success: true,
+            content: content,
+            usage: response.data.usage
+        };
+
+    } catch (error) {
+        console.error('❌ AI task analysis error:', error.message);
+        return {
+            success: false,
+            content: '',
+            error: error.message || 'AI analysis failed'
+        };
+    }
+});
+
+// OpenAI Completion (NEW: General AI completion)
+ipcMain.handle('openai-completion', async (event, options) => {
+    try {
+        console.log('🤖 OpenAI completion requested');
+        
+        if (!process.env.OPENAI_API_KEY) {
+            throw new Error('OpenAI API key not found');
+        }
+
+        const axios = require('axios');
+
+        const response = await axios.post(
+            'https://api.openai.com/v1/chat/completions',
+            {
+                model: options.model || 'gpt-4',
+                messages: options.messages,
+                max_tokens: options.max_tokens || 300,
+                temperature: options.temperature || 0.4
+            },
+            {
+                headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 30000
+            }
+        );
+
+        const content = response.data.choices[0]?.message?.content || '';
+        console.log('✅ OpenAI completion successful');
+
+        return {
+            success: true,
+            content: content,
+            usage: response.data.usage
+        };
+
+    } catch (error) {
+        console.error('❌ OpenAI completion error:', error.message);
+        return {
+            success: false,
+            content: '',
+            error: error.message || 'AI completion failed'
+        };
+    }
+});
+
+// Storage API (NEW: Secure local storage for task data)
+ipcMain.handle('storage-set', async (event, key, value) => {
+    try {
+        const fs = require('fs').promises;
+        const path = require('path');
+        const os = require('os');
+        
+        const storageDir = path.join(os.homedir(), '.velvet', 'storage');
+        await fs.mkdir(storageDir, { recursive: true });
+        
+        const filePath = path.join(storageDir, `${key}.json`);
+        await fs.writeFile(filePath, JSON.stringify(value, null, 2));
+        
+        console.log('💾 Storage set:', key);
+        return { success: true };
+        
+    } catch (error) {
+        console.error('❌ Storage set error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('storage-get', async (event, key) => {
+    try {
+        const fs = require('fs').promises;
+        const path = require('path');
+        const os = require('os');
+        
+        const filePath = path.join(os.homedir(), '.velvet', 'storage', `${key}.json`);
+        
+        try {
+            const data = await fs.readFile(filePath, 'utf8');
+            const parsed = JSON.parse(data);
+            console.log('📚 Storage get:', key);
+            return { success: true, data: parsed };
+        } catch (readError) {
+            // File doesn't exist or is invalid
+            console.log('📚 Storage get (not found):', key);
+            return { success: true, data: null };
+        }
+        
+    } catch (error) {
+        console.error('❌ Storage get error:', error);
+        return { success: false, error: error.message };
+    }
+});
+
 // System info
 ipcMain.handle('get-system-info', async () => {
     return {

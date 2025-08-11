@@ -17,9 +17,13 @@
     "jsx": "react-jsx"
   },
   "include": [
+    "src/types/global.d.ts",
     "src/renderer/social-decoder.ts",
     "src/renderer/social-decoder-bridge.ts",
-    "src/renderer/stores/social-decoder-store.ts"
+    "src/renderer/stores/social-decoder-store.ts",
+    "src/renderer/engines/TaskBreakdownEngine.ts",
+    "src/renderer/stores/task-breakdown-store.ts",
+    "src/renderer/components/TaskBreakdownComponent.tsx"
   ],
   "exclude": [
     "node_modules",

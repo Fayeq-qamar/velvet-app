@@ -9,6 +9,9 @@ module.exports = (env, argv) => {
     entry: {
       renderer: './public/renderer.js',
       socialDecoder: './src/renderer/social-decoder-bridge.ts',
+      taskBreakdownEngine: './src/renderer/engines/TaskBreakdownEngine.ts',
+      taskBreakdownStore: './src/renderer/stores/task-breakdown-store.ts', 
+      taskBreakdownComponent: './src/renderer/components/TaskBreakdownComponent.tsx',
       preload: './src/main/preload.js'
     },
     output: {
@@ -30,8 +33,25 @@ module.exports = (env, argv) => {
           }
         },
         {
+          test: /\.jsx?$/,
+          exclude: /node_modules/,
+          use: {
+            loader: 'babel-loader',
+            options: {
+              presets: ['@babel/preset-env', '@babel/preset-react']
+            }
+          }
+        },
+        {
           test: /\.tsx?$/,
-          use: 'ts-loader',
+          use: {
+            loader: 'ts-loader',
+            options: {
+              compilerOptions: {
+                jsx: 'react-jsx'
+              }
+            }
+          },
           exclude: /node_modules/
         },
         {
@@ -41,7 +61,10 @@ module.exports = (env, argv) => {
       ]
     },
     resolve: {
-      extensions: ['.tsx', '.ts', '.js']
+      extensions: ['.tsx', '.ts', '.js', '.jsx'],
+      alias: {
+        '@': path.resolve(__dirname, 'src')
+      }
     },
     optimization: {
       minimize: isProduction,

@@ -183,6 +183,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
     captureScreenForOCR: (sourceId) => ipcRenderer.invoke('capture-screen-for-ocr', sourceId)
   },
 
+  // NEW: AI Task Breakdown APIs
+  taskBreakdown: {
+    analyzeTask: (prompt, options) => ipcRenderer.invoke('ai-task-analysis', prompt, options),
+    storeTaskData: (taskData) => ipcRenderer.invoke('storage-set', 'current-task', taskData),
+    getTaskData: () => ipcRenderer.invoke('storage-get', 'current-task'),
+    getTaskHistory: () => ipcRenderer.invoke('storage-get', 'task-history'),
+    storeTaskHistory: (history) => ipcRenderer.invoke('storage-set', 'task-history', history)
+  },
+
+  // NEW: OpenAI API wrapper
+  openai: {
+    completion: (options) => ipcRenderer.invoke('openai-completion', options),
+    taskAnalysis: (prompt, options) => ipcRenderer.invoke('ai-task-analysis', prompt, options)
+  },
+
+  // NEW: Secure storage API
+  storage: {
+    set: (key, value) => ipcRenderer.invoke('storage-set', key, value),
+    get: (key) => ipcRenderer.invoke('storage-get', key)
+  },
+
   // General invoke method for flexibility
   invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
   

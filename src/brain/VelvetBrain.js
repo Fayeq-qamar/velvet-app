@@ -185,14 +185,13 @@ class VelvetBrain {
     async understand(currentState) {
         console.log('🤔 Understanding context...');
         
-        if (!this.memory) {
-            console.warn('⚠️ No memory system available for understanding');
-            return { context: 'unknown', confidence: 0 };
-        }
-        
         try {
-            // Use memory and patterns to understand what's happening
-            const context = await this.memory.processContext(currentState);
+            let context = { context: 'unknown', confidence: 0 };
+            
+            if (this.memory) {
+                // Use memory and patterns to understand what's happening
+                context = await this.memory.processContext(currentState);
+            }
             
             // Enhance with personality-based understanding
             if (this.personality) {
@@ -200,11 +199,33 @@ class VelvetBrain {
                 context.userNeeds = await this.personality.assessUserNeeds(context);
             }
             
+            // ENHANCED: Detect task intentions in user input
+            if (currentState.inputs && currentState.inputs.length > 0) {
+                const recentInput = this.extractRecentUserInput(currentState);
+                if (recentInput) {
+                    context.recentUserInput = recentInput;
+                    context.taskIntention = await this.detectTaskIntention(recentInput);
+                    
+                    if (context.taskIntention && context.taskIntention.isTask) {
+                        console.log('📋 Task intention detected:', context.taskIntention);
+                        context.primaryNeed = 'task_assistance';
+                        context.confidence = Math.max(context.confidence, 0.8);
+                        
+                        // If AI already broke down the task, store it in context
+                        if (context.taskIntention.taskBreakdown) {
+                            context.aiGeneratedTask = context.taskIntention.taskBreakdown;
+                            console.log('🎆 AI task breakdown already available:', context.aiGeneratedTask.title);
+                        }
+                    }
+                }
+            }
+            
             console.log('🤔 Context understanding:', {
                 type: context.type,
                 confidence: context.confidence,
                 emotionalState: context.emotionalState?.state,
-                primaryNeed: context.userNeeds?.primary
+                primaryNeed: context.userNeeds?.primary || context.primaryNeed,
+                taskIntention: context.taskIntention?.isTask ? 'detected' : 'none'
             });
             
             return context;
@@ -212,6 +233,90 @@ class VelvetBrain {
         } catch (error) {
             console.error('❌ Understanding failed:', error);
             return { context: 'error', confidence: 0, error: error.message };
+        }
+    }
+    
+    /**
+     * Extract recent user input from sensory data
+     */
+    extractRecentUserInput(currentState) {
+        try {
+            // Look for voice input, chat input, or other user communications
+            if (currentState.inputs) {
+                for (const input of currentState.inputs) {
+                    if (input.type === 'voice' || input.type === 'chat' || input.type === 'text') {
+                        return input.content || input.text || input.message;
+                    }
+                }
+            }
+            
+            // Check global chat history if available
+            if (typeof window !== 'undefined' && window.getRecentChatMessage) {
+                return window.getRecentChatMessage();
+            }
+            
+            return null;
+        } catch (error) {
+            console.error('❌ Failed to extract user input:', error);
+            return null;
+        }
+    }
+    
+    /**
+     * Detect task intention in user input using the task breakdown engine
+     */
+    async detectTaskIntention(userInput) {
+        try {
+            if (!userInput || typeof userInput !== 'string') {
+                return { isTask: false, confidence: 0 };
+            }
+            
+            // Use task breakdown engine for advanced detection if available
+            if (typeof window !== 'undefined' && window.taskBreakdownEngine) {
+                try {
+                    // Try advanced AI-powered detection first
+                    const analysis = await window.taskBreakdownEngine.analyzeAndBreakdownTask(userInput);
+                    if (analysis) {
+                        console.log('🧠 AI-powered task detected and broken down');
+                        return {
+                            isTask: true,
+                            confidence: 0.9,
+                            type: 'ai_analyzed',
+                            originalInput: userInput,
+                            taskBreakdown: analysis
+                        };
+                    }
+                } catch (aiError) {
+                    console.warn('⚠️ AI task detection failed, using pattern matching:', aiError);
+                }
+            }
+            
+            // Fallback to pattern matching
+            const taskIndicators = [
+                'i need to', 'i have to', 'i should', 'i want to', 'i must',
+                'need to', 'have to', 'should do', 'going to',
+                'planning to', 'trying to', 'working on',
+                'help me', 'can you help', 'how do i', 'break down',
+                'task', 'project', 'assignment', 'work on'
+            ];
+            
+            const lowerInput = userInput.toLowerCase();
+            const hasIndicator = taskIndicators.some(indicator => lowerInput.includes(indicator));
+            
+            if (hasIndicator) {
+                return {
+                    isTask: true,
+                    confidence: 0.7,
+                    type: 'pattern_detected',
+                    originalInput: userInput
+                };
+            }
+            
+            return { isTask: false, confidence: 0 };
+            
+        } catch (error) {
+            console.error('❌ Task intention detection failed:', error);
+            return { isTask: false, confidence: 0, error: error.message };
         }
     }
 
@@ -750,16 +855,107 @@ class VelvetBrain {
 
     // Helper methods for specific task interventions
     async executeTaskBreakdown(action, message) {
-        if (window.addMessage) {
-            window.addMessage(message, 'velvet');
+        try {
+            console.log('📋 Executing AI-powered task breakdown...');
             
-            // Provide breakdown suggestions
+            // Check if we already have an AI-generated task from detection
+            if (action.context?.aiGeneratedTask) {
+                console.log('🎆 Using pre-generated AI task breakdown');
+                const task = action.context.aiGeneratedTask;
+                
+                // Activate the task in the task breakdown store
+                if (typeof window !== 'undefined' && window.useTaskBreakdownStore) {
+                    const store = window.useTaskBreakdownStore.getState();
+                    store.setActiveTask(task);
+                    store.showTaskUI();
+                }
+                
+                // Provide encouraging message
+                if (window.addMessage) {
+                    window.addMessage(`Perfect! I've broken down "${task.title}" into ${task.steps.length} manageable micro-steps. Let's tackle them one by one! 🎆`, 'velvet');
+                }
+                
+                return { 
+                    executed: true, 
+                    success: true, 
+                    type: 'pre_generated_ai_task',
+                    task: task,
+                    steps: task.steps.length 
+                };
+            }
+            
+            if (window.addMessage) {
+                window.addMessage(message, 'velvet');
+            }
+            
+            // Use the AI-powered task breakdown engine
+            if (typeof window !== 'undefined' && window.taskBreakdownEngine) {
+                const userInput = action.context?.recentUserInput || 
+                                action.intervention?.taskDescription || 
+                                "Help me break down this task";
+                
+                console.log('🧠 Analyzing task with AI engine:', userInput);
+                
+                try {
+                    const task = await window.taskBreakdownEngine.analyzeAndBreakdownTask(userInput);
+                    
+                    if (task) {
+                        // Activate the task via the store
+                        if (typeof window !== 'undefined' && window.useTaskBreakdownStore) {
+                            const store = window.useTaskBreakdownStore.getState();
+                            store.setActiveTask(task);
+                            store.showTaskUI();
+                        }
+                        
+                        // Show AI-generated breakdown
+                        if (window.addMessage) {
+                            window.addMessage(`Great! I've broken down "${task.title}" into ${task.steps.length} manageable steps. Check out the task panel! 🎆`, 'velvet');
+                        }
+                        
+                        return { 
+                            executed: true, 
+                            success: true, 
+                            type: 'ai_task_breakdown',
+                            task: task,
+                            steps: task.steps.length 
+                        };
+                    } else {
+                        // No task detected, provide gentle guidance
+                        if (window.addMessage) {
+                            setTimeout(() => {
+                                window.addMessage("What's the next thing you'd like to work on? I'm here to help break it down! 💙", 'velvet');
+                            }, 1000);
+                        }
+                        
+                        return { executed: true, success: true, type: 'guidance_prompt' };
+                    }
+                    
+                } catch (aiError) {
+                    console.error('❌ AI task breakdown failed:', aiError);
+                    // Fallback to simple breakdown
+                    return await this.executeFallbackTaskBreakdown(message);
+                }
+                
+            } else {
+                console.warn('⚠️ Task breakdown engine not available, using fallback');
+                return await this.executeFallbackTaskBreakdown(message);
+            }
+            
+        } catch (error) {
+            console.error('❌ Task breakdown execution failed:', error);
+            return { executed: false, success: false, error: error.message };
+        }
+    }
+    
+    async executeFallbackTaskBreakdown(message) {
+        if (window.addMessage) {
+            // Provide fallback breakdown suggestions
             setTimeout(() => {
                 window.addMessage("Let's break this into smaller steps:\n1. Start with the easiest part\n2. Focus on just 5 minutes\n3. Take a breath between steps", 'velvet');
             }, 1000);
         }
         
-        return { executed: true, success: true, type: 'task_breakdown' };
+        return { executed: true, success: true, type: 'fallback_task_breakdown' };
     }
 
     async executeFocusProtection(action, message) {

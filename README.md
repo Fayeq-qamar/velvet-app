@@ -1,6 +1,6 @@
 <!-- Ultra-Stylized Header -->
 <h1 align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=32&duration=2000&pause=1000&color=F5576C&center=true&vCenter=true&width=600&lines=velvet-app%3BVelvet%20-%20Neurodivergent%20AI%20Assistant%3BBuilt%20with%20JavaScript" alt="Typing SVG" />
+  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=28&duration=2000&pause=1000&color=F5576C&center=true&vCenter=true&width=600&lines=velvet-app%3BVelvet%20-%20Neurodivergent%20AI%20Assistant%3BBuilt%20with%20JavaScript" alt="Typing SVG" />
 </h1>
 
 <!-- Animated Banner -->

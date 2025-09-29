@@ -1,4 +1,4 @@
-<!-- Ultra-Stylized Header --> <h1 align="center"> <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=32&duration=2000&pause=1000&color=F5576C&center=true&vCenter=true&width=600&lines=velvet-app%3BVelvet%20-%20Neurodivergent%20AI%20Assistant%3BBuilt%20with%20JavaScript" alt="Typing SVG" /> </h1> <!-- Animated Banner --> <div align="center"> <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12&height=200&section=header&text=velvet-app&fontSize=60&animation=fadeIn&fontAlignY=35" /> </div> <!-- Quick Stats Row --> <p align="center"> <img src="https://img.shields.io/github/stars/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=STARS&color=FFD700" /> <img src="https://img.shields.io/github/forks/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=FORKS&color=32CD32" /> <img src="https://img.shields.io/github/issues/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=ISSUES&color=FF6B6B" /> <img src="https://img.shields.io/github/last-commit/Fayeq-qamar/velvet-app?style=for-the-badge&label=LAST%20COMMIT&color=F0DB4F" /> </p> <!-- Visitor Counter --> <p align="center"> <img src="https://komarev.com/ghpvc/?username=velvet-app&style=for-the-badge&color=blueviolet" /> </p>
+<!-- Ultra-Stylized Header --> <h1 align="center"> <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=28&duration=2000&pause=1000&color=F5576C&center=true&vCenter=true&width=600&lines=velvet-app%3BVelvet%20-%20Neurodivergent%20AI%20Assistant%3BBuilt%20with%20JavaScript" alt="Typing SVG" /> </h1> <!-- Animated Banner --> <div align="center"> <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12&height=200&section=header&text=velvet-app&fontSize=60&animation=fadeIn&fontAlignY=35" /> </div> <!-- Quick Stats Row --> <p align="center"> <img src="https://img.shields.io/github/stars/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=STARS&color=FFD700" /> <img src="https://img.shields.io/github/forks/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=FORKS&color=32CD32" /> <img src="https://img.shields.io/github/issues/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=ISSUES&color=FF6B6B" /> <img src="https://img.shields.io/github/last-commit/Fayeq-qamar/velvet-app?style=for-the-badge&label=LAST%20COMMIT&color=F0DB4F" /> </p> <!-- Visitor Counter --> <p align="center"> <img src="https://komarev.com/ghpvc/?username=velvet-app&style=for-the-badge&color=blueviolet" /> </p>
 🚀 Welcome to velvet-app
 
 <div align="center">
@@ -40,7 +40,7 @@ Velvet - Neurodivergent AI Assistant
 
 📦 7 Languages - Multi-language support
 
-👥 1 Contributors - Community-driven development
+👥 0 Contributors - Community-driven development
 
 🧪 Tested - Comprehensive test coverage
 
@@ -63,20 +63,41 @@ webpack.config.js	0	0	❌	2.3KB
 📊 File Types: js (4), py (1)
 
 </details>
-Build
+🚀 Getting Started
 
-Prerequisites
-Node.js 18 or higher
-npm 6 or higher
+📋 Prerequisites
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 10px;">
+Node.js (v18.0.0 or higher)
+npm package manager
+Git for version control
+</div>
+⚙️ Installation
+Clone the repository
+
+git clone https://github.com/Fayeq-qamar/velvet-app.git
+cd velvet-app
 Install dependencies
-npm install
-Start development server
-npm run dev
-Production build
-npm run build
-Usage
 
-Quick Start Example
+npm install
+Set up environment variables
+
+cp .env.example .env.local
+Edit .env.local with your configuration:
+
+# Add your environment variables here
+DATABASE_URL=your_database_url
+API_KEY=your_api_key
+Start development server
+
+npm run dev
+Open browser
+
+Navigate to http://localhost:3000
+💻 Usage
+
+🎯 Basic Usage
+<details> <summary><b>Quick Start Example</b></summary>
+// Basic usage example
 // Install dependencies first
 npm install
 
@@ -84,27 +105,27 @@ npm install
 npm run dev
 
 // Open http://localhost:3000
-Available Scripts
-start
+</details>
+📜 Available Scripts
+Script	Description	Command
+start	Start production server	npm run start
+dev	Start development server	npm run dev
+build	Build for production	npm run build
+test	Run test suite	npm run test
+🚀 Advanced Usage
+<details> <summary><b>Configuration Options</b></summary>
+// Advanced configuration example
+// Advanced configuration
+const config = {
+  environment: process.env.NODE_ENV,
+  options: {
+    debug: true,
+    verbose: false
+  }
+}
 
-npm run start
-Start production server
-
-dev
-
-npm run dev
-Start development server
-
-build
-
-npm run build
-Build for production
-
-test
-
-npm run test
-Run test suite
-
+export default config
+</details>
 🗂️ Project Structure
 
 📦 velvet-app
@@ -122,7 +143,7 @@ Run test suite
 └── 📜 LICENSE
 📊 Structure Analysis
 10 directories
-49 files
+48 files
 Source code organization: ✅ Organized
 Documentation: ✅ Dedicated docs folder
 Testing: 🧪 Integrated

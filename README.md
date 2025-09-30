@@ -1,414 +1,197 @@
-<!-- Ultra-Stylized Header -->
-<h1 align="center">
-  <img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&size=28&duration=2000&pause=1000&color=F5576C&center=true&vCenter=true&width=600&lines=velvet-app%3BVelvet%20-%20Neurodivergent%20AI%20Assistant%3BBuilt%20with%20JavaScript" alt="Typing SVG" />
-</h1>
+# velvet-app
 
-<!-- Animated Banner -->
+Velvet - Neurodivergent AI Assistant
+
+## ✨ About Velvet
+
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12&height=200&section=header&text=velvet-app&fontSize=60&animation=fadeIn&fontAlignY=35" />
-</div>
-
-<!-- Quick Stats Row -->
-<p align="center">
-  <img src="https://img.shields.io/github/stars/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=STARS&color=FFD700" />
-  <img src="https://img.shields.io/github/forks/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=FORKS&color=32CD32" />
-  <img src="https://img.shields.io/github/issues/Fayeq-qamar/velvet-app?style=for-the-badge&logo=github&logoColor=white&label=ISSUES&color=FF6B6B" />
   
-  <img src="https://img.shields.io/github/last-commit/Fayeq-qamar/velvet-app?style=for-the-badge&label=LAST%20COMMIT&color=F0DB4F" />
-</p>
-
-<!-- Visitor Counter -->
-<p align="center">
-  <img src="https://komarev.com/ghpvc/?username=velvet-app&style=for-the-badge&color=blueviolet" />
-</p>
-
----
-
-## 🚀 Welcome to velvet-app
-
-<div align="center">
-
-  ### Velvet - Neurodivergent AI Assistant
-
-  <br>
-
-  <!-- Quick Action Buttons -->
-  <a href="https://github.com/Fayeq-qamar/velvet-app">
-    <img src="https://img.shields.io/badge/VIEW-REPOSITORY-success?style=for-the-badge&logo=github&logoColor=white" />
-  </a>
-  <a href="https://github.com/Fayeq-qamar/velvet-app/issues">
-    <img src="https://img.shields.io/badge/REPORT-BUG-red?style=for-the-badge&logo=github&logoColor=white" />
-  </a>
-  <a href="https://github.com/Fayeq-qamar/velvet-app/issues">
-    <img src="https://img.shields.io/badge/REQUEST-FEATURE-purple?style=for-the-badge&logo=github&logoColor=white" />
-  </a>
+Velvet is a **neurodivergent-friendly AI assistant** designed to provide soft support for sharp minds. Built with modern technologies and accessibility in mind, Velvet offers a seamless experience for users who think differently.
 
 </div>
 
----
-
-## 🛠️ Built With
-
-<!-- Tech Stack Icons -->
-<p align="center">
-  <img src="https://skillicons.dev/icons?i=javascript,html,typescript,shell,python,css,rust,express,framer,react,tailwindcss,webpack" />
-</p>
-
-### 👾 Languages
-![JavaScript](https://img.shields.io/badge/JavaScript-%23F7DF1E.svg?style=for-the-badge&logo=javascript&logoColor=black)
-![TypeScript](https://img.shields.io/badge/TypeScript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-![Python](https://img.shields.io/badge/Python-%233776AB.svg?style=for-the-badge&logo=python&logoColor=white)
-![rust](https://img.shields.io/badge/rust-%23666666.svg?style=for-the-badge&logo=rust&logoColor=white)
-
-
-### 🎨 Frameworks & Libraries
-![Express.js](https://img.shields.io/badge/Express.js-%23000000.svg?style=for-the-badge&logo=express&logoColor=white)
-![React](https://img.shields.io/badge/React-%2361DAFB.svg?style=for-the-badge&logo=react&logoColor=black)
-
-
-
-
-
-
----
-
-## Build
-
-<details>
-<summary>🚀 Click to expand</summary>
-
-### Prerequisites
-
-- Node.js 18 or higher
-- npm 6 or higher
-
-### Install dependencies
-
-```bash
-npm install
-```
-
-### Start development server
-
-```bash
-npm run dev
-```
-
-### Production build
-
-```bash
-npm run build
-```
-
-</details>
-
----
-
-## 📖 About The Project
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/rocket.png" width="60" />
-        <br><br>
-        <strong>⚡ React Application</strong>
-        <br>
-        <sub>Modern React application with latest features</sub>
-      </td>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/code.png" width="60" />
-        <br><br>
-        <strong>🎯 JavaScript</strong>
-        <br>
-        <sub>Built with modern JavaScript technologies</sub>
-      </td>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/github.png" width="60" />
-        <br><br>
-        <strong>🔒 Open Source</strong>
-        <br>
-        <sub>Community-driven development</sub>
-      </td>
-    </tr>
-  </table>
-</div>
-
-
-
-**Velvet - Neurodivergent AI Assistant**
-
-
-
-### ✨ Key Highlights
-
-- 🚀 **React Application** - Modern React application with latest features
-- 🎯 **JavaScript** - Built with modern technologies
-- 📦 **7 Languages** - Multi-language support
-- 👥 **1 Contributors** - Community-driven development
-- 🧪 **Tested** - Comprehensive test coverage
-
-- 💙 **TypeScript** - Type-safe development
-
----
-
-## ✨ Features
-
-<div align="center">
-  <table>
-    <tr>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/rocket.png" width="60" height="60" alt="React Application">
-        <br><br>
-        <strong>⚡ React Application</strong>
-        <br>
-        <sub>Modern React application with latest features</sub>
-      </td>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/typescript.png" width="60" height="60" alt="Type Safety">
-        <br><br>
-        <strong>💙 Type Safety</strong>
-        <br>
-        <sub>Full TypeScript support for better development</sub>
-      </td>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/test.png" width="60" height="60" alt="Well Tested">
-        <br><br>
-        <strong>🧪 Well Tested</strong>
-        <br>
-        <sub>Comprehensive test coverage</sub>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/css3.png" width="60" height="60" alt="Modern Styling">
-        <br><br>
-        <strong>🎨 Modern Styling</strong>
-        <br>
-        <sub>Beautiful UI with Tailwind CSS</sub>
-      </td>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/activity.png" width="60" height="60" alt="Active Development">
-        <br><br>
-        <strong>🔄 Active Development</strong>
-        <br>
-        <sub>Continuously improved and maintained</sub>
-      </td>
-      <td align="center" width="33%">
-        <img src="https://img.icons8.com/fluency/96/000000/book.png" width="60" height="60" alt="Documentation">
-        <br><br>
-        <strong>📚 Documentation</strong>
-        <br>
-        <sub>Well-documented codebase</sub>
-      </td>
-    </tr>
-  </table>
-</div>
-
-
-
-### 📊 Code Analysis
+## 🛠️ Tech Stack
 
 <div align="center">
 
-**5 Source Files** • **0 Components** • **7 Functions**
+<!-- Skill Icons -->
+<img src="https://skillicons.dev/icons?i=js,electron,nodejs,python,rust,fastapi,tensorflow,ai" alt="Tech Stack" />
+<br/>
+<img src="https://skillicons.dev/icons?i=html,css,react,vue,tailwind,webpack,git,github" alt="Frontend Stack" />
 
 </div>
-
-<details>
-<summary><b>📁 File Analysis Breakdown</b></summary>
-
-| File | Components | Functions | Test File | Size |
-|------|------------|-----------|-----------|------|
-| `direct-console-fix.js` | 0 | 7 | ❌ | 10.3KB |
-| `postcss.config.js` | 0 | 0 | ❌ | 0.1KB |
-| `tailwind.config.js` | 0 | 0 | ❌ | 10.0KB |
-| `test-optimized-ocr.py` | 0 | 0 | ✅ | 8.9KB |
-| `webpack.config.js` | 0 | 0 | ❌ | 2.3KB |
-
-
-
-
-
-**📊 File Types**: js (4), py (1)
-
-</details>
-
----
-
-## Screenshots
-
-Add screenshots of your project here to showcase its visual features and user interface.
-
----
-
-## Usage
-
-### Quick Start Example
-
-```javascript
-// Install dependencies first
-npm install
-
-// Start development server
-npm run dev
-
-// Open http://localhost:3000
-```
-
-### Available Scripts
-
-**start**
-```bash
-npm run start
-```
-Start production server
-
-**dev**
-```bash
-npm run dev
-```
-Start development server
-
-**build**
-```bash
-npm run build
-```
-Build for production
-
-**test**
-```bash
-npm run test
-```
-Run test suite
-
-
-
----
-
-## 🗂️ Project Structure
-
-```
-📦 velvet-app
-├── 📂 src/
-│   ├── 📄 index.ts
-│   ├── 📄 App.ts
-│   ├── 📂 components/
-│   ├── 📂 hooks/
-│   ├── 📂 utils/
-│   └── 📂 styles/
-├── 📂 public/
-├── 📋 package.json
-├── ⚙️ tsconfig.json
-├── 📖 README.md
-└── 📜 LICENSE
-```
-
-### 📊 Structure Analysis
-
-- **10** directories
-- **49** files
-- **Source code organization**: ✅ Organized
-- **Documentation**: ✅ Dedicated docs folder
-- **Testing**: 🧪 Integrated
-
----
-
-## 🤝 Contributing
-
-<div align="center">
-  <img src="https://contrib.rocks/image?repo=Fayeq-qamar/velvet-app" alt="Contributors" />
-</div>
-
-Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-### 🚀 How to Contribute
-
-1. 🍴 **Fork the Project**
-2. 🌿 **Create your Feature Branch** (`git checkout -b feature/AmazingFeature`)
-3. 💬 **Commit your Changes** (`git commit -m 'Add some AmazingFeature'`)
-4. 📤 **Push to the Branch** (`git push origin feature/AmazingFeature`)
-5. 🎉 **Open a Pull Request**
-
-### 📝 Development Guidelines
-
-- Follow the existing code style
-- Write meaningful commit messages
-- Add tests for new features
-- Update documentation as needed
-- Ensure all tests pass
-
-### 🐛 Report Issues
-
-Found a bug? [Create an issue](https://github.com/Fayeq-qamar/velvet-app/issues/new) and help us improve!
-
-### 💡 Request Features
-
-Have an idea? [Request a feature](https://github.com/Fayeq-qamar/velvet-app/issues/new) and let's discuss it!
-
----
 
 ## 📊 GitHub Stats
 
 <div align="center">
-  <img height="180em" src="https://github-readme-stats.vercel.app/api/pin/?username=Fayeq-qamar&repo=velvet-app&theme=radical&show_owner=true"/>
-</div>
 
-<div align="center">
-  <img src="https://github-readme-streak-stats.herokuapp.com/?user=Fayeq-qamar&theme=radical" />
-</div>
-
-### 📈 Repository Statistics
-
-<div align="center">
-
-![Stars](https://img.shields.io/github/stars/Fayeq-qamar/velvet-app?style=for-the-badge&color=FFD700)
-![Forks](https://img.shields.io/github/forks/Fayeq-qamar/velvet-app?style=for-the-badge&color=32CD32)
-![Issues](https://img.shields.io/github/issues/Fayeq-qamar/velvet-app?style=for-the-badge&color=FF6B6B)
-![Pull Requests](https://img.shields.io/github/issues-pr/Fayeq-qamar/velvet-app?style=for-the-badge&color=9932CC)
-![Watchers](https://img.shields.io/github/watchers/Fayeq-qamar/velvet-app?style=for-the-badge&color=FF69B4)
-![Size](https://img.shields.io/github/repo-size/Fayeq-qamar/velvet-app?style=for-the-badge&color=4169E1)
-
-</div>
-
-### 📊 Language Distribution
-
-<div align="center">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Fayeq-qamar&layout=compact&theme=radical" />
-</div>
-
----
-
-## 📜 License
-
-This project is open source. Please check the repository for license information.
-
----
-
-<div align="center">
-
-### 💖 Support This Project
-
-<a href="https://github.com/sponsors/Fayeq-qamar">
-  <img src="https://img.shields.io/badge/GitHub%20Sponsors-EA4AAA?style=for-the-badge&logo=github-sponsors&logoColor=white" />
+<!-- GitHub Stats -->
+<a href="https://github.com/Fayeq-qamar/velvet-app">
+  <img src="https://github-readme-stats.vercel.app/api?username=Fayeq-qamar&show_icons=true&theme=radical&count_private=true&hide_border=true&bg_color=00000000&title_color=8B5FBF&icon_color=8B5FBF&text_color=ffffff" alt="GitHub Stats" width="49%" />
+</a>
+<a href="https://github.com/Fayeq-qamar/velvet-app">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=Fayeq-qamar&layout=compact&theme=radical&hide_border=true&bg_color=00000000&title_color=8B5FBF&text_color=ffffff" alt="Top Languages" width="49%" />
 </a>
 
-### 🌐 Connect With Fayeq-qamar
-
-<a href="https://github.com/Fayeq-qamar">
-  <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" />
-</a>
-
-<br><br>
-
-**Made with ❤️ and ☕ by [Fayeq-qamar](https://github.com/Fayeq-qamar)**
-
-<a href="#top">⬆️ Back to Top</a>
-
 </div>
 
----
+## 🚀 Features
+
+<table align="center">
+  <tr>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/fluency/96/brain.png" alt="AI Brain" width="64"/>
+      <br/>
+      <strong>AI-Powered Assistance</strong>
+      <p>Advanced AI capabilities with neurodivergent-friendly interactions</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/fluency/96/accessibility2.png" alt="Accessibility" width="64"/>
+      <br/>
+      <strong>Accessibility First</strong>
+      <p>Designed with neurodivergent users in mind from the ground up</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/fluency/96/multi-platform.png" alt="Cross Platform" width="64"/>
+      <br/>
+      <strong>Cross-Platform</strong>
+      <p>Built with Electron for seamless desktop experience</p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/fluency/96/voice-recognition.png" alt="Voice Recognition" width="64"/>
+      <br/>
+      <strong>Voice Integration</strong>
+      <p>Advanced audio processing with Whisper and custom capture</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/fluency/96/real-time.png" alt="Real-time" width="64"/>
+      <br/>
+      <strong>Real-time Processing</strong>
+      <p>Low-latency screen and audio capture services</p>
+    </td>
+    <td align="center" width="33%">
+      <img src="https://img.icons8.com/fluency/96/module.png" alt="Modular" width="64"/>
+      <br/>
+      <strong>Modular Architecture</strong>
+      <p>Multi-service design with Rust, Python, and JavaScript</p>
+    </td>
+  </tr>
+</table>
+
+## 🏗️ Architecture
 
 <div align="center">
-  <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=12&height=100&section=footer" />
+
+```mermaid
+graph TD
+    A[Electron Frontend] --> B[Main Process]
+    B --> C[Capture Service - Rust]
+    B --> D[Preprocessing - Python]
+    C --> E[Screen & Audio Capture]
+    D --> F[AI Processing]
+    E --> F
+    F --> G[Neurodivergent AI]
+    G --> A
+```
+
 </div>
+
+## 📦 Installation
+
+<div align="center">
+
+```bash
+
+# Clone the repository
+git clone https://github.com/Fayeq-qamar/velvet-app.git
+cd velvet-app
+
+# Install dependencies
+npm install
+
+# Build TypeScript
+npm run build:ts
+
+# Start in development mode
+npm run dev
+```
+
+</div>
+
+## 🎯 Quick Start
+
+<table>
+  <tr>
+    <td width="50%">
+      <h3>Development Mode</h3>
+      <pre><code>npm run dev</code></pre>
+      <p>Starts Velvet in development mode with hot reload</p>
+    </td>
+    <td width="50%">
+      <h3>Safe Mode</h3>
+      <pre><code>npm run dev-safe</code></pre>
+      <p>Runs with minimal modules for debugging</p>
+    </td>
+  </tr>
+</table>
+
+## 🔧 Services
+
+<div align="center">
+
+| Service | Language | Purpose |
+|---------|----------|---------|
+| **Main App** | JavaScript/Electron | Desktop interface and coordination |
+| **Capture Service** | Rust | High-performance screen/audio capture |
+| **Preprocessing** | Python/FastAPI | AI model integration and processing |
+
+</div>
+
+## 🤝 Contributing
+
+<div align="center">
+
+We welcome contributions! Velvet is built for and by the neurodivergent community.
+
+```bash
+
+# Fork the repository
+
+# Create a feature branch
+
+# Make your changes
+
+# Submit a pull request
+```
+
+</div>
+
+## 📝 License
+
+<div align="center">
+
+Velvet App is released under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+</div>
+
+## 🌟 Support
+
+<div align="center">
+
+If you find Velvet helpful, please consider giving it a ⭐ on GitHub!
+
+<a href="https://github.com/Fayeq-qamar/velvet-app">
+  <img src="https://img.shields.io/github/stars/Fayeq-qamar/velvet-app?style=for-the-badge&color=8B5FBF&logo=github" alt="GitHub Stars" />
+</a>
+
+</div>
+
+<div align="center">
+
+<!-- Gradient Wave Footer -->
+<img src="https://capsule-render.vercel.app/api?type=wave&color=gradient&height=120&section=footer&text=Thank+You&fontSize=40&fontColor=ffffff&animation=fadeIn" alt="Footer Banner" />
+
+</div>
+
